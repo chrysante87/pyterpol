@@ -13,8 +13,8 @@ class ObservedSpectrum:
 	    intens..   	intensity vector
 	    error..  	error vector
 	    filename..	source spectrum
-	    component
-	    korel
+	    component.. component to which the spectrum belongs
+	    korel.. 	korel mode
 	"""
 	
 	# pass all arguments
@@ -23,15 +23,15 @@ class ObservedSpectrum:
 	
 	# lets have a look at the errors
 	if error is None:
-	    warnings.warn("I found no errorbars of the observed intensities in file: %s! " \
-			  "I assume they will be provided later. I remember!!" % (filename))
+	    warnings.warn("I found no array with errorbars of observed intensities. " \
+			  "Do not forget to assign them later!")
 	    self.error = None
 	    self.hasErrors = False
 	
 	# Making assumption here, that we are
 	# not passing errors, if we are not
 	# passing wavelengths and intensities
-	elif isinstance(error, float, int):
+	elif isinstance(error, (float, int)):
 	    self.error = np.ones(len(wave))*error
 	    self.hasErrors = True
 	else:
@@ -41,6 +41,11 @@ class ObservedSpectrum:
 	# sets that the spectrum is loaded
 	if (wave is not None) and (intens is not None):
 	    self.loaded = True
+	    self.read_size()
+	    
+	    # check lengths of intens and wave
+	    self.check_length()
+	    
 	else:
 	    self.loaded = False
 	
@@ -48,11 +53,16 @@ class ObservedSpectrum:
 	self.filename = filename
 	if (not self.loaded) and (self.filename is not None):
 	    self.read_spectrum_from_file(filename)
+	elif (not self.loaded) and (self.filename is None): 
+	    warnings.warn('No spectrum was loaded. This class is kinda useless without a spectrum. '
+			  'I hope you know what you are doing.')
 	
 	# setup korel and check that it is proper
 	self.component = component
 	self.korel = korel
 	self.check_korel()
+	
+	
 	
     def __str__(self):
 	"""
@@ -65,9 +75,17 @@ class ObservedSpectrum:
 	"""
 	If korel is set, component must be set too.
 	"""
-	if (korel) and (self.component.upper() == 'ALL'):
+	if (self.korel) and (self.component.upper() == 'ALL'):
 	    raise ValueError('In the korel regime, each spectrum must be assigned component! ' \
 			     'Currently it is %s' % str(self.component))
+    def check_length(self):
+	"""
+	Checks that wavelengths and intensities have the same length.
+	"""
+	if len(self.wave) != len(self.intens):
+	    raise ValueError('Wavelength vector and intensity vector do not have the same length!')
+	
+	  
     def free_spectrum(self):
 	"""
 	Deletes the stored spectrum.
@@ -76,6 +94,7 @@ class ObservedSpectrum:
 	self.intens = None
 	self.error = None
 	self.loaded = False
+	self.hasErrors = False
 	
     def get_boundaries(self):
 	"""
@@ -120,7 +139,7 @@ class ObservedSpectrum:
 	
 	self.wmin = self.wave.min()
 	self.wmax = self.wave.max()
-	self.step = np.mean(wave[1:]-wave[:-1])	  
+	self.step = np.mean(self.wave[1:]-self.wave[:-1])	  
 	
 	 
     def read_spectrum_from_file(self, filename, global_error=None):
@@ -141,7 +160,7 @@ class ObservedSpectrum:
 	except:
 	  
 	    # we failed, so we attempt to load two columns
-	    self.wave, self.intensity = np.loadtxt(filename, unpack=True, usecols=[0,1,2])
+	    self.wave, self.intensity = np.loadtxt(filename, unpack=True, usecols=[0,1])
 	    
 	    # error was not set up
 	    if global_error is None:
@@ -154,9 +173,13 @@ class ObservedSpectrum:
 		self.hasErrors = True
 	
 	# the spectrum is marked as loaded
-	self.loaded = True	
+	self.loaded = True
 	
-    def set_error(vec_error=None, glob_error=None):
+	# the spectrum is checked
+	self.check_length()
+	self.read_size()
+	
+    def set_error(self, vec_error=None, global_error=None):
 	"""
 	A tool to set the error.
 	INPUT:
@@ -166,8 +189,8 @@ class ObservedSpectrum:
 	if vec_error is not None:
 	    self.error = vec_error
 	    self.hasErrors = True
-	if glob_error is not None:
-	    self.error = glob_error*(len(self.wave))
+	if global_error is not None:
+	    self.error = global_error*np.ones(len(self.wave))
 	    self.hasErrors = True
 	    
     def set_spectrum_from_arrays(self, wave, intens, error):
@@ -179,10 +202,13 @@ class ObservedSpectrum:
 	    intens..	intensity array
 	    error..	error array
 	"""
-	
 	self.wave = wave
 	self.intens = intens
 	self.error = error
 	self.loaded = True
 	self.hasErrors = True
+	
+	# checking and reading
+	self.check_length()
+	self.read_size()
 	
