@@ -24,6 +24,10 @@ class SyntheticSpectrum:
 	Reads the synthetic spectrum and its properties.
 	input:
 	  f.. file with the spectrum
+	  wave.. wavelength vector of the synthetic spectrum
+	  intens.. intensity vector of the synthetic spectrum
+	  do_not_load.. switch for cases, when we want to build the 
+	      class but do not want to load the spectrum.
 	**props.. properties of the spectrum, in the correct type  
 	"""
 	
@@ -105,6 +109,12 @@ class SyntheticSpectrum:
 	    wmax = maximal wavelength
 	"""
 	
+	# lets have a special case, where the boundaries are None
+	if wmin is None:
+	    wmin = self.wmin
+	if wmax is None:
+	    wmax = self.wmax
+
 	if (wmin - (self.wmin-self.step) < ZERO_TOLERANCE) | \
 	   (wmax - (self.wmax+self.step) > ZERO_TOLERANCE):
 	    return False
@@ -369,7 +379,6 @@ class SyntheticSpectrum:
 	    self.wave = self.wave[ind]
 	    self.intens = self.intens[ind]
 	
-	    	
 class SyntheticGrid:
     def __init__(self, mode='custom', debug=False):
 	"""
@@ -419,25 +428,27 @@ class SyntheticGrid:
 	"""
 	self.SyntheticSpectraList = []
 	
-    def get_synthetic_spectrum(self, params, wmin, wmax, order=2, step=0.01):
+    def get_synthetic_spectrum(self, params, wave, order=2, step=0.01, padding=20.0):
 	"""
 	Method which computes the interpolated spectrum
 	and wraps it within SyntheticSpectrum class. This
 	function should be accessed by the user.
 	input:
 	    params.. dictionary containing values at which 
-		    we eant to interpolate
-	    order.. number of spectra at which we are going 
-		    to interpolate, i.e. the order of the
-		    fit is k = order-1 for order < 4 and 
-		    k = 3 for order > 4.
-	    step.. step in wavelength scale
-	    wmin.. minimal wavelength 
-	    wmax.. maximal wavelenght - both maximal and 
-		   minimal wavelength are advised to be 
-		   larger than the observed one by several Angstrom
+		     we want to interpolate
+	    order..  number of spectra at which we are going 
+		     to interpolate, i.e. the order of the
+		     fit is k = order-1 for order < 4 and 
+		     k = 3 for order > 4.
+	    wave..   wavelength vector for which the synthetic 
+		     spectrum should be created.
 	"""
-	# store equidistant wavelength vector
+	#sets up the equidistant wavelength vector
+	wmin = wave.min() - padding
+	wmax = wave.max() + padding
+	step = step
+	
+	# overwrite the wave vector for
 	self.set_wavelength_vector(wmin, wmax, step)
 	
 	# first of all we need to get list of parameters, 
@@ -580,6 +591,9 @@ class SyntheticGrid:
 		    print "Loading spectrum: %s" % (str(spectrum).rstrip('\n'))
 		
 		spectrum.load_spectrum()
+		
+		# check that the synthetic spectrum has sufficient size
+		spectrum.check_boundaries(wmin, wmax)
 		
 		# truncates the loaded spectrum
 		if truncateSpectrum:

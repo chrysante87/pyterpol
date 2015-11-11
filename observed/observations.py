@@ -1,4 +1,5 @@
 import warnings
+import numpy as np
 
 class ObservedSpectrum:
     """
@@ -24,6 +25,7 @@ class ObservedSpectrum:
 	if error is None:
 	    warnings.warn("I found no errorbars of the observed intensities in file: %s! " \
 			  "I assume they will be provided later. I remember!!" % (filename))
+	    self.error = None
 	    self.hasErrors = False
 	
 	# Making assumption here, that we are
@@ -35,8 +37,7 @@ class ObservedSpectrum:
 	else:
 	    self.error = error
 	    self.hasErrors = True
-	    
-	
+
 	# sets that the spectrum is loaded
 	if (wave is not None) and (intens is not None):
 	    self.loaded = True
@@ -53,6 +54,13 @@ class ObservedSpectrum:
 	self.korel = korel
 	self.check_korel()
 	
+    def __str__(self):
+	"""
+	String representation of the class.
+	"""
+	
+	pass
+	
     def check_korel(self):
 	"""
 	If korel is set, component must be set too.
@@ -68,6 +76,52 @@ class ObservedSpectrum:
 	self.intens = None
 	self.error = None
 	self.loaded = False
+	
+    def get_boundaries(self):
+	"""
+	Returns the minimal and the maximal wavelength
+	of the spectrum.
+	"""
+	self.read_size()
+	return self.wmin, self.wmax
+      
+    def get_spectrum(self):
+	"""
+	Returns the spectrum.
+	OUPUT:
+	  self.wave..	wavelengths
+	  self.intens..	intensities
+	  self.error..	errors
+	"""
+	if not self.loaded:
+	    raise Exception('The spectrum %s has not been loaded yet!' % str(self))
+	else:
+	    return self.wave.copy(), self.intens.copy(), self.error.copy()
+	  
+    def get_wavelength(self):
+	"""
+	Returns the wavelength vector.
+	OUPUT:
+	  self.wave..	wavelengths
+	"""
+	if not self.loaded:
+	    raise Exception('The spectrum %s has not been loaded yet!' % str(self))
+	else:
+	    return self.wave.copy()
+	  
+    def read_size(self):
+	"""
+	Gets the minimal wavelength, maximal wavelenbgth
+	and the mean step. Linearity in wavelength is not
+	required.
+	"""
+	if not self.loaded:
+	    raise Exception('The spectrum %s has not been loaded yet!' % str(self))
+	
+	self.wmin = self.wave.min()
+	self.wmax = self.wave.max()
+	self.step = np.mean(wave[1:]-wave[:-1])	  
+	
 	 
     def read_spectrum_from_file(self, filename, global_error=None):
 	"""
@@ -100,7 +154,7 @@ class ObservedSpectrum:
 		self.hasErrors = True
 	
 	# the spectrum is marked as loaded
-	self.loaded = True
+	self.loaded = True	
 	
     def set_error(vec_error=None, glob_error=None):
 	"""
@@ -115,4 +169,20 @@ class ObservedSpectrum:
 	if glob_error is not None:
 	    self.error = glob_error*(len(self.wave))
 	    self.hasErrors = True
+	    
+    def set_spectrum_from_arrays(self, wave, intens, error):
+	"""
+	Stores the spectrum from arrays. It is assumed 
+	that user also provides error vector.
+	INPUT:
+	    wave..	wavelength array
+	    intens..	intensity array
+	    error..	error array
+	"""
+	
+	self.wave = wave
+	self.intens = intens
+	self.error = error
+	self.loaded = True
+	self.hasErrors = True
 	
