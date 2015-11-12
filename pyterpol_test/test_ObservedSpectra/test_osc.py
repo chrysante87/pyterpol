@@ -29,13 +29,31 @@ e = np.random.random(len(w))*0.01
 #os.set_error(global_error=0.01)
 #print os.error
 
-# everything is passed after creation of type
-os = pyterpol.ObservedSpectrum()
-os.set_spectrum_from_arrays(w,i,e)
+# everything is passed after creation of type - checked
+#os = pyterpol.ObservedSpectrum()
+#os.set_spectrum_from_arrays(w,i,e)
 #print os.error
 
-# check that the spectrum is measured properly
+# check that the spectrum is measured properly - checked
 #print w[0], w[-1], os.get_boundaries()
+
+# free the spectrum - checked
+#os.free_spectrum()
+#print os.wave, os.intens, os.error, os.loaded
+
+# tests some precautions
+# what if the intensities and wavelengths do not have the same length -checked
+#os.set_spectrum_from_arrays(w[:-3],i,e)
+
+# what if we set up korel, b ut do not set up component - checked
+#os = pyterpol.ObservedSpectrum(wave=w, intens=i, error=e, korel=True)
+
+# try to do estimate of the error
+os = pyterpol.ObservedSpectrum(wave=w, intens=i, error=e)
+err_cont = os.get_sigma_from_continuum(4453, 4459)
+print err_cont, os.error
+err_fft = os.get_sigma_from_fft(nlast=50)
+print err_fft, os.error
 
 
 

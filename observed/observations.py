@@ -1,5 +1,8 @@
 import warnings
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import splrep
+from scipy.interpolate import splev
 
 class ObservedSpectrum:
     """
@@ -62,8 +65,6 @@ class ObservedSpectrum:
 	self.korel = korel
 	self.check_korel()
 	
-	
-	
     def __str__(self):
 	"""
 	String representation of the class.
@@ -77,14 +78,20 @@ class ObservedSpectrum:
 	"""
 	if (self.korel) and (self.component.upper() == 'ALL'):
 	    raise ValueError('In the korel regime, each spectrum must be assigned component! ' \
-			     'Currently it is %s' % str(self.component))
+			     'Currently it is set to %s.' % str(self.component))
     def check_length(self):
 	"""
 	Checks that wavelengths and intensities have the same length.
 	"""
 	if len(self.wave) != len(self.intens):
 	    raise ValueError('Wavelength vector and intensity vector do not have the same length!')
-	
+	  
+    def check_loaded(self):
+	"""
+	Checks that spectrum is loaded.
+	"""
+	if not self.loaded:
+	    raise ValueError('The spectrum is not loaded.')
 	  
     def free_spectrum(self):
 	"""
@@ -102,9 +109,79 @@ class ObservedSpectrum:
 	of the spectrum.
 	"""
 	self.read_size()
-	return self.wmin, self.wmax
+	return self.wmin, self.wmax  
+    
+    def get_sigma_from_continuum(self, cmin, cmax, store=True):
+	"""
+	Estimates the error of the flux from the scatter in 
+	continuum.
+	INPUT:
+	  cmin..	minimal continuum wavelength
+	  cmax..	maximal continuum wavelength
+	  store..	save the error as an error bar
+	OUTPUT:
+	  stddev	estimated error bar
+	"""
+	# is the spectrum loaded ?
+	self.check_loaded()
+	
+	# get the part around continue
+	intens = self.get_spectrum(wmin=cmin, wmax=cmax)[1]
+	
+	# get the scatter
+	stddev = intens.std(ddof=1)
+	
+	# save it as an error
+	if store:
+	    self.error = stddev*np.ones(len(self.wave))
+	    
+	return stddev
       
-    def get_spectrum(self):
+    def get_sigma_from_fft(self, nlast=20, store=True):
+	"""
+	Estimates the noise using the FFT.  
+	"""
+	
+	# check that everything is loaded
+	self.check_loaded()
+	self.read_size()
+	
+	# get the linear scale
+	lin_wave = np.linspace(self.wmin, self.wmax, self.npixel)
+	
+	# interpolate to linear scale
+	tck = splrep(self.wave, self.intens)
+	lin_intens = splev(lin_wave, tck)
+	
+	# perform the FFT and shift it
+	fft_intens = np.fft.fftshift(np.fft.fft(lin_intens))
+	
+	# ontly tbe absolute values are interesting
+	fft_intens = np.absolute(fft_intens)
+	fft_intens[:-nlast] = 0.0 + 0.0j
+	
+	fft_intens = np.fft.ifft(fft_intens)
+	#print np.absolute(fft_intens.mean())
+	plt.plot(fft_intens, 'k-')
+	plt.plot(fft_intens[-nlast:], 'ro')
+	plt.show()
+	
+	#the nlast points are in general scatter - this should be done better...
+	
+	stddev = fft_intens[-nlast:].std(ddof=-1)*fft_intens[-nlast:].mean()
+
+	# store the value as an erro if needed
+	if store:
+	    self.error = stddev*np.ones(len(self.wave))
+	    
+	return stddev    
+	    
+	    
+	
+	
+	
+	
+    def get_spectrum(self, wmin=None, wmax=None):
 	"""
 	Returns the spectrum.
 	OUPUT:
@@ -115,7 +192,19 @@ class ObservedSpectrum:
 	if not self.loaded:
 	    raise Exception('The spectrum %s has not been loaded yet!' % str(self))
 	else:
-	    return self.wave.copy(), self.intens.copy(), self.error.copy()
+	    # the whole spectrum
+	    if wmin is None and wmax is None:
+		return self.wave.copy(), self.intens.copy(), self.error.copy()
+	    else:
+		# corrects boundaries if needed
+		if wmin is None:
+		    wmin = self.wave.min()
+		if wmax is None:
+		    wmax = self.wave.max()
+		
+		# selects the spectrum part
+		ind = np.where((self.wave >= wmin) & (self.wave <= wmax))
+		return self.wave[ind].copy(), self.intens[ind].copy(), self.error[ind].copy()
 	  
     def get_wavelength(self):
 	"""
@@ -139,6 +228,7 @@ class ObservedSpectrum:
 	
 	self.wmin = self.wave.min()
 	self.wmax = self.wave.max()
+	self.npixel = len(self.wave)
 	self.step = np.mean(self.wave[1:]-self.wave[:-1])	  
 	
 	 
