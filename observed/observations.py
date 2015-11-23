@@ -70,8 +70,9 @@ class ObservedSpectrum:
 
         # setup the group
         self.group = dict()
+        #print group
         if group is not None:
-            self.group = self.set_group(group)
+            self.set_group(group)
 
     def __str__(self):
         """
