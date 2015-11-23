@@ -9,16 +9,19 @@ class ObservedSpectrum:
     """
     A wrapper class for the observed spectra.
     """
-    def __init__(self, wave=None, intens=None, error=None, filename=None, component='ALL', korel=False):
+    def __init__(self, wave=None, intens=None, error=None, filename=None, component='ALL', korel=False, group=None):
         """
         Setups the class.
         INPUT:
-        wave.. 	wavelength vector
-        intens..   	intensity vector
-        error..  	error vector
-        filename..	source spectrum
-        component.. component to which the spectrum belongs
-        korel.. 	korel mode
+            wave.. 	wavelength vector
+            intens..   	intensity vector
+            error..  	error vector
+            filename..	source spectrum
+            component.. component to which the spectrum belongs
+            korel.. 	korel mode
+            group         group in which the spectrum belongs for a given parameter.
+                          all parameters within one group have the same value of a
+                          a given parameter. Type = dictionary(param=groupnumber)
         """
 
         # pass all arguments
@@ -64,6 +67,12 @@ class ObservedSpectrum:
             self.component = component
             self.korel = korel
             self.check_korel()
+
+            # setup the group
+            if group is not None:
+                self.group = self.set_group(group)
+            else:
+                self.group = 0.0
 
     def __str__(self):
         """
@@ -111,6 +120,20 @@ class ObservedSpectrum:
         self.read_size()
         return self.wmin, self.wmax
 
+    def get_group(self, param):
+        """
+        Checks that group is assigned for a given
+        parameter. If not - zero is automatically
+        assigned.
+        INPUT:
+            param    string represention of the parameter
+                     for which we want to assign group
+        """
+        if param.lower() in self.group:
+            return self.group[param]
+        else:
+            return 0
+
     def get_sigma_from_continuum(self, cmin, cmax, store=True):
         """
         Estimates the error of the flux from the scatter in
@@ -133,7 +156,7 @@ class ObservedSpectrum:
 
         # save it as an error
         if store:
-            self.error = stddev*np.ones(len(self.wave))
+            self.error = stddev * np.ones(len(self.wave))
 
         return stddev
 
@@ -154,21 +177,16 @@ class ObservedSpectrum:
         lin_intens = splev(lin_wave, tck)
 
         # perform the FFT and shift it
-        fft_intens = np.fft.fftshift(np.fft.fft(lin_intens))
+        fft_intens = np.fft.fft(lin_intens)
 
-        # ontly tbe absolute values are interesting
-        fft_intens = np.absolute(fft_intens)
-        fft_intens[:-nlast] = 0.0 + 0.0j
+        # get absolute values
+        abs_fft_intens = np.absolute(fft_intens)
 
-        fft_intens = np.fft.ifft(fft_intens)
-        #print np.absolute(fft_intens.mean())
-        plt.plot(fft_intens, 'k-')
-        plt.plot(fft_intens[-nlast:], 'ro')
-        plt.show()
+        # get the high frequency tail
+        abs_fft_intens = abs_fft_intens[len(abs_fft_intens) / 2 - nlast + 1:len(abs_fft_intens) / 2 + nlast]
 
-        #the nlast points are in general scatter - this should be done better...
-
-        stddev = fft_intens[-nlast:].std(ddof=-1) * fft_intens[-nlast:].mean()
+        # estimate the error
+        stddev = abs_fft_intens.std() * abs_fft_intens.mean()
 
         # store the value as an erro if needed
         if store:
@@ -276,6 +294,17 @@ class ObservedSpectrum:
         if global_error is not None:
             self.error = global_error * np.ones(len(self.wave))
             self.hasErrors = True
+
+    def set_group(self, group):
+        """
+        Sets the group of the spectrum for given parameters.
+        INPUT:
+                group.. dictionary containing param=group
+                        for parameter for whose we want to
+                        assign groups
+        """
+        for key in group.keys():
+            self.group[key.lower()] = group[key]
 
     def set_spectrum_from_arrays(self, wave, intens, error):
         """
