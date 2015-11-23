@@ -72,13 +72,18 @@ class ObservedSpectrum:
             if group is not None:
                 self.group = self.set_group(group)
             else:
-                self.group = 0.0
+                self.group = {}
 
     def __str__(self):
         """
         String representation of the class.
         """
-        pass
+        string = ''
+        for var in ['filename', 'component', 'korel', 'loaded', 'hasErrors', 'group']:
+            string = string + "%15s: %s\n" % (var, str(getattr(self, var)))
+        if self.loaded:
+            string = string + "%15s: %s\n" % ('(min, max)', str(self.get_boundaries()))
+        return string
 
     def check_korel(self):
         """
@@ -303,7 +308,9 @@ class ObservedSpectrum:
                         for parameter for whose we want to
                         assign groups
         """
+        #print group
         for key in group.keys():
+            #print key
             self.group[key.lower()] = group[key]
 
     def set_spectrum_from_arrays(self, wave, intens, error):

@@ -48,12 +48,17 @@ e = np.random.random(len(w)) * 0.01
 # what if we set up korel, b ut do not set up component - checked
 #os = pyterpol.ObservedSpectrum(wave=w, intens=i, error=e, korel=True)
 
-# try to do estimate of the error
+# try to do estimate of the error - this is something, I'll have to think about a bit more
 os = pyterpol.ObservedSpectrum(wave=w, intens=i, error=e)
-err_cont = os.get_sigma_from_continuum(4453, 4459)
-print err_cont, os.error
-err_fft = os.get_sigma_from_fft(nlast=50)
-print err_fft, os.error
+#err_cont = os.get_sigma_from_continuum(4453, 4459)
+#print err_cont, os.error
+#err_fft = os.get_sigma_from_fft(nlast=50)
+#print err_fft, os.error
 
+# check that groups are working
+os.set_group(dict(rv=1))
+print os.get_group('rv')
+print os.get_group('teff')
+print os
 
 
