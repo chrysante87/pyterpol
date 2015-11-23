@@ -45,34 +45,33 @@ class ObservedSpectrum:
             self.error = error
             self.hasErrors = True
 
-            # sets that the spectrum is loaded
-            if (wave is not None) and (intens is not None):
-                self.loaded = True
-                self.read_size()
+        # sets that the spectrum is loaded
+        if (wave is not None) and (intens is not None):
+            self.loaded = True
+            self.read_size()
 
-                # check lengths of intens and wave
-                self.check_length()
-            else:
-                self.loaded = False
+            # check lengths of intens and wave
+            self.check_length()
+        else:
+            self.loaded = False
 
-            # if we provided the filename
-            self.filename = filename
-            if (not self.loaded) and (self.filename is not None):
-                self.read_spectrum_from_file(filename)
-            elif (not self.loaded) and (self.filename is None):
-                warnings.warn('No spectrum was loaded. This class is kinda useless without a spectrum. '
-                            'I hope you know what you are doing.')
+        # if we provided the filename
+        self.filename = filename
+        if (not self.loaded) and (self.filename is not None):
+            self.read_spectrum_from_file(filename)
+        elif (not self.loaded) and (self.filename is None):
+            warnings.warn('No spectrum was loaded. This class is kinda useless without a spectrum. '
+                        'I hope you know what you are doing.')
 
-            # setup korel and check that it is proper
-            self.component = component
-            self.korel = korel
-            self.check_korel()
+        # setup korel and check that it is proper
+        self.component = component
+        self.korel = korel
+        self.check_korel()
 
-            # setup the group
-            if group is not None:
-                self.group = self.set_group(group)
-            else:
-                self.group = {}
+        # setup the group
+        self.group = dict()
+        if group is not None:
+            self.group = self.set_group(group)
 
     def __str__(self):
         """
@@ -137,7 +136,7 @@ class ObservedSpectrum:
         if param.lower() in self.group:
             return self.group[param]
         else:
-            return 0
+            return None
 
     def get_sigma_from_continuum(self, cmin, cmax, store=True):
         """
@@ -262,25 +261,26 @@ class ObservedSpectrum:
         """
         try:
             # first we try to load 3 columns, i.e with errors
-            self.wave, self.intensity, self.error = np.loadtxt(filename, unpack=True, usecols=[0, 1, 2])
+            self.wave, self.intens, self.error = np.loadtxt(filename, unpack=True, usecols=[0, 1, 2])
             self.hasErrors = True
         except:
 
             # we failed, so we attempt to load two columns
-            self.wave, self.intensity = np.loadtxt(filename, unpack=True, usecols=[0, 1])
+            self.wave, self.intens = np.loadtxt(filename, unpack=True, usecols=[0, 1])
 
             # error was not set up
             if global_error is None:
                 warnings.warn("I found no errorbars of the observed intensities in file: %s! "
                               "I assume they will be provided later. I remember!!" % (filename))
                 self.hasErrors = False
+
             # error was set up
             else:
                 self.error = global_error * np.ones(len(self.wave))
                 self.hasErrors = True
 
-                # the spectrum is marked as loaded
-                self.loaded = True
+        # the spectrum is marked as loaded
+        self.loaded = True
 
         # the spectrum is checked
         self.check_length()
