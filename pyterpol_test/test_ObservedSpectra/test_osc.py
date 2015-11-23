@@ -1,11 +1,11 @@
 import sys
-sys.path.append('/home/jana/work/pyterpol')
+sys.path.append('/home/jana/work/')
 import pyterpol
 import numpy as np
 
 obsfile = 'ua170034.asc'
-w, i = np.loadtxt(obsfile, unpack=True, usecols=[0,1])
-e = np.random.random(len(w))*0.01
+w, i = np.loadtxt(obsfile, unpack=True, usecols=[0, 1])
+e = np.random.random(len(w)) * 0.01
 
 # No spectrum is passes - only some warnings are issues -checked
 #os = pyterpol.ObservedSpectrum()
