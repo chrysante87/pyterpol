@@ -3,7 +3,7 @@ import copy
 import warnings
 import numpy as np
 from pyterpol.observed.observations import ObservedSpectrum
-
+from pyterpol.fitting.parameter import Parameter
 
 class ObservedList(object):
     """
@@ -321,3 +321,12 @@ class ObservedList(object):
             group = {key: self.observedSpectraList['group'][key][i] for key in self.observedSpectraList['group'].keys()}
             self.observedSpectraList['spectrum'][i].set_group(group)
 
+class StarList(object):
+    """
+    """
+    def __init__(self, debug=False):
+        """
+        """
+
+        # set up debug mode
+        self.debug = debug
