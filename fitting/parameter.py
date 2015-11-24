@@ -2,18 +2,18 @@
 # grids. To fit additional parameters, one will have to define along with
 # addition of new grids, or here..
 parameter_definitions=dict(
-    teff=dict(name='teff', value=10000., vmin=6000., vmax=50000., unit='K', fitted=False, group=None, typedef=float),
-    logg=dict(name='logg', value=3.5, vmin=0.0, vmax=5.0, unit='log(g.cm^-2)', fitted=False, group=None, typedef=float),
-    vrot=dict(name='vrot', value=0.0, vmin=0.0, vmax=500., unit='km.s^-1', fitted=False, group=None, typedef=float),
-    rv=dict(name='rv', value=0.0, vmin=-1000., vmax=1000., unit='km.s^-1', fitted=False, group=None, typedef=float),
-    lr=dict(name='lr', value=1.0, vmin=0.0, vmax=1.0, unit='relative', fitted=False, group=None, typedef=float),
-    z=dict(name='z', value=1.0, vmin=0.0, vmax=2.0, unit='Z_solar', fitted=False, group=None, typedef=float),
+    teff=dict(name='teff', value=10000., vmin=6000., vmax=50000., unit='K', fitted=False, group=None, typedef=(float)),
+    logg=dict(name='logg', value=3.5, vmin=0.0, vmax=5.0, unit='log(g.cm^-2)', fitted=False, group=None, typedef=(float)),
+    vrot=dict(name='vrot', value=0.0, vmin=0.0, vmax=500., unit='km.s^-1', fitted=False, group=None, typedef=(float)),
+    rv=dict(name='rv', value=0.0, vmin=-1000., vmax=1000., unit='km.s^-1', fitted=False, group=None, typedef=(float)),
+    lr=dict(name='lr', value=1.0, vmin=0.0, vmax=1.0, unit='relative', fitted=False, group=None, typedef=(float)),
+    z=dict(name='z', value=1.0, vmin=0.0, vmax=2.0, unit='Z_solar', fitted=False, group=None, typedef=(float)),
 )
 
 class Parameter(object):
     """
     """
-    def __init__(self, name=None, value=None, vmin=None, vmax=None, unit=None, fitted=None, group=None, typedef=None):
+    def __init__(self, name=None, value=None, vmin=None, vmax=None, unit=None, fitted=None, group=None, typedef=None, debug=False):
         """
         :param name: name of the parameter
         :param value: of the parameter
@@ -39,6 +39,9 @@ class Parameter(object):
 
         # define floats
         self._float_attributes = ['value', 'vmin', 'vmax']
+
+        # define debug_mode
+        self.debug = debug
 
     def __getitem__(self, item):
         """
@@ -70,7 +73,7 @@ class Parameter(object):
         :return: string represantation of the class
         """
         string = ''
-        for var in ['name', 'value', 'vmin', 'vmax', 'fitted', 'group', 'type']:
+        for var in ['name', 'value', 'vmin', 'vmax', 'fitted', 'group', '_typedef']:
             string += "%s: %s " % (var, str(getattr(self, var)))
         string += '\n'
 
@@ -86,7 +89,31 @@ class Parameter(object):
         else:
             if not isinstance(value, self._typedef):
                 raise TypeError('The passed value has not correct type.'
-                                ' Correct type is %s.' % str(self.typedef))
+                                ' Correct type is %s.' % str(self._typedef))
+
+    def get_range(self):
+        """
+        Returns boundaries of the fitting.
+        :return: list, boundaries
+        """
+        return [self['vmin'], self['vmax']]
+
+    def get_error(self, relative=None):
+        """
+        :param relative: relative error desired by the user
+        :return: error - uncertainty of the parameter.,
+        """
+        # if relative error is not give, the uncertainty is
+        # taken from boundaries
+        if relative is None:
+            error = (self['vmin'] + self['vmax']) / 2.
+
+        # otherwise it is a fraction of the value
+        else:
+            error = relative * self['value']
+
+        return error
+
 
 
 
