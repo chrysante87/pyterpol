@@ -16,8 +16,14 @@ class ObservedList(object):
         # it also carries information on. A group fro radial velocities
         # has to be always set, because we intend to fit spectra acquired
         # on different times.
-        self.observedSpectraList = dict(spectrum=[], group=dict())
+        self.observedSpectraList = dict(spectrum=[], group=dict(), properties=dict())
         self.groupValues = dict()
+
+        # list of properties
+        self._property_list = ['loaded', 'hasErrors', 'wmin', 'wmax']
+
+        # initialize with empty lists
+        self.observedSpectraList['properties'] = {key:[] for key in self._property_list}
 
     def __len__(self):
         """
@@ -74,7 +80,7 @@ class ObservedList(object):
 
         return groups
 
-    def set_groups(self):
+    def read_groups(self):
         """
         Updates the dictionary observedSpectraList with group
         records for every single observations and creates
@@ -152,6 +158,22 @@ class ObservedList(object):
 
         # propagate the groups back to spectra
         self._set_groups_to_spectra()
+
+    def read_properties(self):
+        """
+        Goes through the attached spectra and reads
+        stores them within the observedSpectraList
+        dictionary.
+        """
+        # initialize with empty lists
+        for key in self._property_list:
+            self.observedSpectraList['properties'][key] = np.empty(len(self), dtype=object)
+
+        # fill the dictionary
+        for i, spectrum in enumerate(self.observedSpectraList['spectrum']):
+            for key in self._property_list:
+                self.observedSpectraList['properties'][key][i] = getattr(spectrum, key)
+
 
     def _set_groups_to_spectra(self):
         """
