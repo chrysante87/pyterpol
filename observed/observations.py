@@ -80,9 +80,10 @@ class ObservedSpectrum:
         """
         string = ''
         for var in ['filename', 'component', 'korel', 'loaded', 'hasErrors', 'group']:
-            string = string + "%15s: %s\n" % (var, str(getattr(self, var)))
+            string = string + "%s: %s " % (var, str(getattr(self, var)))
         if self.loaded:
-            string = string + "%15s: %s\n" % ('(min, max)', str(self.get_boundaries()))
+            string = string + "%s: %s " % ('(min, max)', str(self.get_boundaries()))
+        string += '\n'
         return string
 
     def check_korel(self):

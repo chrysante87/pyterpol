@@ -10,11 +10,11 @@ ol = ObservedList()
 # add some observations
 ol.add_observation(filename='o.asc', group=dict(rv=0, teff=0))
 ol.add_observation(filename='o.asc', group=dict(rv=0, teff=1))
-#ol.add_observation(filename='o.asc')
-#ol.add_observation(filename='o.asc')
+ol.add_observation(filename='o.asc')
+ol.add_observation(filename='o.asc')
 
-# check that everything has loaded up
-#print ol.observedSpectraList['spectrum'][0]
+# readout_all groups
+ol.set_groups()
 
-# look at the outcome
-print ol.get_defined_groups()
+# list all defined spectra
+print ol
