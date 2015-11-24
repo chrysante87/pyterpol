@@ -93,7 +93,7 @@ class ObservedSpectrum:
         """
         If korel is set, component must be set too.
         """
-        if (self.korel) and (self.component.upper() == 'ALL'):
+        if (self.korel) and (str(self.component).upper() == 'ALL'):
             raise ValueError('In the korel regime, each spectrum must be assigned component! '
                              'Currently it is set to %s.' % str(self.component))
 
