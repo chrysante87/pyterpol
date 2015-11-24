@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import copy
+import warnings
 import numpy as np
 from pyterpol.observed.observations import ObservedSpectrum
 
@@ -8,7 +10,7 @@ class ObservedList(object):
     A helper class which groups all observed spectra and
     prepares necessary parameters for fitting.
     """
-    def __init__(self):
+    def __init__(self, debug=False):
         """
         Setups the class
         """
@@ -20,10 +22,14 @@ class ObservedList(object):
         self.groupValues = dict()
 
         # list of properties
-        self._property_list = ['loaded', 'hasErrors', 'wmin', 'wmax']
+        self._property_list = ['loaded', 'hasErrors', 'component', 'wmin', 'wmax']
+        self._queriables = self._property_list.copy().extend(['group'])
 
         # initialize with empty lists
         self.observedSpectraList['properties'] = {key:[] for key in self._property_list}
+
+        # debug
+        self.debug = debug
 
     def __len__(self):
         """
@@ -43,17 +49,51 @@ class ObservedList(object):
             string += str(spectrum)
         return string
 
-    def add_observation(self, **kwargs):
+    def add_one_observation(self, update=True, **kwargs):
         """
         Adds observation to the list.
         INPUT:
             see class ObservedSpectrum (observations module) for details.
         """
         # adds the spectrum and loads it
-        # print kwargs
+        if self.debug:
+            kwargs['debug']=True
+
         obs = ObservedSpectrum(**kwargs)
-        # print obs
         self.observedSpectraList['spectrum'].append(obs)
+
+        if self.debug:
+            print "Adding spectrum: %s" % (str(obs))
+
+        # builds the observedSpectraList dictionary
+        if update:
+            self.read_groups()
+            self.read_properties()
+            self.groupValues = self.get_defined_groups()
+
+    def add_observations(self, spec_list, update=True):
+        """
+        :param spec_list: list of dictionaries - key words are
+                the same as for ObservedSpectrum class constructor
+        :param update: whether to update the dictionary
+                with the properties of the observed spectra
+        """
+
+        # attachs the spectra
+        for rec in spec_list:
+            self.add_one_observation(update=False,**rec)
+
+        # builds the observedSpectraList dictionary
+        if update:
+            self.read_groups()
+            self.read_properties()
+            self.groupValues = self.get_defined_groups()
+
+    def clear_all(self):
+        """
+        Clears all spectra.
+        """
+        self.__init__()
 
     def get_defined_groups(self):
         """
@@ -79,6 +119,64 @@ class ObservedList(object):
             groups[key] = np.unique(groups[key]).tolist()
 
         return groups
+
+    def get_spectra(self, verbose=False, **kwargs):
+        """
+        :param kwargs:.. properties of ObservedSpectrum,
+          that we want to return. This function does not
+          search the individual spectra, but the dictionary
+          observedSpectraList.
+
+          In general this could be - wmin, wmax, group,
+          component etc..
+        :return:
+          speclist = all spectra that have the queried properties
+        """
+
+        # First of all check that all passed arguments are
+        # either defined among queriables or is in groups
+        for key in kwargs.keys():
+            if key not in self._queriables:
+                if key not in self.groupValues.keys():
+                    raise KeyError('Keyword %s is not defined. This either means, that it was not set up for '
+                                   'the observed spectra, or is an attribute of Observed spectrum, but is not '
+                                   'defined among queriables, or is wrong.' % (key))
+
+        # create a copy of the spectralist
+        osl = copy.deepcopy(self.observedSpectraList)
+
+        # debug string
+        dbg_string = 'Queried: '
+
+        # reduce the list
+        for key in kwargs.keys():
+            # find all matching for a given key-word
+            if key in self._queriables:
+                vind = np.where(osl['properties'][key] == kwargs[key])[0]
+            else:
+                vind = np.where(osl['properties'][key] == kwargs[key])[0]
+
+            if len(vind) == 0:
+                warnings.warn('No spectrum matching %s:%s was found in the '
+                              'list of observed spectra' % (key, str(kwarg[key])))
+                return []
+
+            if self.debug:
+                dbg_string += '%s: %s ' % (key, str(kwargs[key]))
+
+            # extract them from the list
+            for dic in ['groups', 'properties']:
+                for sub_key in osl[dic].keys():
+                    osl[dic][sub_key] = osl[dic][sub_key][vind]
+
+        # simple output, just spectra
+        if not verbose:
+            return osl['spectrum']
+        # otherwise the whole remnant of the
+        # observed spectra list is returned
+        else:
+            return osl
+
 
     def read_groups(self):
         """
@@ -173,7 +271,6 @@ class ObservedList(object):
         for i, spectrum in enumerate(self.observedSpectraList['spectrum']):
             for key in self._property_list:
                 self.observedSpectraList['properties'][key][i] = getattr(spectrum, key)
-
 
     def _set_groups_to_spectra(self):
         """

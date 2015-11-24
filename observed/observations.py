@@ -9,7 +9,7 @@ class ObservedSpectrum:
     """
     A wrapper class for the observed spectra.
     """
-    def __init__(self, wave=None, intens=None, error=None, filename=None, component='ALL', korel=False, group=None):
+    def __init__(self, wave=None, intens=None, error=None, filename=None, component='ALL', korel=False, group=None, debug=False):
         """
         Setups the class.
         INPUT:
@@ -73,6 +73,9 @@ class ObservedSpectrum:
         #print group
         if group is not None:
             self.set_group(group)
+
+        #setup debug mode
+        self.debug = debug
 
     def __str__(self):
         """
