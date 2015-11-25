@@ -13,4 +13,5 @@ print sl
 # add two groups for rv - cloning works
 sl.clone_parameter('primary', 'rv', group=1)
 sl.clone_parameter('primary', 'rv', group=2)
-print sl
+
+#

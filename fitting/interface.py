@@ -6,6 +6,7 @@ from pyterpol.observed.observations import ObservedSpectrum
 from pyterpol.fitting.parameter import Parameter
 from pyterpol.fitting.parameter import parameter_definitions
 
+
 class ObservedList(object):
     """
     A helper class which groups all observed spectra and
@@ -322,6 +323,7 @@ class ObservedList(object):
             group = {key: self.observedSpectraList['group'][key][i] for key in self.observedSpectraList['group'].keys()}
             self.observedSpectraList['spectrum'][i].set_group(group)
 
+
 class StarList(object):
     """
     """
@@ -337,6 +339,9 @@ class StarList(object):
 
         # array storing registered components
         self._registered_components = []
+
+        # defined groups
+        self.groups = {}
 
     def __str__(self):
         """
@@ -408,15 +413,26 @@ class StarList(object):
                 self.componentList[component][key] = []
                 self.componentList[component][key].append(Parameter(**pd[key]))
 
-    def add_parameter_to_component(self, component, **kwargs):
+        # readout the groups
+        self.read_groups()
+
+    def add_parameter_to_component(self, component, p=None, **kwargs):
         """
         Adds a parameter to a specific component.
         :param component: component for which we want to add a parameter
+        :param p: assigning directly the Parameter type
         :param kwargs: see Parameter class for description
         :return:
         """
-        self.componentList[component][kwargs['name']]= []
-        self.componentList[component][kwargs['name']].append(Parameter(**kwargs))
+        if p is None:
+            self.componentList[component][kwargs['name']]= []
+            self.componentList[component][kwargs['name']].append(Parameter(**kwargs))
+        else:
+             self.componentList[component][p['name']].append(copy.deepcopy(p))
+
+        # redefine groups
+        self.read_groups()
+
 
     def add_parameter_to_all(self, **kwargs):
         """
@@ -435,7 +451,7 @@ class StarList(object):
         self.componentList = {}
         self._registered_components = []
 
-    def clone_parameter(self, component, parameter, index=0, **kwargs):
+    def clone_parameter(self, component, parameter, index=0, all=False, **kwargs):
         """
         Clones a parameter and stores it for a given component.
         This function will be primarily used to clone parameters
@@ -456,18 +472,76 @@ class StarList(object):
             clone[keytest] = kwargs[key]
 
         # append the new component to the componentlist
-        self.componentList[component][parameter].append(clone)
+        if all:
+            self.add_parameter_to_all(p=clone)
+        else:
+            self.add_parameter_to_component(component,p=clone)
 
         return clone
 
-    def define_groups_from_observed(self, obs_groups_dict=None, observedList=None):
+    def define_groups_from_observed(self, observedList):
         """
         The first pioneer in the inter-class cooperation:-)
-        The function is either given 
-        :param obs_groups_dict:
-        :param observedList:
+        The function is either given a observed spectra list
+                    if group not in self.groups[component][parkey]:
+        and it assigns the parameters.
+
+        :param ol: type(observedList) list of observed spectra
+        :return: None
+        """
+
+    def read_groups(self):
+        """
+        Reads all groups from the defined components. This
+        is then compared to the list obtained from observations
+        and defined regions,
         :return:
         """
+
+        for component in self.componentList.keys():
+            self.groups[component] = dict()
+            for key in self.componentList[component].keys():
+                self.groups[component][key]=[]
+                for par in self.componentList[component][key]:
+                    self.groups[component][key].append(par['group'])
+
+    def set_groups(self, groups):
+        """
+        Sets up groups - this function is designed to
+        use output from ObservedList.get_groups().
+        It is assumed that the structure is following:
+        dict(component01=dict(par1=[], par2=[]), component2=..)
+
+        This function should be used to primarily
+        used to assign rv_groups, where cloning
+        is necessary to not to get crazy.
+
+        :return: None
+        """
+
+        for component in groups.keys():
+            for parkey in groups[component].keys():
+                for group in groups[component][parkey]:
+                    # setting grou[ for all components
+                    if component is  'ALL':
+                        for one_comp in self._registered_components:
+                            if group not in self.groups[one_comp][parkey]:
+                                warnings.warn("Group %s: %s previously undefined."
+                                                  "Adding to the remaining groups." % (parkey, str(group)))
+                                self.add_parameter_to_component(one_comp, parkey, group=group)
+
+                    # if we are setting group only for one component
+                    else:
+                        if group not in self.groups[component][parkey]:
+                            warnings.warn("Group %s: %s previously undefined."
+                                                  "Adding to the remaining groups." % (parkey, str(group)))
+                            self.clone_parameter(component, parkey, group=group)
+
+
+
+
+
+
 
 
 
