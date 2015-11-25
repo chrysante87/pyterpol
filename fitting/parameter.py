@@ -1,13 +1,22 @@
 # definition of parameters - here I add parameters which apply for implemented
 # grids. To fit additional parameters, one will have to define along with
 # addition of new grids, or here..
+# parameter_definitions=dict(
+#     teff=dict(name='teff', value=10000., vmin=6000., vmax=50000., unit='K', fitted=False, group=0, typedef=(float)),
+#     logg=dict(name='logg', value=3.5, vmin=0.0, vmax=5.0, unit='log(g.cm^-2)', fitted=False, group=0, typedef=(float)),
+#     vrot=dict(name='vrot', value=0.0, vmin=0.0, vmax=500., unit='km.s^-1', fitted=False, group=0, typedef=(float)),
+#     rv=dict(name='rv', value=0.0, vmin=-1000., vmax=1000., unit='km.s^-1', fitted=False, group=0, typedef=(float)),
+#     lr=dict(name='lr', value=1.0, vmin=0.0, vmax=1.0, unit='relative', fitted=False, group=0, typedef=(float)),
+#     z=dict(name='z', value=1.0, vmin=0.0, vmax=2.0, unit='Z_solar', fitted=False, group=0, typedef=(float)),
+# )
+
 parameter_definitions=dict(
-    teff=dict(name='teff', value=10000., vmin=6000., vmax=50000., unit='K', fitted=False, group=0, typedef=(float)),
-    logg=dict(name='logg', value=3.5, vmin=0.0, vmax=5.0, unit='log(g.cm^-2)', fitted=False, group=0, typedef=(float)),
-    vrot=dict(name='vrot', value=0.0, vmin=0.0, vmax=500., unit='km.s^-1', fitted=False, group=0, typedef=(float)),
-    rv=dict(name='rv', value=0.0, vmin=-1000., vmax=1000., unit='km.s^-1', fitted=False, group=0, typedef=(float)),
-    lr=dict(name='lr', value=1.0, vmin=0.0, vmax=1.0, unit='relative', fitted=False, group=0, typedef=(float)),
-    z=dict(name='z', value=1.0, vmin=0.0, vmax=2.0, unit='Z_solar', fitted=False, group=0, typedef=(float)),
+    teff=dict(name='teff', value=10000., vmin=6000., vmax=50000., unit='K', fitted=False, group=None, typedef=float),
+    logg=dict(name='logg', value=3.5, vmin=0.0, vmax=5.0, unit='log(g.cm^-2)', fitted=False, group=None, typedef=float),
+    vrot=dict(name='vrot', value=0.0, vmin=0.0, vmax=500., unit='km.s^-1', fitted=False, group=None, typedef=float),
+    rv=dict(name='rv', value=0.0, vmin=-1000., vmax=1000., unit='km.s^-1', fitted=False, group=None, typedef=float),
+    lr=dict(name='lr', value=1.0, vmin=0.0, vmax=1.0, unit='relative', fitted=False, group=None, typedef=float),
+    z=dict(name='z', value=1.0, vmin=0.0, vmax=2.0, unit='Z_solar', fitted=False, group=None, typedef=float),
 )
 
 class Parameter(object):
@@ -122,7 +131,7 @@ class Parameter(object):
         were set.
         """
         if self.group is None:
-            self.group = 0
+            self.group = None
         if self.fitted is None:
             self.fitted = False
         if self.unit is None:

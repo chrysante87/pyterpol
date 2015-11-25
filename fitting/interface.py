@@ -372,7 +372,7 @@ class StarList(object):
 
         return string
 
-    def add_component(self, component=None, **kwargs):
+    def add_component(self, component=None, groups={}, **kwargs):
         """
         Setups a component - if no kwargs are given,
         all parameters from the parameter_definitions
@@ -386,6 +386,7 @@ class StarList(object):
 
         :param component: Registration string of the component
                 if None is given, it is registred as 'componentXX'
+        :param group: group set to all parameters of a component
         :param kwargs:
         :return:
         """
@@ -400,8 +401,6 @@ class StarList(object):
 
         # the parameters will be stored in a dictionary
         self.componentList[component] = dict()
-
-        # create a copy of defaults
         pd = copy.deepcopy(parameter_definitions)
 
         # process the keyword-arguments
@@ -495,16 +494,24 @@ class StarList(object):
 
         return clone
 
-    def define_groups_from_observed(self, observedList):
+    def delete_hollow_groups(self):
         """
-        The first pioneer in the inter-class cooperation:-)
-        The function is either given a observed spectra list
-                    if group not in self.groups[component][parkey]:
-        and it assigns the parameters.
-
-        :param ol: type(observedList) list of observed spectra
+        Goes through parameters and deletes those that
+        are set to None.
         :return: None
         """
+
+        for component in self._registered_components:
+            for parkey in self.componentList[component].keys():
+                i = 0
+                while(i < len(self.componentList[component][parkey])):
+                    
+                    # if the parameter group is not, it is deleted
+                    if self.componentList[component][parkey][i]['group'] is None:
+                        del self.componentList[component][parkey][i]
+                    else:
+                        i+=1
+
 
     def read_groups(self):
         """
@@ -531,6 +538,10 @@ class StarList(object):
         This function should be used to primarily
         used to assign rv_groups, where cloning
         is necessary to not to get crazy.
+
+        This function merges groups defined
+        in the type and the one passed. In general
+        we should not be able to do this.
 
         :return: None
         """
