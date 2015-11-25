@@ -338,6 +338,18 @@ class StarList(object):
         # array storing registered components
         self._registered_components = []
 
+    def __str__(self):
+        """
+        :return: string = string represantation of the class
+        """
+        string = ''
+        for component in self.componentList.keys():
+            string += "Component: %s\n" % (component)
+            for par in self.componentList[component].keys():
+                string += str(par)
+
+        return string
+
     def add_component(self, component=None, **kwargs):
         """
         Setups a component - if no kwargs are given,
@@ -367,6 +379,7 @@ class StarList(object):
         # create a copy of defaults
         pd = copy.deepcopy(parameter_definitions)
 
+        # process the keyword-arguments
         for key in kwargs.keys():
             keytest = key.lower()
             # if we pass par + value, it is just stored
@@ -377,5 +390,15 @@ class StarList(object):
                 warnings.warn('The parameter %s is set to %s. Therefore it is not '
                               'included into component parameters.' % (key, str(kwargs[key])))
             elif keytest not in pd.keys() and kwargs[key] is not None:
-                
+                self.componentList[component][keytest] = Parameter(name=key, value=kwargs[key])
+                self.componentList[component][keytest].set_empty()
+                warnings.warn('The parameter %s: %s is not set among the '
+                              'parameter definitions. Therefore you should pay '
+                              'attention to ist settings.')
+
+        # pass all unset parameterss in definitions
+        for key in pd.keys():
+            if key not in self.componentList[component].keys():
+                self.componentList[component][key] = Parameter(pd[key])
+
 
