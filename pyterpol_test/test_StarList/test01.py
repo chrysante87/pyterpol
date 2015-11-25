@@ -1,3 +1,7 @@
+"""
+Test of initialization of the class StarList
+"""
+
 import pyterpol
 
 sl = pyterpol.StarList()

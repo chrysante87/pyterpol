@@ -438,8 +438,12 @@ class StarList(object):
     def clone_parameter(self, component, parameter, index=0, **kwargs):
         """
         Clones a parameter and stores it for a given component.
+        This function will be primarily used to clone parameters
+        to acount for different groups.
+
         :param component: component for which we want to clone the parameter
         :param parameter: the cloned parameter
+        :param index : the specific cloned parameter
         :param kwargs: values we want to change for the parameter
         :return: clone type_Parameter - the cloned parameter
         """
@@ -450,6 +454,21 @@ class StarList(object):
         for key in kwargs.keys():
             keytest = key.lower()
             clone[keytest] = kwargs[key]
+
+        # append the new component to the componentlist
+        self.componentList[component][parameter].append(clone)
+
+        return clone
+
+    def define_groups_from_observed(self, obs_groups_dict=None, observedList=None):
+        """
+        The first pioneer in the inter-class cooperation:-)
+        The function is either given 
+        :param obs_groups_dict:
+        :param observedList:
+        :return:
+        """
+
 
 
 
