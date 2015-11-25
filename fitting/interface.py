@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 from pyterpol.observed.observations import ObservedSpectrum
 from pyterpol.fitting.parameter import Parameter
+from pyterpol.fitting.parameter import parameter_definitions
 
 class ObservedList(object):
     """
@@ -330,3 +331,51 @@ class StarList(object):
 
         # set up debug mode
         self.debug = debug
+
+        # define empty list of components
+        self.componentList = {}
+
+        # array storing registered components
+        self._registered_components = []
+
+    def add_component(self, component=None, **kwargs):
+        """
+        Setups a component - if no kwargs are given,
+        all parameters from the parameter_definitions
+        are taken.
+
+        If one wants to not-include a parameter,
+        params = None, has to be passed. If one
+        wants to add a parameter, that is not
+        defined in parameter definitions, just
+        pass parameter + value.
+
+        :param component: Registration string of the component
+                if None is given, it is registred as 'componentXX'
+        :param kwargs:
+        :return:
+        """
+
+        # setup name of the component and create a record within
+        # component list
+        if component is None:
+            component = 'component'+str(len(self._registered_components))
+
+        # the parameters will be stored in a dictionary
+        self.componentList[component] = dict()
+
+        # create a copy of defaults
+        pd = copy.deepcopy(parameter_definitions)
+
+        for key in kwargs.keys():
+            keytest = key.lower()
+            # if we pass par + value, it is just stored
+            if keytest in pd.keys() and kwargs[key] is not None:
+                self.componentList[component][keytest] = Parameter(pd[key])
+                self.componentList[component][keytest]['value'] = kwargs[key]
+            elif kwargs[key] is None:
+                warnings.warn('The parameter %s is set to %s. Therefore it is not '
+                              'included into component parameters.' % (key, str(kwargs[key])))
+            elif keytest not in pd.keys() and kwargs[key] is not None:
+                
+

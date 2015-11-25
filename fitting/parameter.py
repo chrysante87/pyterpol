@@ -114,6 +114,28 @@ class Parameter(object):
 
         return error
 
+    def set_empty(self):
+        """
+        Converts attributes from None, to
+        something more reasonable for
+        cases when only name and value
+        were set.
+        """
+        if self.group is None:
+            self.group = None
+        elif self.fitted is None:
+            self.fitted = False
+        elif self.unit is None:
+            self.unit = 'not_defined'
+        elif self.vmin is None:
+            self.vmin = -1e6
+        elif self.vmax is None:
+            self.vmax = 1e6
+
+
+
+
+
 
 
 

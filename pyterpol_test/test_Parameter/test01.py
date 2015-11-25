@@ -19,7 +19,7 @@ p['vmax'] = 20000.
 p['fitted'] = True
 
 # try to do incorrect change
-p['value'] = 'dog'
+# p['value'] = 'dog' # correctly incorrect
 
 
 
