@@ -345,8 +345,9 @@ class StarList(object):
         string = ''
         for component in self.componentList.keys():
             string += "Component: %s\n" % (component)
-            for par in self.componentList[component].keys():
-                string += str(par)
+            for parkey in self.componentList[component].keys():
+                for par in self.componentList[component][parkey]:
+                    string += str(par)
 
         return string
 
@@ -373,6 +374,9 @@ class StarList(object):
         if component is None:
             component = 'component'+str(len(self._registered_components))
 
+        # register he component
+        self._registered_components.append(component)
+
         # the parameters will be stored in a dictionary
         self.componentList[component] = dict()
 
@@ -384,21 +388,70 @@ class StarList(object):
             keytest = key.lower()
             # if we pass par + value, it is just stored
             if keytest in pd.keys() and kwargs[key] is not None:
-                self.componentList[component][keytest] = Parameter(pd[key])
-                self.componentList[component][keytest]['value'] = kwargs[key]
+                self.componentList[component][keytest] = []
+                self.componentList[component][keytest].append(Parameter(**pd[key]))
+                self.componentList[component][keytest][-1]['value'] = kwargs[key]
             elif kwargs[key] is None:
                 warnings.warn('The parameter %s is set to %s. Therefore it is not '
                               'included into component parameters.' % (key, str(kwargs[key])))
             elif keytest not in pd.keys() and kwargs[key] is not None:
-                self.componentList[component][keytest] = Parameter(name=key, value=kwargs[key])
-                self.componentList[component][keytest].set_empty()
+                self.componentList[component][keytest] = []
+                self.componentList[component][keytest].append(Parameter(name=key, value=kwargs[key]))
+                self.componentList[component][keytest][-1].set_empty()
                 warnings.warn('The parameter %s: %s is not set among the '
                               'parameter definitions. Therefore you should pay '
                               'attention to ist settings.')
 
-        # pass all unset parameterss in definitions
+        # pass all unset parameters in definitions
         for key in pd.keys():
             if key not in self.componentList[component].keys():
-                self.componentList[component][key] = Parameter(pd[key])
+                self.componentList[component][key] = []
+                self.componentList[component][key].append(Parameter(**pd[key]))
+
+    def add_parameter_to_component(self, component, **kwargs):
+        """
+        Adds a parameter to a specific component.
+        :param component: component for which we want to add a parameter
+        :param kwargs: see Parameter class for description
+        :return:
+        """
+        self.componentList[component][kwargs['name']]= []
+        self.componentList[component][kwargs['name']].append(Parameter(**kwargs))
+
+    def add_parameter_to_all(self, **kwargs):
+        """
+        Adds a parameter to all components
+        :param kwargs: see Parameter class
+        :return: None
+        """
+        for component in self._registered_components:
+            self.add_parameter_to_component(component, **kwargs)
+
+    def clear(self):
+        """
+        Clears the component list
+        :return: None
+        """
+        self.componentList = {}
+        self._registered_components = []
+
+    def clone_parameter(self, component, parameter, index=0, **kwargs):
+        """
+        Clones a parameter and stores it for a given component.
+        :param component: component for which we want to clone the parameter
+        :param parameter: the cloned parameter
+        :param kwargs: values we want to change for the parameter
+        :return: clone type_Parameter - the cloned parameter
+        """
+        # copy the parameter
+        clone = copy.deepcopy(self.componentList[component][parameter][index])
+
+        # adjust its values
+        for key in kwargs.keys():
+            keytest = key.lower()
+            clone[keytest] = kwargs[key]
+
+
+
 
 
