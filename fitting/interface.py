@@ -428,7 +428,8 @@ class StarList(object):
             self.componentList[component][kwargs['name']]= []
             self.componentList[component][kwargs['name']].append(Parameter(**kwargs))
         else:
-             self.componentList[component][p['name']].append(copy.deepcopy(p))
+            # print p['name']
+            self.componentList[component][p['name']].append(copy.deepcopy(p))
 
         # redefine groups
         self.read_groups()
@@ -523,12 +524,13 @@ class StarList(object):
             for parkey in groups[component].keys():
                 for group in groups[component][parkey]:
                     # setting grou[ for all components
-                    if component is  'ALL':
+                    if component.lower() == 'all':
                         for one_comp in self._registered_components:
                             if group not in self.groups[one_comp][parkey]:
                                 warnings.warn("Group %s: %s previously undefined."
                                                   "Adding to the remaining groups." % (parkey, str(group)))
-                                self.add_parameter_to_component(one_comp, parkey, group=group)
+                                # print one_comp, parkey, group
+                                self.clone_parameter(one_comp, parkey, group=group)
 
                     # if we are setting group only for one component
                     else:
