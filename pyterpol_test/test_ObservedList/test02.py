@@ -13,7 +13,7 @@ obs = [
     dict(filename='o.asc', group=dict(rv=0, teff=0)),
     dict(filename='o.asc', group=dict(rv=0, teff=1)),
     dict(filename='o.asc'),
-    dict(filename='o.asc', component=1, korel=True)
+    dict(filename='o.asc', component='primary', korel=True, group=dict(logg=2))
 ]
 
 # attach the spectra again
@@ -48,3 +48,7 @@ print ObservedList(observedSpectraList=osl, debug=True)
 # and some mixture
 osl = ol.get_spectra(verbose=True, component='ALL', rv=1)   # -- correct
 print ObservedList(observedSpectraList=osl, debug=True)
+
+# try to query groups based on component
+groups = ol.get_groups_for_components(['primary', 'ALL'])
+print groups

@@ -112,10 +112,26 @@ class ObservedList(object):
         """
         self.__init__()
 
+    def get_groups_for_components(self, components):
+        """
+        Returns a dictionary, containing a record
+        on defined group for each component.
+        :param components: a list of queried components
+        :return:
+        """
+        groups = dict()
+        for component in components:
+            osl = self.get_spectra(verbose=True, component=component)
+            if len(osl) > 0:
+                groups[component] = ObservedList(observedSpectraList=osl).get_defined_groups()
+
+        return groups
+
     def get_defined_groups(self):
         """
         Reads all groups and values that are set
         for the spectra in the list.
+        param:
         OUTPUT:
             groups    dictionary containing all (so far)
                       defined groups (parameters+values).
@@ -433,7 +449,6 @@ class StarList(object):
 
         # redefine groups
         self.read_groups()
-
 
     def add_parameter_to_all(self, **kwargs):
         """
