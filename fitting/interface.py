@@ -6,6 +6,36 @@ from pyterpol.observed.observations import ObservedSpectrum
 from pyterpol.fitting.parameter import Parameter
 from pyterpol.fitting.parameter import parameter_definitions
 
+# TODO Go through similarities in the classes and write a parent class
+# TODO to get rid of the redundant code.
+
+class List(object):
+    """
+    Future parent class for all the lists, which are dictionaries... :-)
+    """
+    def __init__(self, l=None, debug=None):
+        """
+        :param l: the list stored within the class
+        :param debug: debugmode on/off
+        :return:
+        """
+        # list
+        if l is not None:
+            self.mainList = l
+        else:
+            self.mainList = {}
+
+            # setup debug mode
+            self.debug = debug
+
+    def clear_all(self):
+        """
+        Clears the list
+        :return: None
+        """
+
+        self.mainList = {}
+
 
 class ObservedList(object):
     """
@@ -614,6 +644,105 @@ class StarList(object):
                                 while len(self.groups[one_comp][parkey]) > 1:
                                     del self.groups[one_comp][parkey][0]
                                 first_in_list = False
+
+
+class RegionList(List):
+    """
+    """
+    def __init__(self, **kwargs):
+        """
+        Class constructor
+        :return:None
+        """
+
+        # setup the parent class
+        super(RegionList, self).__init__(**kwargs)
+
+        # registered keywords
+        self._registered_records = ['wmin', 'wmax', 'group']
+
+        #
+        if len(self.mainList.keys()) < 1:
+            self.mainList = {'all':{'lr':[]}}
+
+    def __str__(self):
+        """
+        String representation of the class.
+        :return: string
+        """
+
+        string =''
+        for key0 in self.mainList.keys():
+            string += "%s:\n" % (key0)
+            for key1 in self.mainList[key0].keys():
+                for rec in self.mainList[key0][key1]:
+                    string += "%s\n" % str(rec)
+
+        return string
+
+
+    def add_region(self, wmin=None, wmax=None, group=None):
+        """
+        :param wmin: minimal wavelength
+        :param wmax: maximal wavelength
+        :param group: group number for this region
+        :return: None
+        """
+
+        # if we are crazy and want to set this up
+        if wmin is None or wmax is None:
+            warnings.warn('One of the region boundaries is set to None. '
+                          'dno not forget to set this up later!')
+        else:
+            if wmin >= wmax:
+                raise ValueError('wmin is greater than wmax: %s > %s.' % (str(wmin), str(wmax)))
+
+        # automatic assignment of a group - EACH AUTOMATICALLY
+        # ASSIGNED GROUP IS NEW
+        if group is None:
+            def_groups = self.get_defined_groups()
+            if len(def_groups) == 0:
+                group = 0
+            else:
+                group = 0
+                while group in def_groups:
+                    group += 1
+
+        # append the region
+        self.mainList['all']['lr'].append(dict(wmin=wmin, wmax=wmax, group=group))
+
+    def get_defined_groups(self):
+        """
+        Returns plain list of all defined groups.
+        :return: list of defined groups
+        """
+        groups = []
+        for rec in self.mainList['all']['lr']:
+            if rec not in groups:
+                groups.append(rec)
+
+        return groups
+
+    def get_region_groups(self):
+        """
+        A dictionary of groups defined for regions.
+        :return: dictionary containing records on groups
+                which can be directly passed to type StarList
+                through set_groups
+        """
+        groups = self.get_defined_groups()
+        return dict(all=dict(lr=groups))
+
+    def clear_all(self):
+        """
+        Clears the class.
+        :return:
+        """
+
+        super(RegionList, self).clear_all()
+        self.mainList = {'all':{'lr':[]}}
+
+
 
 
 
