@@ -9,7 +9,7 @@ class ObservedSpectrum:
     """
     A wrapper class for the observed spectra.
     """
-    def __init__(self, wave=None, intens=None, error=None, filename=None, component='ALL', korel=False, group=None, debug=False):
+    def __init__(self, wave=None, intens=None, error=None, filename=None, component='all', korel=False, group=None, debug=False):
         """
         Setups the class.
         INPUT:
@@ -100,7 +100,7 @@ class ObservedSpectrum:
         """
         If korel is set, component must be set too.
         """
-        if (self.korel) and (str(self.component).upper() == 'ALL'):
+        if (self.korel) and (str(self.component).lower() == 'all'):
             raise ValueError('In the korel regime, each spectrum must be assigned component! '
                              'Currently it is set to %s.' % str(self.component))
 

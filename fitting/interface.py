@@ -22,7 +22,7 @@ class Interface(object):
         """
 
         self.sl = sl
-        self.rl = sl
+        self.rl = rl
         self.ol = ol
 
         # debug mode
@@ -46,10 +46,19 @@ class Interface(object):
         :return:
         """
 
+        # get registered components
+        components = copy.deepcopy(self.sl._registered_components)
+        components.append('all')
+
         # read the groups from observed data
         # and region definitions
-        groups_data = self.ol.get_data_groups()
+        groups_data = self.ol.get_data_groups(components)
         groups_regs = self.rl.get_region_groups()
+
+        if self.debug:
+            print "Reading groups: %s from data." % str(groups_data)
+            print "Reading groups: %s from regions." % str(groups_regs)
+
         for groups in [groups_data, groups_regs]:
             self.sl.set_groups(groups)
 
@@ -109,7 +118,7 @@ class ObservedList(object):
 
         # although wmin, wmax can be queried, it is treated separately from the remaining
         # parameters, because it cannot be tested on equality
-        self._queriables = [x for x in self._property_list if x not in ['wmin', 'wmax']];
+        self._queriables = [x for x in self._property_list if x not in ['wmin', 'wmax']]
         self._queriable_floats = ['wmin', 'wmax']
 
         # initialize with empty lists
@@ -117,7 +126,6 @@ class ObservedList(object):
 
         # debug
         self.debug = debug
-
 
         if observedSpectraList is not None:
             self.observedSpectraList = observedSpectraList
@@ -197,6 +205,10 @@ class ObservedList(object):
         groups = dict()
         for component in components:
             osl = self.get_spectra(verbose=True, component=component)
+
+            if self.debug:
+                print 'Queried observed spectra: %s for component: %s.' % (str(osl), component)
+
             if len(osl) > 0:
                 groups[component] = ObservedList(observedSpectraList=osl).get_defined_groups()
 
@@ -212,7 +224,7 @@ class ObservedList(object):
                       defined groups (parameters+values).
         """
         # empty dicitonary for the values
-        groups = dict(rv=[])
+        groups = dict()
 
         # go through ech spectrum and store defined values
         for spectrum in self.observedSpectraList['spectrum']:
@@ -282,9 +294,13 @@ class ObservedList(object):
 
             # print keytest, vind
 
+            # TODO Improve this, so the warning is not issued,
+            # TODO when the observed spectra are lusted under all.
+
             if len(vind) == 0:
                 warnings.warn('No spectrum matching %s: %s was found in the '
-                              'list of observed spectra:\n%s' % (key, str(kwargs[key]), str(self)))
+                              'list of observed spectra:\n%sDo not panic, it can '
+                              'still be listed among \'all\'.' % (key, str(kwargs[key]), str(self)))
                 return []
 
             if self.debug:
@@ -340,6 +356,11 @@ class ObservedList(object):
         # First go through each spectrum to see, which
         # groups were defined by user
         groups = self.get_defined_groups()
+
+        # check that rv has been setup - mandatoryu, because each observed spectrum
+        # is assigned its own rv_group
+        if 'rv' not in groups.keys():
+            groups['rv'] = []
 
         # assign empty group arrays
         for key in groups.keys():
@@ -800,6 +821,7 @@ class StarList(object):
                     # setting group for all components
                     if component.lower() == 'all':
                         for one_comp in self._registered_components:
+                            # print one_comp, parkey, self.groups
                             if group not in self.groups[one_comp][parkey]:
                                 warnings.warn("Group %s: %s previously undefined."
                                               "Adding to the remaining groups." % (parkey, str(group)))
