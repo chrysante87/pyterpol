@@ -6,8 +6,8 @@ import pyterpol
 
 # build the class and add some components
 sl = pyterpol.StarList()
-sl.add_component(component='primary', teff=15000., logg=4.5, vrot=0.0, rv=-20.)
-sl.add_component(component='secondary', teff=15000., logg=4.5, vrot=0.0, rv=-20.)
+sl.add_component(component='primary', teff=15000., logg=4.5, vrot=0.0, rv=-20., groups=dict(z=1))
+sl.add_component(component='secondary', teff=15000., logg=4.5, vrot=0.0, rv=-20., groups=dict(z=0))
 
 # create some data
 ol = pyterpol.ObservedList()
@@ -23,5 +23,8 @@ ol.add_observations(obs)
 
 # now query the groups and pass them to starlist
 sl.set_groups(ol.get_groups_for_components(['primary','secondary', 'ALL']))
-sl.delete_hollow_groups()
+print sl
+
+# completely overwrite default groups
+sl.set_groups(ol.get_groups_for_components(['primary','secondary', 'ALL']), overwrite=True)
 print sl

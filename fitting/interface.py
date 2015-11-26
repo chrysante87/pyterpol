@@ -280,14 +280,17 @@ class ObservedList(object):
                     gn = spectrum.get_group(key)
                     def_groups = groups[key]
 
-                    # if spectrum has no group, but some have been defined, set the group = max(number)+`
+                    # if spectrum has no group, but some groups have been defined,
+                    # the group is assigned to the least number not in defuined groups
                     if gn is None and len(def_groups) > 0:
-                        gn = max(def_groups) + 1
+                        gn = 0
+                        while gn in def_groups:
+                            gn+=1
 
                     # if no group is defined for all spectra, start with zero
                     elif gn is None and len(def_groups) == 0:
                         gn = 0
-                    # print key, gn
+
                     # store the groupnumber
                     self.observedSpectraList['group'][key][i] = gn
 
@@ -298,9 +301,11 @@ class ObservedList(object):
                     # if spectrum has no group, but some have been defined, set the group = max(number)+1
                     if gn is None and len(def_groups) > 0:
                         if gn_rv is None:
-                            gn = max(def_groups) + 1
+                            gn = 0
                         else:
-                            gn = gn_rv + 1
+                            gn = gn_rv+1
+                        while gn in def_groups:
+                            gn+=1
 
                     # if no group is defined for all spectra, start with zero
                     elif gn is None and len(def_groups) == 0:
@@ -403,6 +408,11 @@ class StarList(object):
         self.componentList[component] = dict()
         pd = copy.deepcopy(parameter_definitions)
 
+        # setup groups for default parameters
+        for key in groups.keys():
+            if key in pd.keys():
+                pd[key]['group'] = groups[key]
+
         # process the keyword-arguments
         for key in kwargs.keys():
             keytest = key.lower()
@@ -415,8 +425,12 @@ class StarList(object):
                 warnings.warn('The parameter %s is set to %s. Therefore it is not '
                               'included into component parameters.' % (key, str(kwargs[key])))
             elif keytest not in pd.keys() and kwargs[key] is not None:
+
+                #set up group
+                if keytest in groups.keys():
+                    group = groups[keytest]
                 self.componentList[component][keytest] = []
-                self.componentList[component][keytest].append(Parameter(name=key, value=kwargs[key]))
+                self.componentList[component][keytest].append(Parameter(name=key, value=kwargs[key], group=group))
                 self.componentList[component][keytest][-1].set_empty()
                 warnings.warn('The parameter %s: %s is not set among the '
                               'parameter definitions. Therefore you should pay '
@@ -505,12 +519,31 @@ class StarList(object):
             for parkey in self.componentList[component].keys():
                 i = 0
                 while(i < len(self.componentList[component][parkey])):
-                    
+
                     # if the parameter group is not, it is deleted
                     if self.componentList[component][parkey][i]['group'] is None:
                         del self.componentList[component][parkey][i]
                     else:
                         i+=1
+
+    def delete_duplicities(self):
+        """
+        Delete duplicities in groups.
+        :return: None
+        """
+        for component in self._registered_components:
+            # groups can a have to be the same for two components ofc,
+            def_groups = []
+            for parkey in self.componentList[component].keys():
+                i = 0
+                while (i < len(self.componentList[component][parkey])):
+                    if self.componentList[component][parkey][i]['group'] not in def_groups:
+                        def_groups.append(self.componentList[component][parkey][i]['group'])
+                        i += 1
+                    # if the parameter with the group has been already defined, delete it
+                    else:
+                        del self.componentList[component][parkey][i]
+
 
 
     def read_groups(self):
@@ -528,7 +561,7 @@ class StarList(object):
                 for par in self.componentList[component][key]:
                     self.groups[component][key].append(par['group'])
 
-    def set_groups(self, groups):
+    def set_groups(self, groups, overwrite=False):
         """
         Sets up groups - this function is designed to
         use output from ObservedList.get_groups().
@@ -548,15 +581,26 @@ class StarList(object):
 
         for component in groups.keys():
             for parkey in groups[component].keys():
+
+                # bool variable for case, when we want to completely overwrite
+                # previous settings
+                first_in_list=True
+
                 for group in groups[component][parkey]:
-                    # setting grou[ for all components
+                    # setting group for all components
                     if component.lower() == 'all':
                         for one_comp in self._registered_components:
                             if group not in self.groups[one_comp][parkey]:
                                 warnings.warn("Group %s: %s previously undefined."
-                                                  "Adding to the remaining groups." % (parkey, str(group)))
+                                              "Adding to the remaining groups." % (parkey, str(group)))
                                 # print one_comp, parkey, group
                                 self.clone_parameter(one_comp, parkey, group=group)
+
+                                # deletes all previous groups
+                                if overwrite and first_in_list:
+                                    while len(self.groups[one_comp][parkey]) > 1:
+                                        del self.groups[one_comp][parkey][0]
+                                    first_in_list = False
 
                     # if we are setting group only for one component
                     else:
@@ -564,6 +608,12 @@ class StarList(object):
                             warnings.warn("Group %s: %s previously undefined."
                                                   "Adding to the remaining groups." % (parkey, str(group)))
                             self.clone_parameter(component, parkey, group=group)
+
+                            # deletes all previous groups
+                            if overwrite and first_in_list:
+                                while len(self.groups[one_comp][parkey]) > 1:
+                                    del self.groups[one_comp][parkey][0]
+                                first_in_list = False
 
 
 
