@@ -27,4 +27,9 @@ itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=True)
 
 # 5) communicate
 itf.setup_groups()
+print itf
+
+# 6) generate combinations
+itf.get_combinations()
+
 

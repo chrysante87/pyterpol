@@ -76,8 +76,9 @@ class Interface(object):
         combos = dict(synthetic=[], observed=[], parameters=[], groups=[])
 
         # walk over the dictionaries to get the combinations
-        groups_common = self.sl.get_common_groups()
+        common_groups = self.sl.get_common_groups()
 
+        print common_groups
 
     def verify(self):
         pass
@@ -819,23 +820,30 @@ class StarList(object):
         for key in parkeys:
             com_groups[key] = []
 
-            # define teh reference parameter
+            # define teh reference component
             comp0 = self._registered_components[0]
-            refpar = self.componentList[comp0][key][0]
 
-            is_common = True
-            for component in self._registered_components:
+            # groups are always common for one parameter
+            if len(self._registered_components) < 2:
+                is_common = True
 
-                if not is_common:
-                    break
-                for i, par in enumerate(self.componentList[component][key]):
-                    if not (refpar['group'] == par['group']):
-                        # if we fo not find the group for at leat one component we can end
-                        is_common = False
+            # go over each group of
+            for i in range(0, len(self.componentList[comp0][key])):
+                refpar = self.componentList[comp0][key][i]
+                # print refpar
 
-            # survived - save it
-            if is_common:
-                com_groups[key].append(refpar['group'])
+                # at the beginning
+                for component in self._registered_components[1:]:
+                    is_common = False
+                    for j, par in enumerate(self.componentList[component][key]):
+                        # print par
+                        if refpar['group'] == par['group']:
+                            is_common = True
+                            break
+                    if not is_common:
+                        break
+                if is_common:
+                    com_groups[key].append(refpar['group'])
 
         return com_groups
 
