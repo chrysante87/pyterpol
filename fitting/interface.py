@@ -711,6 +711,15 @@ class RegionList(List):
         # append the region
         self.mainList['all']['lr'].append(dict(wmin=wmin, wmax=wmax, group=group))
 
+    def clear_all(self):
+        """
+        Clears the class.
+        :return:
+        """
+
+        super(RegionList, self).clear_all()
+        self.mainList = {'all':{'lr':[]}}
+
     def get_defined_groups(self):
         """
         Returns plain list of all defined groups.
@@ -733,14 +742,45 @@ class RegionList(List):
         groups = self.get_defined_groups()
         return dict(all=dict(lr=groups))
 
-    def clear_all(self):
+
+    def get_regions_from_obs(self, ol, append=False):
         """
-        Clears the class.
-        :return:
+        Reads the region from a list of observations. In general this
+        function should not be used for fitting, because it
+        makes no sense to fit the whole spectrum.
+
+        :param ol: list of ObservedSpectrum
+        :param append are we appending to existing list?
+        :return: list of unique limits
         """
 
-        super(RegionList, self).clear_all()
-        self.mainList = {'all':{'lr':[]}}
+        # empty arrays for limits
+        limits = [[], []]
+
+        # the rounding is there get over stupid problems with float precision
+        for obs in ol:
+            limits[0].append(np.around(obs.wmin, decimals=4))
+            limits[1].append(np.around(obs.wmax, decimals=4))
+
+        # get only unique values
+        for i in range(0,2):
+            limits[i] = np.unique(limits[i])
+
+        # check that something funny did not happen
+        if len(limits[0]) != len(limits[1]):
+            raise ValueError('The limits were not read out correctly from observed spectra.s')
+
+        # clear the regions
+        if not append:
+            self.clear_all()
+
+        # setup the regions
+        for i in range(0, len(limits[0])):
+            self.add_region(wmin=limits[0][i], wmax=limits[1][i], group=i)
+
+        return limits
+
+
 
 
 

@@ -77,6 +77,15 @@ class ObservedSpectrum:
         #setup debug mode
         self.debug = debug
 
+    # TODO For some reason causes the code to freeze
+    # def __getattr__(self, item):
+    #     """
+    #     :param item: queried attribute
+    #     :return: attribute value
+    #     """
+    #     if hasattr(self, item):
+    #         return getattr(self, item)
+
     def __str__(self):
         """
         String representation of the class.
