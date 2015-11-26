@@ -9,6 +9,51 @@ from pyterpol.fitting.parameter import parameter_definitions
 # TODO Go through similarities in the classes and write a parent class
 # TODO to get rid of the redundant code.
 
+
+class Interface(object):
+    """
+    """
+    def __init__(self, sl=None, rl=None, ol=None, debug=False):
+        """
+        :param sl: StarList type
+        :param rl: RegionList type
+        :param ol: ObservedList type
+        :return:
+        """
+
+        self.sl = sl
+        self.rl = sl
+        self.ol = ol
+
+        # debug mode
+        self.debug = debug
+
+    def __str__(self):
+        """
+        String representation of the class
+        :return:
+        """
+        string = ""
+        for attr in ['sl', 'rl', 'ol']:
+            string += str(getattr(self, attr))
+        return string
+
+    def setup_groups(self):
+        """
+        This function probes the observed and
+        region list and propagates group definitions
+        from them to the starlist.
+        :return:
+        """
+
+        # read the groups from observed data
+        # and region definitions
+        groups_data = self.ol.get_data_groups()
+        groups_regs = self.rl.get_region_groups()
+        for groups in [groups_data, groups_regs]:
+            self.sl.set_groups(groups)
+
+
 class List(object):
     """
     Future parent class for all the lists, which are dictionaries... :-)
@@ -142,7 +187,7 @@ class ObservedList(object):
         """
         self.__init__()
 
-    def get_groups_for_components(self, components):
+    def get_data_groups(self, components):
         """
         Returns a dictionary, containing a record
         on defined group for each component.
@@ -373,6 +418,141 @@ class ObservedList(object):
         for i in range(0, len(self.observedSpectraList['spectrum'])):
             group = {key: self.observedSpectraList['group'][key][i] for key in self.observedSpectraList['group'].keys()}
             self.observedSpectraList['spectrum'][i].set_group(group)
+
+
+class RegionList(List):
+    """
+    """
+    def __init__(self, **kwargs):
+        """
+        Class constructor
+        :return:None
+        """
+
+        # setup the parent class
+        super(RegionList, self).__init__(**kwargs)
+
+        # registered keywords
+        self._registered_records = ['wmin', 'wmax', 'group']
+
+        #
+        if len(self.mainList.keys()) < 1:
+            self.mainList = {'all':{'lr':[]}}
+
+    def __str__(self):
+        """
+        String representation of the class.
+        :return: string
+        """
+
+        string =''
+        for key0 in self.mainList.keys():
+            string += "%s:\n" % (key0)
+            for key1 in self.mainList[key0].keys():
+                for rec in self.mainList[key0][key1]:
+                    string += "%s\n" % str(rec)
+
+        return string
+
+
+    def add_region(self, wmin=None, wmax=None, group=None):
+        """
+        :param wmin: minimal wavelength
+        :param wmax: maximal wavelength
+        :param group: group number for this region
+        :return: None
+        """
+
+        # if we are crazy and want to set this up
+        if wmin is None or wmax is None:
+            warnings.warn('One of the region boundaries is set to None. '
+                          'dno not forget to set this up later!')
+        else:
+            if wmin >= wmax:
+                raise ValueError('wmin is greater than wmax: %s > %s.' % (str(wmin), str(wmax)))
+
+        # automatic assignment of a group - EACH AUTOMATICALLY
+        # ASSIGNED GROUP IS NEW
+        if group is None:
+            def_groups = self.get_defined_groups()
+            if len(def_groups) == 0:
+                group = 0
+            else:
+                group = 0
+                while group in def_groups:
+                    group += 1
+
+        # append the region
+        self.mainList['all']['lr'].append(dict(wmin=wmin, wmax=wmax, group=group))
+
+    def clear_all(self):
+        """
+        Clears the class.
+        :return:
+        """
+
+        super(RegionList, self).clear_all()
+        self.mainList = {'all':{'lr':[]}}
+
+    def get_defined_groups(self):
+        """
+        Returns plain list of all defined groups.
+        :return: list of defined groups
+        """
+        groups = []
+        for rec in self.mainList['all']['lr']:
+            if rec['group'] not in groups:
+                groups.append(rec['group'])
+
+        return groups
+
+    def get_region_groups(self):
+        """
+        A dictionary of groups defined for regions.
+        :return: dictionary containing records on groups
+                which can be directly passed to type StarList
+                through set_groups
+        """
+        groups = self.get_defined_groups()
+        return dict(all=dict(lr=groups))
+
+
+    def get_regions_from_obs(self, ol, append=False):
+        """
+        Reads the region from a list of observations. In general this
+        function should not be used for fitting, because it
+        makes no sense to fit the whole spectrum.
+
+        :param ol: list of ObservedSpectrum
+        :param append are we appending to existing list?
+        :return: list of unique limits
+        """
+
+        # empty arrays for limits
+        limits = [[], []]
+
+        # the rounding is there get over stupid problems with float precision
+        for obs in ol:
+            limits[0].append(np.ceil(obs.wmin))
+            limits[1].append(np.floor(obs.wmax))
+
+        # get only unique values
+        for i in range(0,2):
+            limits[i] = np.unique(limits[i])
+
+        # check that something funny did not happen
+        if len(limits[0]) != len(limits[1]):
+            raise ValueError('The limits were not read out correctly from observed spectra.s')
+
+        # clear the regions
+        if not append:
+            self.clear_all()
+
+        # setup the regions
+        for i in range(0, len(limits[0])):
+            self.add_region(wmin=limits[0][i], wmax=limits[1][i], group=i)
+
+        return limits
 
 
 class StarList(object):
@@ -646,142 +826,14 @@ class StarList(object):
                                 first_in_list = False
 
 
-class RegionList(List):
+class SyntheticList(List):
     """
+    List of resulting synthetic spectra.
     """
     def __init__(self, **kwargs):
-        """
-        Class constructor
-        :return:None
-        """
 
-        # setup the parent class
-        super(RegionList, self).__init__(**kwargs)
-
-        # registered keywords
-        self._registered_records = ['wmin', 'wmax', 'group']
-
-        #
-        if len(self.mainList.keys()) < 1:
-            self.mainList = {'all':{'lr':[]}}
-
-    def __str__(self):
-        """
-        String representation of the class.
-        :return: string
-        """
-
-        string =''
-        for key0 in self.mainList.keys():
-            string += "%s:\n" % (key0)
-            for key1 in self.mainList[key0].keys():
-                for rec in self.mainList[key0][key1]:
-                    string += "%s\n" % str(rec)
-
-        return string
-
-
-    def add_region(self, wmin=None, wmax=None, group=None):
-        """
-        :param wmin: minimal wavelength
-        :param wmax: maximal wavelength
-        :param group: group number for this region
-        :return: None
-        """
-
-        # if we are crazy and want to set this up
-        if wmin is None or wmax is None:
-            warnings.warn('One of the region boundaries is set to None. '
-                          'dno not forget to set this up later!')
-        else:
-            if wmin >= wmax:
-                raise ValueError('wmin is greater than wmax: %s > %s.' % (str(wmin), str(wmax)))
-
-        # automatic assignment of a group - EACH AUTOMATICALLY
-        # ASSIGNED GROUP IS NEW
-        if group is None:
-            def_groups = self.get_defined_groups()
-            if len(def_groups) == 0:
-                group = 0
-            else:
-                group = 0
-                while group in def_groups:
-                    group += 1
-
-        # append the region
-        self.mainList['all']['lr'].append(dict(wmin=wmin, wmax=wmax, group=group))
-
-    def clear_all(self):
-        """
-        Clears the class.
-        :return:
-        """
-
-        super(RegionList, self).clear_all()
-        self.mainList = {'all':{'lr':[]}}
-
-    def get_defined_groups(self):
-        """
-        Returns plain list of all defined groups.
-        :return: list of defined groups
-        """
-        groups = []
-        for rec in self.mainList['all']['lr']:
-            if rec['group'] not in groups:
-                groups.append(rec['group'])
-
-        return groups
-
-    def get_region_groups(self):
-        """
-        A dictionary of groups defined for regions.
-        :return: dictionary containing records on groups
-                which can be directly passed to type StarList
-                through set_groups
-        """
-        groups = self.get_defined_groups()
-        return dict(all=dict(lr=groups))
-
-
-    def get_regions_from_obs(self, ol, append=False):
-        """
-        Reads the region from a list of observations. In general this
-        function should not be used for fitting, because it
-        makes no sense to fit the whole spectrum.
-
-        :param ol: list of ObservedSpectrum
-        :param append are we appending to existing list?
-        :return: list of unique limits
-        """
-
-        # empty arrays for limits
-        limits = [[], []]
-
-        # the rounding is there get over stupid problems with float precision
-        for obs in ol:
-            limits[0].append(np.ceil(obs.wmin))
-            limits[1].append(np.floor(obs.wmax))
-
-        # get only unique values
-        for i in range(0,2):
-            limits[i] = np.unique(limits[i])
-
-        # check that something funny did not happen
-        if len(limits[0]) != len(limits[1]):
-            raise ValueError('The limits were not read out correctly from observed spectra.s')
-
-        # clear the regions
-        if not append:
-            self.clear_all()
-
-        # setup the regions
-        for i in range(0, len(limits[0])):
-            self.add_region(wmin=limits[0][i], wmax=limits[1][i], group=i)
-
-        return limits
-
-
-
+        # initialize the parent
+        super(SyntheticList, self).__init__(**kwargs)
 
 
 

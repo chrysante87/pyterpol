@@ -35,16 +35,6 @@ class ObservedSpectrum:
             self.error = None
             self.hasErrors = False
 
-        # Making assumption here, that we are
-        # not passing errors, if we are not
-        # passing wavelengths and intensities
-        elif isinstance(error, (float, int)):
-            self.error = np.ones(len(wave)) * error
-            self.hasErrors = True
-        else:
-            self.error = error
-            self.hasErrors = True
-
         # sets that the spectrum is loaded
         if (wave is not None) and (intens is not None):
             self.loaded = True
@@ -52,13 +42,21 @@ class ObservedSpectrum:
 
             # check lengths of intens and wave
             self.check_length()
+
+            # set the error
+            if isinstance(error, (float, int)) and error is not None:
+                self.error = np.ones(len(wave)) * error
+                self.hasErrors = True
+            elif error is not None:
+                self.error = error
+                self.hasErrors = True
         else:
             self.loaded = False
 
         # if we provided the filename
         self.filename = filename
         if (not self.loaded) and (self.filename is not None):
-            self.read_spectrum_from_file(filename)
+            self.read_spectrum_from_file(filename, global_error=error)
         elif (not self.loaded) and (self.filename is None):
             warnings.warn('No spectrum was loaded. This class is kinda useless without a spectrum. '
                         'I hope you know what you are doing.')
