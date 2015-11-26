@@ -52,8 +52,10 @@ class Interface(object):
 
         # read the groups from observed data
         # and region definitions
-        groups_data = self.ol.get_data_groups(components)
-        groups_regs = self.rl.get_region_groups()
+        if self.ol is not None:
+            groups_data = self.ol.get_data_groups(components)
+        if self.rl is not None:
+            groups_regs = self.rl.get_region_groups()
 
         if self.debug:
             print "Reading groups: %s from data." % str(groups_data)
@@ -61,6 +63,27 @@ class Interface(object):
 
         for groups in [groups_data, groups_regs]:
             self.sl.set_groups(groups)
+
+    def get_combinations(self):
+        """
+        This function creates a dictionary, which is one of the
+        cornerstones of the class. It creates a list of all
+        combinations of the parameters.
+        :return:
+        """
+
+        # empty dictionary for the combinations
+        combos = dict(synthetic=[], observed=[], parameters=[], groups=[])
+
+        # walk over the dictionaries to get the combinations
+        groups_common = self.sl.get_common_groups()
+
+
+    def verify(self):
+        pass
+
+    def verify_before_fitting(self):
+        pass
 
 
 class List(object):
@@ -595,6 +618,14 @@ class StarList(object):
         # defined groups
         self.groups = {}
 
+    def __len__(self):
+        """
+        Returns number of parameters.
+        :return: l
+        """
+        pass
+
+
     def __str__(self):
         """
         :return: string = string represantation of the class
@@ -774,6 +805,47 @@ class StarList(object):
                     # if the parameter with the group has been already defined, delete it
                     else:
                         del self.componentList[component][parkey][i]
+
+    def get_common_groups(self):
+        """
+        Returns a dictionary of groups shared by all components.
+        :return: com_groups
+        """
+        # get the keys of physical parameters
+        parkeys = self.get_physical_parameters()
+
+        # get the groups
+        com_groups = {}
+        for key in parkeys:
+            com_groups[key] = []
+
+            # define teh reference parameter
+            comp0 = self._registered_components[0]
+            refpar = self.componentList[comp0][key][0]
+
+            is_common = True
+            for component in self._registered_components:
+
+                if not is_common:
+                    break
+                for i, par in enumerate(self.componentList[component][key]):
+                    if not (refpar['group'] == par['group']):
+                        # if we fo not find the group for at leat one component we can end
+                        is_common = False
+
+            # survived - save it
+            if is_common:
+                com_groups[key].append(refpar['group'])
+
+        return com_groups
+
+    def get_physical_parameters(self):
+        """
+        Reads physical parameters from the starlist.
+        :return:
+        """
+        component = self._registered_components[0]
+        return self.componentList[component].keys()
 
 
 

@@ -1,3 +1,7 @@
+"""
+Testing of creation of combination list.
+"""
+
 import pyterpol
 
 
@@ -24,4 +28,3 @@ itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=True)
 # 5) communicate
 itf.setup_groups()
 
-print itf

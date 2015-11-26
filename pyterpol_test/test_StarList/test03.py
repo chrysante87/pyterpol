@@ -22,9 +22,12 @@ obs = [
 ol.add_observations(obs)
 
 # now query the groups and pass them to starlist
-sl.set_groups(ol.get_groups_for_components(['primary','secondary', 'ALL']))
+sl.set_groups(ol.get_data_groups(['primary','secondary', 'ALL']))
 print sl
 
 # completely overwrite default groups
-sl.set_groups(ol.get_groups_for_components(['primary','secondary', 'ALL']), overwrite=True)
+sl.set_groups(ol.get_data_groups(['primary','secondary', 'ALL']), overwrite=True)
 print sl
+
+# return groups common for all components
+print "Common groups:", sl.get_common_groups()
