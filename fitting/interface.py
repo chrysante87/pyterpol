@@ -727,8 +727,8 @@ class RegionList(List):
         """
         groups = []
         for rec in self.mainList['all']['lr']:
-            if rec not in groups:
-                groups.append(rec)
+            if rec['group'] not in groups:
+                groups.append(rec['group'])
 
         return groups
 
@@ -759,8 +759,8 @@ class RegionList(List):
 
         # the rounding is there get over stupid problems with float precision
         for obs in ol:
-            limits[0].append(np.around(obs.wmin, decimals=4))
-            limits[1].append(np.around(obs.wmax, decimals=4))
+            limits[0].append(np.ceil(obs.wmin))
+            limits[1].append(np.floor(obs.wmax))
 
         # get only unique values
         for i in range(0,2):

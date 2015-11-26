@@ -36,4 +36,8 @@ observed = ol.get_spectra()
 
 # setup the regions from spectra
 limits = rl.get_regions_from_obs(observed)
+print limits
+
+# push out the values for comparison
+print rl.get_region_groups()
 
