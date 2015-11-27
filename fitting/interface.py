@@ -78,7 +78,10 @@ class Interface(object):
         # walk over the dictionaries to get the combinations
         common_groups = self.sl.get_common_groups()
 
-        print common_groups
+        combo = dict()
+        # for i, key0 in enumerate(common_groups.keys()):
+        #     if
+
 
     def verify(self):
         pass
