@@ -5,10 +5,12 @@ import numpy as np
 from pyterpol.observed.observations import ObservedSpectrum
 from pyterpol.fitting.parameter import Parameter
 from pyterpol.fitting.parameter import parameter_definitions
+from pyterpol.synthetic.auxiliary import keys_to_lowercase
 
 # TODO Go through similarities in the classes and write a parent class
 # TODO to get rid of the redundant code.
 
+floatToler = 1e-6
 
 class Interface(object):
     """
@@ -481,11 +483,14 @@ class RegionList(List):
         super(RegionList, self).__init__(**kwargs)
 
         # registered keywords
-        self._registered_records = ['wmin', 'wmax', 'group']
+        self._registered_records = ['components', 'groups','wmin', 'wmax']
 
-        #
+        # if not given along the class a blank one is created
         if len(self.mainList.keys()) < 1:
-            self.mainList = {'all':{'lr':[]}}
+            self.mainList = {}
+            self._registered_regions = []
+        else:
+            self._registered_regions = self.get_registered_regions()
 
     def __str__(self):
         """
@@ -502,9 +507,9 @@ class RegionList(List):
 
         return string
 
-
-    def add_region(self, wmin=None, wmax=None, group=None):
+    def add_region(self, component='all', identification=None, wmin=None, wmax=None, groups=None):
         """
+        :param component: component for whichg the region apply
         :param wmin: minimal wavelength
         :param wmax: maximal wavelength
         :param group: group number for this region
@@ -512,26 +517,60 @@ class RegionList(List):
         """
 
         # if we are crazy and want to set this up
-        if wmin is None or wmax is None:
-            warnings.warn('One of the region boundaries is set to None. '
-                          'dno not forget to set this up later!')
+        # either by wavelength or by identification
+        if (wmin is None or wmax is None) and identification is None:
+            raise ValueError('Boundaries are not set properly: (wmin,wmax)= (%s, %s)' % (str(wmin), str(wmax)))
         else:
             if wmin >= wmax:
                 raise ValueError('wmin is greater than wmax: %s > %s.' % (str(wmin), str(wmax)))
 
-        # automatic assignment of a group - EACH AUTOMATICALLY
-        # ASSIGNED GROUP IS NEW
-        if group is None:
-            def_groups = self.get_defined_groups()
-            if len(def_groups) == 0:
-                group = 0
-            else:
-                group = 0
-                while group in def_groups:
-                    group += 1
+        # convert component/group/identification keys to lowercase
+        groups = keys_to_lowercase(groups)
+        component = component.lower()
+        ident = identification
+        if ident is not None:
+            ident = ident.lower()
 
-        # append the region
-        self.mainList['all']['lr'].append(dict(wmin=wmin, wmax=wmax, group=group))
+        # if the 'lr' is undefined then for each region its own
+        # 'lr' assigned
+        if component is not 'all':
+            # maybe the region has been already defined
+            if ident in self.mainList.keys():
+                region = ident
+            elif ident is None:
+                region = self.get_region(wmin, wmax)
+            else:
+                region = None
+
+            # if it is not empty
+            if region is not None:
+
+                # check that the component ws not set earlier
+                if self.has_component(region, component):
+                    warnings.warn('The component: %s is already set for region: %s. -> doing nothing.'
+                                % (region, component))
+                    return
+
+                # get lr from the region first record
+                groups['lr'] = self.mainList[region]['groups']['lr'][0]
+
+                # store everything apart from the wmin, wmax
+                self.mainList[region]['groups'].append(groups)
+                self.mainList[region]['components'].append(component)
+            else:
+
+
+        # if groups is None:
+        #     def_groups = self.get_defined_groups()
+        #     if len(def_groups) == 0:
+        #         group = 0
+        #     else:
+        #         group = 0
+        #         while group in def_groups:
+        #             group += 1
+        #
+        # # append the region
+        # self.mainList['all']['lr'].append(dict(wmin=wmin, wmax=wmax, group=group))
 
     def clear_all(self):
         """
@@ -554,6 +593,21 @@ class RegionList(List):
 
         return groups
 
+    def get_region(self, wmin, wmax):
+        """
+        Checks that a region with this wavelength range
+        does not exist.
+        :param wmin
+        :param wmax
+        :return:
+        """
+
+        for region in self.mainList:
+            if (abs(self.mainList[region]['wmin'] - wmin) < floatToler) & \
+               (abs(self.mainList[region]['wmax'] - wmax) < floatToler):
+                return region
+        return None
+
     def get_region_groups(self):
         """
         A dictionary of groups defined for regions.
@@ -563,6 +617,13 @@ class RegionList(List):
         """
         groups = self.get_defined_groups()
         return dict(all=dict(lr=groups))
+
+    def get_registered_regions(self):
+        """
+        Returns an array of registered regions.
+        :return:
+        """
+        return self.mainList.keys()
 
 
     def get_regions_from_obs(self, ol, append=False):
@@ -602,6 +663,19 @@ class RegionList(List):
 
         return limits
 
+    def has_component(self, region, component):
+        """
+        Checks that certain component was attached for a given
+        region.
+        :param region:
+        :param component:
+        :return: bool has/has_not the component
+        """
+
+        for regcomp  in self.mainList[region]['components']:
+            if regcomp == component:
+                return True
+        return False
 
 class StarList(object):
     """

@@ -71,6 +71,20 @@ def is_within_interval(v, arr):
     else:
 	return True
 
+def keys_to_lowercase(d):
+    """
+    Converts dictionary keys to lowercase
+    :param d the converted dictionary
+    :return: dnew
+    """
+
+    dnew = {}
+    for key in d.keys():
+        keynew = key.lower()
+        dnew[keynew] = d[key]
+
+    return dnew
+
 
 def read_text_file(f):
     """
