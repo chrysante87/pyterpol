@@ -708,30 +708,36 @@ class RegionList(List):
         :param append are we appending to existing list?
         :return: list of unique limits
         """
-
-        # empty arrays for limits
-        limits = [[], []]
-
-        # the rounding is there get over stupid problems with float precision
-        for obs in ol:
-            limits[0].append(np.ceil(obs.wmin))
-            limits[1].append(np.floor(obs.wmax))
-
-        # get only unique values
-        for i in range(0,2):
-            limits[i] = np.unique(limits[i])
-
-        # check that something funny did not happen
-        if len(limits[0]) != len(limits[1]):
-            raise ValueError('The limits were not read out correctly from observed spectra.s')
-
-        # clear the regions
+        # clear the regions if needed
         if not append:
             self.clear_all()
 
-        # setup the regions
-        for i in range(0, len(limits[0])):
-            self.add_region(wmin=limits[   0][i], wmax=limits[1][i])
+        # empty arrays for limits
+        limits = {}
+
+        # the rounding is there get over stupid problems with float precision
+        for obs in ol:
+            component = obs.component
+            if component not in limits:
+                limits[component] = [[], []]
+
+            limits[component][0].append(np.ceil(obs.wmin))
+            limits[component][1].append(np.floor(obs.wmax))
+
+            # get only unique values
+            for i in range(0,2):
+                limits[component][i] = np.unique(limits[component][i])
+
+        # check that something funny did not happen
+        for component in limits.keys():
+            if len(limits[component][0]) != len(limits[component][1]):
+                raise ValueError('The limits were not read out correctly from observed spectra.')
+
+            # setup the regions
+            for i in range(0, len(limits[component][0])):
+                self.add_region(component=component,
+                                wmin=limits[component][0][i],
+                                wmax=limits[component][1][i])
 
         return limits
 

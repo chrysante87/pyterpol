@@ -5,6 +5,12 @@ from scipy.interpolate import splrep
 from scipy.interpolate import splev
 
 
+# tolerance on float comparison
+floatToler = 1e-6
+
+# repeat userwarnings
+warnings.simplefilter('always', UserWarning)
+
 class ObservedSpectrum:
     """
     A wrapper class for the observed spectra.
