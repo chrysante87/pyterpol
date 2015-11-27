@@ -45,6 +45,16 @@ class Interface(object):
             string += str(getattr(self, attr))
         return string
 
+    def clear_all(self):
+        """
+        Clears the class.
+        :return:
+        """
+
+        self.sl = None
+        self.rl = None
+        self.ol = None
+
     def setup_groups(self):
         """
         This function probes the observed and
@@ -53,30 +63,52 @@ class Interface(object):
         :return:
         """
 
-        # get registered components
-        components = copy.deepcopy(self.sl._registered_components)
-        components.append('all')
+        # # get registered components
+        # components = copy.deepcopy(self.sl._registered_components)
+        # components.append('all')
+        #
+        # # read the groups from observed data
+        # # and region definitions
+        # if self.ol is not None:
+        #     groups_data = self.ol.get_data_groups(components)
+        # if self.rl is not None:
+        #     groups_regs = self.rl.get_region_groups()
+        #
+        # if self.debug:
+        #     print "Reading groups: %s from data." % str(groups_data)
+        #     print "Reading groups: %s from regions." % str(groups_regs)
+        #
+        # for groups in [groups_data, groups_regs]:
+        #     self.sl.set_groups(groups)
 
-        # read the groups from observed data
-        # and region definitions
-        if self.ol is not None:
-            groups_data = self.ol.get_data_groups(components)
+        # first setup region groups
         if self.rl is not None:
-            groups_regs = self.rl.get_region_groups()
+            region_groups = self.rl.get_region_groups()
+            self.sl.set_groups(region_groups)
+        else:
+            raise ValueError('Cannot setup groups without the RegionList attached to the interface.')
 
-        if self.debug:
-            print "Reading groups: %s from data." % str(groups_data)
-            print "Reading groups: %s from regions." % str(groups_regs)
-
-        for groups in [groups_data, groups_regs]:
-            self.sl.set_groups(groups)
+        # setup radial velocity groups
+        if self.ol is not None:
+            self.setup_rv_groups()
+        else:
+            warnings.warn('There are no data attached, so all regions are set to '
+                          'have the same radial velocity. Each component can have'
+                          'different velocity of course.')
 
     def setup_rv_groups(self):
         """
         Setting up the rv_groups is a pain..
         :return:
         """
-        # get wavelength boiundaties of defined regions
+        # TODO Can this be done better?????
+        # empty array for components where cloning
+        # was performed - to get rid of the first
+        # group
+        cloned_comps = []
+        registered_groups = []
+
+        # get wavelength boundaries of defined regions
         wmins, wmaxs = self.rl.get_wavelengths()
 
         # for every region we have a look if we have some data
@@ -93,29 +125,43 @@ class Interface(object):
 
                 # readout groups that were already defined
                 def_groups = self.sl.get_defined_groups(component=component, parameter='rv')[component]['rv']
-                print wmin, wmax, component, rv_group, def_groups
+                print spectrum, wmin, wmax, component, rv_group, def_groups
 
-                # We defined group for our observation
-                if rv_group is not None:
+                # We define group for our observation
+                if rv_group is None:
+                    gn = generate_least_number(def_groups)
+                elif rv_group not in def_groups:
+                    gn = rv_group
 
-                    # if the group is not defined
-                    if rv_group not in def_groups:
-                        gn = generate_least_number(def_groups)
+                # if the group is defined we only need to
+                # add it among the user defined one, so it
+                # so it is not deleted later
+                elif rv_group in def_groups:
+                    registered_groups.append(rv_group)
+                    continue
 
-                        # the group number is assigned to the spectrum
-                        self.ol.observedSpectraList['spectrum'][i].group['rv'] = gn
-                        self.ol.observedSpectraList['group']['rv'][i] = gn
+                # the group number is assigned to the spectrum
+                # NOT A GOOD IDEA
+                # self.ol.observedSpectraList['spectrum'][i].group['rv'] = gn
+                # self.ol.observedSpectraList['group']['rv'][i] = gn
 
-                        # attachs new parameter to the StarList
-                        self.sl.clone_parameter(component, 'rv', group=gn)
+                # attachs new parameter to the StarList
+                self.sl.clone_parameter(component, 'rv', group=gn)
 
+                if component not in cloned_comps:
+                    if component == 'all':
+                        cloned_comps.extend(self.sl.get_components())
+                    else:
+                        cloned_comps.append(component)
+                    registered_groups.append(gn)
 
-
-
-
-
-
-
+        print registered_groups, cloned_comps
+        # remove the default groups
+        for c in cloned_comps:
+            gref = self.sl.componentList[c]['rv'][0]['group']
+            if gref not in registered_groups:
+                self.remove_parameter(c, 'rv', gref)
+    #
     def get_combinations(self):
         """
         This function creates a dictionary, which is one of the
@@ -129,6 +175,15 @@ class Interface(object):
 
         # walk over the dictionaries to get the combinations
         common_groups = self.sl.get_common_groups()
+
+    def remove_parameter(self, component, parameter, group):
+        """
+        :param component: component for which the parameter is deleted
+        :param parameter:deleted paramer
+        :return:
+        """
+
+        self.sl.remove_parameter(component, parameter, group)
 
     def verify(self):
         pass
@@ -447,7 +502,7 @@ class ObservedList(object):
 
         # assign empty group arrays
         for key in groups.keys():
-            self.observedSpectraList['group'][key] = np.zeros(len(self)).astype('int16')
+            self.observedSpectraList['group'][key] = np.zeros(len(self)).astype('int16').tolist()
 
         # Assigning groups to every spectrum
         for i, spectrum in enumerate(self.observedSpectraList['spectrum']):
@@ -479,32 +534,36 @@ class ObservedList(object):
                     # def_groups = groups[key]
 
                     # try to set groups component-wise
-                    component = spectrum.component
-                    comp_groups = self.get_defined_groups(component=component)
-                    print comp_groups
-                    if 'rv' not in comp_groups.keys():
-                        comp_groups['rv'] = []
-                    def_groups = comp_groups[key]
-                    print def_groups
-
-                    # if spectrum has no group
-                    if gn is None and len(def_groups) > 0:
-                        if gn_rv is None:
-                            gn = 0
-                        else:
-                            gn = gn_rv+1
-                        while gn in def_groups:
-                            gn+=1
-
-                    # if no group is defined for all spectra, start with zero
-                    elif gn is None and len(def_groups) == 0:
-                        if gn_rv is None:
-                            gn = 0
-                        else:
-                            gn = gn_rv + 1
+                    # component = spectrum.component
+                    # comp_groups = self.get_defined_groups(component=component)
+                    # # print comp_groups
+                    # if 'rv' not in comp_groups.keys():
+                    #     comp_groups['rv'] = []
+                    # def_groups = comp_groups[key]
+                    # # print def_groups
+                    #
+                    # # if spectrum has no group
+                    # if gn is None and len(def_groups) > 0:
+                    #     if gn_rv is None:
+                    #         gn = 0
+                    #     else:
+                    #         gn = gn_rv+1
+                    #     while gn in def_groups:
+                    #         gn+=1
+                    #
+                    # # if no group is defined for all spectra, start with zero
+                    # elif gn is None and len(def_groups) == 0:
+                    #     if gn_rv is None:
+                    #         gn = 0
+                    #     else:
+                    #         gn = gn_rv + 1
                     # print key, gn, def_groups
-                    self.observedSpectraList['group'][key][i] = gn
-                    gn_rv = gn
+                    if gn is None:
+                        self.observedSpectraList['group'][key][i] = None
+                    else:
+                        self.observedSpectraList['group'][key][i] = gn
+
+                    # gn_rv = gn
 
         # propagate the groups back to spectra
         self._set_groups_to_spectra()
@@ -1125,6 +1184,13 @@ class StarList(object):
 
         return com_groups
 
+    def get_components(self):
+        """
+        Returns list of all defined components.
+        :return:
+        """
+        return copy.deepcopy(self._registered_components)
+
     def get_defined_groups(self, component=None, parameter=None):
         """:
         :param component: starlist component
@@ -1168,6 +1234,23 @@ class StarList(object):
 
         return groups
 
+    def get_index(self, component, parameter, group):
+        """
+        Returns index of a component/parameter/group.
+        :param component:
+        :param parameter:
+        :param group:
+        :return:
+        """
+
+        for par in self.componentList[component][parameter]:
+            if par['group'] == group:
+                return par['group']
+
+        warnings.warn('Component: %s Parameter: %s Group: :s'
+                      ' not found.' % (component, parameter, group))
+        return None
+
 
     def get_physical_parameters(self):
         """
@@ -1176,13 +1259,6 @@ class StarList(object):
         """
         component = self._registered_components[0]
         return self.componentList[component].keys()
-
-    def get_components(self):
-        """
-        Returns list of all defined components.
-        :return:
-        """
-        return copy.deepcopy(self._registered_components)
 
     def read_groups(self):
         """
@@ -1198,6 +1274,16 @@ class StarList(object):
                 self.groups[component][key]=[]
                 for par in self.componentList[component][key]:
                     self.groups[component][key].append(par['group'])
+
+    def remove_parameter(self, component, parameter, group):
+        """
+        :param component: component for which the parameter is deleted
+        :param parameter:deleted paramer
+        :return:
+        """
+        index = self.get_index(component, parameter, group)
+        del self.componentList[component][parameter][index]
+
 
     def set_groups(self, groups, overwrite=False):
         """
