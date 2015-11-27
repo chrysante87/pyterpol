@@ -35,7 +35,14 @@ itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=True)
 # 5) communicate groups
 itf.setup_groups()
 print itf
+itf.clear_all()
 
 # 5) communicate groups - without attaching the data
-# itf = pyterpol.Interface(ol=ol, sl=sl, rl=rl, debug=True)
-# print itf
+# 3) define a star
+sl = pyterpol.StarList(debug=debug)
+sl.add_component(component='primary', teff=20000., logg=4.5, rv=0.0, vrot=0.0, lr=1.0, z=1.0)
+sl.add_component(component='secondary', teff=20000., logg=4.5, rv=0.0, vrot=0.0, lr=1.0, z=1.0)
+
+itf = pyterpol.Interface(sl=sl, rl=rl, debug=True)
+itf.setup_groups()
+print itf
