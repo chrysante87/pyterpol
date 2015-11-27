@@ -107,7 +107,7 @@ class Interface(object):
                         self.ol.observedSpectraList['group']['rv'][i] = gn
 
                         # attachs new parameter to the StarList
-                        self.sl.clone_parameter(component, 'rv')
+                        self.sl.clone_parameter(component, 'rv', group=gn)
 
 
 
