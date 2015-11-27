@@ -10,7 +10,11 @@ from pyterpol.synthetic.auxiliary import keys_to_lowercase
 # TODO Go through similarities in the classes and write a parent class
 # TODO to get rid of the redundant code.
 
+# tolerance on float comparison
 floatToler = 1e-6
+
+# repeat userwarnings
+warnings.simplefilter('always', UserWarning)
 
 class Interface(object):
     """
@@ -499,20 +503,26 @@ class RegionList(List):
         """
 
         string =''
-        for key0 in self.mainList.keys():
-            string += "%s:\n" % (key0)
-            for key1 in self.mainList[key0].keys():
-                for rec in self.mainList[key0][key1]:
-                    string += "%s\n" % str(rec)
 
+        # go over regions
+        for key0 in self.mainList.keys():
+            # region properties
+            string += "Region name: %s: (wmin, wmax) = (%s, %s):\n" % (key0, str(self.mainList[key0]['wmin']),
+                                                                  str(self.mainList[key0]['wmax']))
+            # componentn properties
+            for i in range(0, len(self.mainList[key0]['components'])):
+                string += "%s: %s " % ('component', str(self.mainList[key0]['components'][i]))
+                string += "%s: %s " % ('groups', str(self.mainList[key0]['groups'][i]))
+                string += '\n'
         return string
 
     def add_region(self, component='all', identification=None, wmin=None, wmax=None, groups=None):
         """
         :param component: component for whichg the region apply
+        :param identification
         :param wmin: minimal wavelength
         :param wmax: maximal wavelength
-        :param group: group number for this region
+        :param groups: group numbers for this region
         :return: None
         """
 
@@ -521,11 +531,15 @@ class RegionList(List):
         if (wmin is None or wmax is None) and identification is None:
             raise ValueError('Boundaries are not set properly: (wmin,wmax)= (%s, %s)' % (str(wmin), str(wmax)))
         else:
-            if wmin >= wmax:
-                raise ValueError('wmin is greater than wmax: %s > %s.' % (str(wmin), str(wmax)))
+            if (wmin >= wmax) and identification not in self._registered_regions:
+                raise ValueError('wmin is greater than wmax: %s > %s '
+                                 'or the region: %s is not registered.' % (str(wmin), str(wmax), identification))
 
         # convert component/group/identification keys to lowercase
-        groups = keys_to_lowercase(groups)
+        if groups is not None:
+            groups = keys_to_lowercase(groups)
+        else:
+            groups = {}
         component = component.lower()
         ident = identification
         if ident is not None:
@@ -541,7 +555,8 @@ class RegionList(List):
 
         # if there is a region exists and the component is all,
         # there is no point to attach it
-        if region is not None and component is 'all':
+        # print region, component
+        if (region != None) and (component == 'all'):
             warnings.warn('The region already exists as region: %s -> doing nothing.' % region)
             return
 
@@ -554,59 +569,44 @@ class RegionList(List):
             # check that the component ws not set earlier
             if self.has_component(region, component):
                 warnings.warn('The component: %s is already set for region: %s. -> doing nothing.'
-                            % (region, component))
+                            % (component, region))
                 return
 
             # get lr from the region first record
-            groups['lr'] = self.mainList[region]['groups']['lr'][0]
+            # print groups, self.mainList[region]['groups']
+            groups['lr'] = self.mainList[region]['groups'][0]['lr']
 
             # store everything apart from the wmin, wmax
             self.mainList[region]['groups'].append(groups)
             self.mainList[region]['components'].append(component)
         else:
 
-            if self.debug:
-                print "Creating new region: %s," % (region)
-
+            # print 'tu'
             # setup identification for
             if ident is None:
-                ident = 'region' + str(len(self._registered_regions))
+                ident = 'region' + str(len(self._registered_regions)).zfill(2)
+
+            if self.debug:
+                print "Creating new region: %s." % (ident)
 
             # register the new region
+            self.mainList[ident] =  dict(wmin=wmin, wmax=wmax, components=[component], groups=[])
             self._registered_regions.append(ident)
-
-            # setup groups:
-            if groups is None:
-                groups = {}
 
             # if the luminosity group is not defined
             if 'lr' not in groups.keys() or len(groups['lr']) == 0:
-                def_groups = self.get_defined_groups()['lr']
+                all_groups = self.get_defined_groups()
+                if 'lr' in all_groups.keys():
+                    def_groups = all_groups['lr']
+                else:
+                    def_groups = []
                 gn = 0
                 while gn in def_groups:
                     gn += 1
-                groups['lr'] = 0
+                groups['lr'] = gn
 
-            # add to the list
-            self.mainList[ident] = {}
-            self.mainList['wmin'] = [wmin]
-            self.mainList['wmax'] = [wmax]
-            self.mainList['components'] = [component]
-            self.mainList['groups'] = [groups]
-
-
-
-        # if groups is None:
-        #     def_groups = self.get_defined_groups()
-        #     if len(def_groups) == 0:
-        #         group = 0
-        #     else:
-        #         group = 0
-        #         while group in def_groups:
-        #             group += 1
-        #
-        # # append the region
-        # self.mainList['all']['lr'].append(dict(wmin=wmin, wmax=wmax, group=group))
+            # add groups to the list
+            self.mainList[ident]['groups'].append(groups)
 
     def clear_all(self):
         """
@@ -615,7 +615,7 @@ class RegionList(List):
         """
 
         super(RegionList, self).clear_all()
-        self.mainList = {'all':{'lr':[]}}
+        self._registered_regions = []
 
     def get_defined_groups(self):
         """

@@ -1,43 +1,31 @@
 """
-Basic testing of the RegionList class
+Basic testing (creation and attachement of regions) of the RegionList class
 """
 
 import pyterpol
 
 # type
-rl = pyterpol.RegionList()
+rl = pyterpol.RegionList(debug=True)
 
-# try to add some regions - empty
-rl.add_region()
-rl.add_region(wmin=4300., wmax=4500., group=0)
-print rl
+# add regions
+# the simplest case
+rl.add_region(identification='myfirst', wmin=0., wmax=1.) #- correct
+# rl.add_region() #- correctly incorrect
 
-# clear it and star over
-rl.clear_all()
+# try to add the same region by name
+rl.add_region(identification='myfirst') # - correctly unregistered, because it has the same name
+rl.add_region(wmin=0., wmax=1.) # - correctly unregistered, because it is the same region
+rl.add_region(component='primary', wmin=0., wmax=1.) # - correctly unregistered, because this region was defined for all
 
-rl.add_region(wmin=4200, wmax=4600)
-rl.add_region(wmin=4200, wmax=4500, group=10)
-rl.clear_all()
+# try to add one component - looks good
+rl.add_region(identification='mysecond', component='primary', wmin=10., wmax=20.)
+rl.add_region(identification='mysecond', component='secondary', wmin=10., wmax=20.)
 
-# try to set up the regions from an observed file
-ol = pyterpol.ObservedList()
+# try to pass some groups along with trhe rest
+rl.add_region(identification='mythird', wmin=100., wmax=200., groups=dict(teff=1))
+rl.add_region(identification='myfourth',component='primary', wmin=100., wmax=200., groups=dict(teff=0))
+rl.add_region(identification='myfourth',component='secondary', wmin=100., wmax=200., groups=dict(teff=1))
+print rl.get_defined_groups()
 
-# build a list of observations
-obs = [
-    dict(filename='o.asc', group=dict(rv=0, teff=0)),
-    dict(filename='o.asc', group=dict(rv=0, teff=1)),
-    dict(filename='o.asc'),
-    dict(filename='o.asc', component='primary', korel=True, group=dict(logg=2))
-]
-ol.add_observations(obs)
 
-# get the spectra wrapped in ObservedSpectrum class
-observed = ol.get_spectra()
-
-# setup the regions from spectra
-limits = rl.get_regions_from_obs(observed)
-print limits
-
-# push out the values for comparison
-print rl.get_region_groups()
 
