@@ -25,7 +25,9 @@ rl.add_region(identification='mysecond', component='secondary', wmin=10., wmax=2
 rl.add_region(identification='mythird', wmin=100., wmax=200., groups=dict(teff=1))
 rl.add_region(identification='myfourth',component='primary', wmin=100., wmax=200., groups=dict(teff=0))
 rl.add_region(identification='myfourth',component='secondary', wmin=100., wmax=200., groups=dict(teff=1))
-print rl.get_defined_groups()
+print rl
+# print rl.get_defined_groups()
+print rl.get_region_groups()
 
 
 

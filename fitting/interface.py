@@ -493,6 +493,7 @@ class RegionList(List):
         if len(self.mainList.keys()) < 1:
             self.mainList = {}
             self._registered_regions = []
+            self._user_defined_groups = {}
         else:
             self._registered_regions = self.get_registered_regions()
 
@@ -576,9 +577,14 @@ class RegionList(List):
             # print groups, self.mainList[region]['groups']
             groups['lr'] = self.mainList[region]['groups'][0]['lr']
 
+            self.read_user_defined_groups(groups)
+
             # store everything apart from the wmin, wmax
             self.mainList[region]['groups'].append(groups)
             self.mainList[region]['components'].append(component)
+
+            # readout user-defined groups
+            self.read_user_defined_groups(groups)
         else:
 
             # print 'tu'
@@ -607,6 +613,10 @@ class RegionList(List):
 
             # add groups to the list
             self.mainList[ident]['groups'].append(groups)
+            # readout user-defined groups
+            self.read_user_defined_groups(groups)
+
+        self.setup_undefined_groups()
 
     def clear_all(self):
         """
@@ -616,10 +626,11 @@ class RegionList(List):
 
         super(RegionList, self).clear_all()
         self._registered_regions = []
+        self._user_defined_groups = {}
 
     def get_defined_groups(self):
         """
-        Returns plain list of all defined groups.
+        Returns plain list of all defined groups regardless of their components.
         :return: list of defined groups
         """
         groups = {}
@@ -651,13 +662,33 @@ class RegionList(List):
 
     def get_region_groups(self):
         """
-        A dictionary of groups defined for regions.
+        A dictionary of groups defined for regions component by component.
         :return: dictionary containing records on groups
                 which can be directly passed to type StarList
                 through set_groups
         """
-        groups = self.get_defined_groups()
-        return dict(all=dict(lr=groups))
+        groups = {}
+
+        # go over each region
+        for reg in self.mainList.keys():
+            for i in range(0, len(self.mainList[reg]['components'])):
+                component = self.mainList[reg]['components'][i]
+                comp_groups = self.mainList[reg]['groups'][i]
+
+                # setup component
+                if component not in groups.keys():
+                    groups[component] = {}
+
+                # setup keys
+                for key in comp_groups.keys():
+                    if key not in groups[component].keys():
+                        groups[component][key] = [comp_groups[key]]
+                    else:
+                        if comp_groups[key] not in groups[component][key]:
+                            groups[component][key].append(comp_groups[key])
+        return groups
+
+
 
     def get_registered_regions(self):
         """
@@ -700,7 +731,7 @@ class RegionList(List):
 
         # setup the regions
         for i in range(0, len(limits[0])):
-            self.add_region(wmin=limits[0][i], wmax=limits[1][i], group=i)
+            self.add_region(wmin=limits[   0][i], wmax=limits[1][i])
 
         return limits
 
@@ -717,6 +748,52 @@ class RegionList(List):
             if (regcomp == component) or (regcomp == 'all'):
                 return True
         return False
+
+    def read_user_defined_groups(self, groups):
+        """
+        When adding new region, all user defined groups
+        are read out to properly set the default groups
+        :param groups groups to be read
+        :return: None
+        """
+        for key in groups.keys():
+            if key not in self._user_defined_groups.keys():
+                self._user_defined_groups[key] = [groups[key]]
+            else:
+                if groups[key] not in self._user_defined_groups[key]:
+                    self._user_defined_groups[key].append(groups[key])
+
+    def setup_undefined_groups(self):
+        """
+        User can be a bit lazy. If we split some parameter
+        into more groups, we can only set group for few
+        and the remaining dataset gets a default one.
+
+        This nonetheless has to be run after all
+        regions were attached. If we do this
+        earlier, we will get into serious problems.
+        :return:
+        """
+        # defined groups
+        groups = self.get_defined_groups()
+
+        # setup default group numbers for region->component
+        # with unset group
+        for region in self._registered_regions:
+            for i, comp_group in enumerate(self.mainList[region]['groups']):
+
+                # go over each defined group
+                for key in groups.keys():
+                    # if the key is unset for the component
+                    # we have to assign some. This must
+                    # not be one of the user-defined.
+                    # That is why we maintain dictionary
+                    # of user defined groups.
+                    if key not in comp_group.keys():
+                        gn = 0
+                        while gn in self._user_defined_groups[key]:
+                            gn += 1
+                        self.mainList[region]['groups'][i][key] = gn
 
 class StarList(object):
     """
