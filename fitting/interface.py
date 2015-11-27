@@ -531,33 +531,69 @@ class RegionList(List):
         if ident is not None:
             ident = ident.lower()
 
-        # if the 'lr' is undefined then for each region its own
-        # 'lr' assigned
-        if component is not 'all':
-            # maybe the region has been already defined
-            if ident in self.mainList.keys():
-                region = ident
-            elif ident is None:
-                region = self.get_region(wmin, wmax)
-            else:
-                region = None
+        # maybe the region has been already defined
+        if ident in self.mainList.keys():
+            region = ident
+        elif ident is None:
+            region = self.get_region(wmin, wmax)
+        else:
+            region = None
 
-            # if it is not empty
-            if region is not None:
+        # if there is a region exists and the component is all,
+        # there is no point to attach it
+        if region is not None and component is 'all':
+            warnings.warn('The region already exists as region: %s -> doing nothing.' % region)
+            return
 
-                # check that the component ws not set earlier
-                if self.has_component(region, component):
-                    warnings.warn('The component: %s is already set for region: %s. -> doing nothing.'
-                                % (region, component))
-                    return
+        # if it is not empty
+        if region is not None:
 
-                # get lr from the region first record
-                groups['lr'] = self.mainList[region]['groups']['lr'][0]
+            if self.debug:
+                print "Adding component: %s to region: %s" % (component, region)
 
-                # store everything apart from the wmin, wmax
-                self.mainList[region]['groups'].append(groups)
-                self.mainList[region]['components'].append(component)
-            else:
+            # check that the component ws not set earlier
+            if self.has_component(region, component):
+                warnings.warn('The component: %s is already set for region: %s. -> doing nothing.'
+                            % (region, component))
+                return
+
+            # get lr from the region first record
+            groups['lr'] = self.mainList[region]['groups']['lr'][0]
+
+            # store everything apart from the wmin, wmax
+            self.mainList[region]['groups'].append(groups)
+            self.mainList[region]['components'].append(component)
+        else:
+
+            if self.debug:
+                print "Creating new region: %s," % (region)
+
+            # setup identification for
+            if ident is None:
+                ident = 'region' + str(len(self._registered_regions))
+
+            # register the new region
+            self._registered_regions.append(ident)
+
+            # setup groups:
+            if groups is None:
+                groups = {}
+
+            # if the luminosity group is not defined
+            if 'lr' not in groups.keys() or len(groups['lr']) == 0:
+                def_groups = self.get_defined_groups()['lr']
+                gn = 0
+                while gn in def_groups:
+                    gn += 1
+                groups['lr'] = 0
+
+            # add to the list
+            self.mainList[ident] = {}
+            self.mainList['wmin'] = [wmin]
+            self.mainList['wmax'] = [wmax]
+            self.mainList['components'] = [component]
+            self.mainList['groups'] = [groups]
+
 
 
         # if groups is None:
@@ -586,10 +622,15 @@ class RegionList(List):
         Returns plain list of all defined groups.
         :return: list of defined groups
         """
-        groups = []
-        for rec in self.mainList['all']['lr']:
-            if rec['group'] not in groups:
-                groups.append(rec['group'])
+        groups = {}
+        for reg in self._registered_regions:
+            for rec in self.mainList[reg]['groups']:
+                for key in rec.keys():
+                    if key not in groups.keys():
+                        groups[key] = [rec[key]]
+                    else:
+                        if rec[key] not in groups[key]:
+                            groups[key].append(rec[key])
 
         return groups
 
@@ -673,7 +714,7 @@ class RegionList(List):
         """
 
         for regcomp  in self.mainList[region]['components']:
-            if regcomp == component:
+            if (regcomp == component) or (regcomp == 'all'):
                 return True
         return False
 
