@@ -6,6 +6,7 @@ from pyterpol.observed.observations import ObservedSpectrum
 from pyterpol.fitting.parameter import Parameter
 from pyterpol.fitting.parameter import parameter_definitions
 from pyterpol.synthetic.auxiliary import keys_to_lowercase
+from pyterpol.synthetic.auxiliary import generate_least_number
 
 # TODO Go through similarities in the classes and write a parent class
 # TODO to get rid of the redundant code.
@@ -70,6 +71,51 @@ class Interface(object):
         for groups in [groups_data, groups_regs]:
             self.sl.set_groups(groups)
 
+    def setup_rv_groups(self):
+        """
+        Setting up the rv_groups is a pain..
+        :return:
+        """
+        # get wavelength boiundaties of defined regions
+        wmins, wmaxs = self.rl.get_wavelengths()
+
+        # for every region we have a look if we have some data
+        for wmin, wmax in zip(wmins, wmaxs):
+
+            # query spectra for each region
+            observed_spectra = self.ol.get_spectra(wmin=wmin, wmax=wmax)
+
+            for i, spectrum in enumerate(observed_spectra):
+
+                # read out properties of spectra
+                component = spectrum.component
+                rv_group = spectrum.group['rv']
+
+                # readout groups that were already defined
+                def_groups = self.sl.get_defined_groups(component=component, parameter='rv')[component]['rv']
+                print wmin, wmax, component, rv_group, def_groups
+
+                # We defined group for our observation
+                if rv_group is not None:
+
+                    # if the group is not defined
+                    if rv_group not in def_groups:
+                        gn = generate_least_number(def_groups)
+
+                        # the group number is assigned to the spectrum
+                        self.ol.observedSpectraList['spectrum'][i].group['rv'] = gn
+                        self.ol.observedSpectraList['group']['rv'][i] = gn
+
+                        # attachs new parameter to the StarList
+                        self.sl.clone_parameter(component, 'rv')
+
+
+
+
+
+
+
+
     def get_combinations(self):
         """
         This function creates a dictionary, which is one of the
@@ -83,11 +129,6 @@ class Interface(object):
 
         # walk over the dictionaries to get the combinations
         common_groups = self.sl.get_common_groups()
-
-        combo = dict()
-        # for i, key0 in enumerate(common_groups.keys()):
-        #     if
-
 
     def verify(self):
         pass
@@ -247,21 +288,26 @@ class ObservedList(object):
 
         return groups
 
-    def get_defined_groups(self):
+    def get_defined_groups(self, component=None):
         """
         Reads all groups and values that are set
         for the spectra in the list.
-        param:
-        OUTPUT:
-            groups    dictionary containing all (so far)
-                      defined groups (parameters+values).
+        :param component
+        :return dictionary of defined group for all/given component
         """
+        if component is 'all':
+            component = None
+
         # empty dicitonary for the values
         groups = dict()
 
         # go through ech spectrum and store defined values
         for spectrum in self.observedSpectraList['spectrum']:
-            # print spectrum
+
+            # select component
+            if component is not None and spectrum.component != component:
+                continue
+
             for key in spectrum.group.keys():
                 if key not in groups.keys():
                     groups[key] = []
@@ -382,6 +428,9 @@ class ObservedList(object):
             regions, where slight shifts in rv are
             very likely.
         """
+        # TODO Maybe I should assign groups with respect
+        # TODO to the components.
+
         # this stores the last group number for
         # parameter 'rv'
         gn_rv = None
@@ -389,8 +438,9 @@ class ObservedList(object):
         # First go through each spectrum to see, which
         # groups were defined by user
         groups = self.get_defined_groups()
+        # print groups
 
-        # check that rv has been setup - mandatoryu, because each observed spectrum
+        # check that rv has been setup - mandatory, because each observed spectrum
         # is assigned its own rv_group
         if 'rv' not in groups.keys():
             groups['rv'] = []
@@ -424,10 +474,20 @@ class ObservedList(object):
                     self.observedSpectraList['group'][key][i] = gn
 
                 else:
-                    gn = spectrum.get_group(key)
-                    def_groups = groups[key]
 
-                    # if spectrum has no group, but some have been defined, set the group = max(number)+1
+                    gn = spectrum.get_group(key)
+                    # def_groups = groups[key]
+
+                    # try to set groups component-wise
+                    component = spectrum.component
+                    comp_groups = self.get_defined_groups(component=component)
+                    print comp_groups
+                    if 'rv' not in comp_groups.keys():
+                        comp_groups['rv'] = []
+                    def_groups = comp_groups[key]
+                    print def_groups
+
+                    # if spectrum has no group
                     if gn is None and len(def_groups) > 0:
                         if gn_rv is None:
                             gn = 0
@@ -697,6 +757,18 @@ class RegionList(List):
         """
         return self.mainList.keys()
 
+    def get_wavelengths(self):
+        """
+        Returns registered wavelengths
+        :return: wmins, wmaxs = arrays of minimal/maximal wavelength for each region
+        """
+        wmins = []
+        wmaxs = []
+        for reg in self.mainList.keys():
+            wmins.append(self.mainList[reg]['wmin'])
+            wmaxs.append(self.mainList[reg]['wmax'])
+
+        return wmins, wmaxs
 
     def get_regions_from_obs(self, ol, append=False):
         """
@@ -956,6 +1028,11 @@ class StarList(object):
         :param kwargs: values we want to change for the parameter
         :return: clone type_Parameter - the cloned parameter
         """
+        # in case we pass
+        if component.lower() == 'all':
+            all = True
+            component = self._registered_components[0]
+
         # copy the parameter
         clone = copy.deepcopy(self.componentList[component][parameter][index])
 
@@ -1048,6 +1125,50 @@ class StarList(object):
 
         return com_groups
 
+    def get_defined_groups(self, component=None, parameter=None):
+        """:
+        :param component: starlist component
+        :param parameter: physical parameter
+        :return: dictionary of groups
+        """
+
+        groups = {}
+
+        # setup parameters
+        if parameter is None:
+            parameters = self.get_physical_parameters()
+        else:
+            parameters = [parameter]
+
+        # setup components
+        if component is None or component == 'all':
+            components = self.get_components()
+        else:
+            components = [component]
+
+        # go over the registered componentss
+        for comp in components:
+            groups[comp]= {}
+
+            # go over passed parameters
+            for param in parameters:
+                groups[comp][param] = []
+                for regparam in self.componentList[comp][param]:
+                    if regparam.name == param:
+                        groups[comp][param].append(regparam.group)
+
+        # merge groups if component was 'all'
+        if component == 'all':
+            for p in parameters:
+                groups[component]={}
+                temp = []
+                for c in components:
+                    temp.extend(groups[c][p])
+                groups[component][p] =  np.unique(temp).tolist()
+
+        return groups
+
+
     def get_physical_parameters(self):
         """
         Reads physical parameters from the starlist.
@@ -1056,7 +1177,12 @@ class StarList(object):
         component = self._registered_components[0]
         return self.componentList[component].keys()
 
-
+    def get_components(self):
+        """
+        Returns list of all defined components.
+        :return:
+        """
+        return copy.deepcopy(self._registered_components)
 
     def read_groups(self):
         """

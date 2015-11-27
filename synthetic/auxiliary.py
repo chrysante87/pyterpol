@@ -67,9 +67,21 @@ def is_within_interval(v, arr):
     """
     
     if (v > max(arr)) | (v < min(arr)):
-	return False
+	    return False
     else:
-	return True
+	    return True
+
+def generate_least_number(l):
+    """
+    Goes over integer in list and finds the
+    smallest integer not in the list.
+    :param l: the list
+    :return: int the smallest integer
+    """
+    num = 0
+    while num in l:
+        num += 1
+    return num
 
 def keys_to_lowercase(d):
     """
