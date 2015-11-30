@@ -191,11 +191,24 @@ class Interface(object):
         :return:
         """
 
-        # empty dictionary for the combinations
-        combos = dict(synthetic=[], observed=[], parameters=[], groups=[])
+        reg = self.rl.mainList.keys()[1]
+        reg_groups = self.rl.mainList[reg]['groups'][0]
+        phys_pars = [x for x in self.sl.get_physical_parameters() if x not in ['rv']]
+        print reg, phys_pars, reg_groups
 
-        # walk over the dictionaries to get the combinations
-        common_groups = self.sl.get_common_groups()
+        for par in phys_pars:
+            if par not in reg_groups.keys():
+                reg_groups[par] = 0
+
+        print reg_groups
+
+        reg_pars = self.sl.get_parameter(**reg_groups)
+        for c in reg_pars.keys():
+            for p in reg_pars[c]:
+                print c, ': ', p
+
+
+
 
     def remove_parameter(self, component, parameter, group):
         """
@@ -461,7 +474,7 @@ class ObservedList(object):
                             vind.append(i)
                 vind = np.array(vind)
 
-            print keytest, vind
+            # print keytest, vind
 
             # TODO Improve this, so the warning is not issued,
             # TODO when the observed spectra are lusted under all.
@@ -1292,13 +1305,30 @@ class StarList(object):
         :return:
         """
 
-        for par in self.componentList[component][parameter]:
+        for i, par in enumerate(self.componentList[component][parameter]):
             if par['group'] == group:
-                return par['group']
+                return i
 
         warnings.warn('Component: %s Parameter: %s Group: :s'
                       ' not found.' % (component, parameter, group))
         return None
+
+    def get_parameter(self, **kwargs):
+        """
+        Returns all parameters, which have certain group.
+        :param kwargs:
+        :return:
+        """
+        pars = {x: [] for x in self._registered_components}
+        for key in kwargs.keys():
+            for c in self._registered_components:
+                for i, par in enumerate(self.componentList[c][key]):
+                    # print i, par
+                    if par.group == kwargs[key]:
+                        pars[c].append(self.componentList[c][key][i])
+
+        return pars
+
 
 
     def get_physical_parameters(self):
