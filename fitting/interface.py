@@ -35,6 +35,9 @@ class Interface(object):
         # debug mode
         self.debug = debug
 
+        # define empty comparison list
+        self.comparisonList = None
+
     def __str__(self):
         """
         String representation of the class
@@ -45,6 +48,28 @@ class Interface(object):
             string += str(getattr(self, attr))
         return string
 
+    def add_comparison(self, region=None, parameters={}, observed=None, synthetic={}, groups={}):
+        """
+        :param region the name of the corresponding region
+        :param parameters a dictionary of the parameters required for the synthetic
+                            spectrum
+        :param observed the observed spectrum
+        :param synthetic empty dictionaryf for the synthetic spectra
+        :param groups
+
+        Add a record to the comparisonList
+        :return: None
+
+        """
+        if self.comparisonList is None:
+            raise Exception('The comparisonList has not been defined yet. Use Inteface.get_comparison for that.')
+        else:
+            self.comparisonList.append(dict(region=region,
+                                        parameters = parameters,
+                                        observed = observed,
+                                        groups = groups,
+                                        synthetic = {x: None for x in parameters.keys()},
+                                        ))
     def clear_all(self):
         """
         Clears the class.
@@ -54,6 +79,7 @@ class Interface(object):
         self.sl = None
         self.rl = None
         self.ol = None
+        self.comparisonList = None
 
     def setup_groups(self):
         """
@@ -183,7 +209,7 @@ class Interface(object):
 
 
 
-    def get_combinations(self):
+    def get_comparisons(self):
         """
         This function creates a dictionary, which is one of the
         cornerstones of the class. It creates a list of all
@@ -191,7 +217,13 @@ class Interface(object):
         :return:
         """
 
-        reg = self.rl.mainList.keys()[1]
+        # start a list of comparisons that will
+        # be carried out with the given dataset
+        self.comparisonList = []
+
+        reg = self.rl.mainList.keys()[0]
+        wmin = self.rl.mainList[reg]['wmin']
+        wmax = self.rl.mainList[reg]['wmax']
         reg_groups = self.rl.mainList[reg]['groups'][0]
         phys_pars = [x for x in self.sl.get_physical_parameters() if x not in ['rv']]
         print reg, phys_pars, reg_groups
@@ -207,8 +239,37 @@ class Interface(object):
             for p in reg_pars[c]:
                 print c, ': ', p
 
+        # get defined rv-groups for each component
+        rv_groups = self.sl.get_defined_groups(parameter='rv')
+        rv_groups = np.unique(np.ravel([rv_groups[key]['rv'] for key in rv_groups.keys()]))
 
+         # append rv_group to groups
+        all_groups = copy.deepcopy(reg_groups)
+        all_groups['rv'] = rv_groups[0]
 
+        # append rv parameter
+        rv_pars = self.sl.get_parameter(rv=rv_groups[0])
+        all_pars = copy.deepcopy(reg_pars)
+        for c in rv_pars.keys():
+            all_pars[c].append(rv_pars[c])
+
+        if self.ol is not None:
+            # the wmin wmax is used to check again that
+            # we are in the correct region.
+            obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_groups[0])[0]
+            c = obs.component
+
+            # in case of korel spectrum we compare only one component
+            if c != 'all':
+                all_pars = dict(c=all_pars[c])
+        else:
+            obs = None
+
+        self.add_comparison(region=reg,
+                            parameters=all_pars,
+                            groups = all_groups,
+                            observed=obs,
+                            )
 
     def remove_parameter(self, component, parameter, group):
         """

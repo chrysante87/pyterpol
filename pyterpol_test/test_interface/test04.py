@@ -33,8 +33,10 @@ print ol.observedSpectraList
 print ol.observedSpectraList['spectrum'][0]
 print ol.observedSpectraList['spectrum'][1]
 
-# try to query observed spectra for different rv groups
-print ol.get_spectra(rv=1, component='primary')[0]
-
 # Start building the table for spectra creation
-itf.get_combinations()
+itf.get_comparisons()
+
+# print list of comparisons
+for row in itf.comparisonList:
+    for key in row.keys():
+           print row[key]
