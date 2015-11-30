@@ -32,14 +32,14 @@ sl.add_component(component='secondary', teff=20000., logg=4.5, rv=0.0, vrot=0.0,
 
 # 4) define interface
 itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=True)
-itf.setup_groups()
+itf.setup()
+
+# check the interface
 print itf
-print itf.rel_rvgroup_region
 
 # Start building the table for spectra creation
 itf.ready_comparisons()
 
-
 # check the list of comparisons
 print itf.list_comparisons()
-# print itf
+

@@ -2,17 +2,18 @@
 import copy
 import warnings
 import numpy as np
+from pyterpol.synthetic.makespectrum import SyntheticGrid
+from pyterpol.synthetic.makespectrum import SyntheticSpectrum
 from pyterpol.observed.observations import ObservedSpectrum
 from pyterpol.fitting.parameter import Parameter
 from pyterpol.fitting.parameter import parameter_definitions
 from pyterpol.synthetic.auxiliary import keys_to_lowercase
 from pyterpol.synthetic.auxiliary import generate_least_number
+from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
+
 
 # TODO Go through similarities in the classes and write a parent class
 # TODO to get rid of the redundant code.
-
-# tolerance on float comparison
-floatToler = 1e-6
 
 # repeat userwarnings
 warnings.simplefilter('always', UserWarning)
@@ -31,6 +32,7 @@ class Interface(object):
         self.sl = sl
         self.rl = rl
         self.ol = ol
+        self.grids = {}
 
         # debug mode
         self.debug = debug
@@ -46,6 +48,9 @@ class Interface(object):
         string = ""
         for attr in ['sl', 'rl', 'ol']:
             string += str(getattr(self, attr))
+        for key in self.grids.keys():
+            string += 'Grid for region: %s.\n' % key
+            string += str(self.grids[key])
         return string
 
     def add_comparison(self, region=None, parameters={}, observed=None, synthetic={}, groups={}):
@@ -70,18 +75,20 @@ class Interface(object):
                                         groups = groups,
                                         synthetic = {x: None for x in parameters.keys()},
                                         ))
+
     def clear_all(self):
         """
         Clears the class.
         :return:
         """
 
+        self.grids = {}
         self.sl = None
         self.rl = None
         self.ol = None
         self.comparisonList = None
 
-    def setup_groups(self):
+    def setup(self, **kwargs):
         """
         This function probes the observed and
         region list and propagates group definitions
@@ -121,6 +128,12 @@ class Interface(object):
             warnings.warn('There are no data attached, so all regions are set to '
                           'have the same radial velocity. Each component can have'
                           'different velocity of course.')
+
+        # setup grids
+        debug = kwargs.get('debug', False)
+        mode = kwargs.get('mode', 'custom')
+
+        self.setup_grids(debug=debug, mode=mode)
 
     def setup_rv_groups(self):
         """
@@ -254,7 +267,7 @@ class Interface(object):
 
             # create a list of unique rv groups
             rv_groups = self.sl.get_defined_groups(parameter='rv')
-            rv_groups = np.unique(np.ravel([rv_groups[key]['rv'] for key in rv_groups.keys()]))
+            rv_groups = np.unique(np.ravel([rv_groups[key]['rv'] for key in rv_groups.keys()])).tolist()
 
 
             for rv_group in rv_groups:
@@ -300,7 +313,7 @@ class Interface(object):
         """
         string = ''
         for i,rec in enumerate(self.comparisonList):
-            string += "========================= Comparison %s =========================\n" % (str(i).zfill(3))
+            string += "========================= Comparison %s =========================\n" % str(i).zfill(3)
             reg = rec['region']
             # list region
             string += 'region: %s:(%s,%s)\n' % (reg, str(self.rl.mainList[reg]['wmin']),
@@ -322,7 +335,6 @@ class Interface(object):
 
         return string
 
-
     def remove_parameter(self, component, parameter, group):
         """
         :param component: component for which the parameter is deleted
@@ -331,6 +343,18 @@ class Interface(object):
         """
 
         self.sl.remove_parameter(component, parameter, group)
+
+    def setup_grids(self, **kwargs):
+        """
+        Initializes grid of synthetic spectra for each region -
+        i.e. there is no point in calling the function without
+        having the regions set up.
+
+        :params kwargs -see pyterpol.
+        :return:
+        """
+        for reg in self.rl.mainList.keys():
+            self.grids[reg] = SyntheticGrid(**kwargs)
 
     def verify(self):
         pass
@@ -949,8 +973,8 @@ class RegionList(List):
         """
 
         for region in self.mainList:
-            if (abs(self.mainList[region]['wmin'] - wmin) < floatToler) & \
-               (abs(self.mainList[region]['wmax'] - wmax) < floatToler):
+            if (abs(self.mainList[region]['wmin'] - wmin) < ZERO_TOLERANCE) & \
+               (abs(self.mainList[region]['wmax'] - wmax) < ZERO_TOLERANCE):
                 return region
         return None
 
