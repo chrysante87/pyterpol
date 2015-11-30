@@ -50,6 +50,7 @@ class SyntheticSpectrum:
             self.intens = intens
             self.measure_spectrum()
             self.loaded = True
+            self.filename = None
 
         # setups properties of the synthetic spectrum
         self.properties = []

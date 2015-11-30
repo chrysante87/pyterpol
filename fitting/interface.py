@@ -52,9 +52,10 @@ class Interface(object):
         string = ""
         for attr in ['sl', 'rl', 'ol']:
             string += str(getattr(self, attr))
-        for key in self.grids.keys():
-            string += 'Grid for region: %s.\n' % key
-            string += str(self.grids[key])
+        # too much information
+        # for key in self.grids.keys():
+        #     string += 'Grid for region: %s.\n' % key
+        #     string += str(self.grids[key])
         return string
 
     def add_comparison(self, region=None, parameters={}, observed=None, synthetic={}, groups={}):
@@ -144,6 +145,13 @@ class Interface(object):
         :return:
         """
         for reg in self.rl._registered_regions:
+            # add the region to synthetics
+            if reg not in self.synthetics.keys():
+                self.synthetics[reg] = dict()
+
+            # wavelength_boundaries
+            wmin = self.rl.mainList[reg]['wmin']
+            wmax = self.rl.mainList[reg]['wmax']
 
             # get all parameters for a given region
             reg_groups = self.rl.mainList[reg]['groups'][0]
@@ -151,7 +159,6 @@ class Interface(object):
                           if x not in self._not_given_by_grid}
             grid_pars = [x for x in self.sl.get_physical_parameters() \
                          if x not in self._not_given_by_grid]
-
 
             print grid_pars, reg_groups
             # setup default groups - ie zero
@@ -167,6 +174,9 @@ class Interface(object):
                 params = self.extract_parameters(parlist[c])
                 print params
 
+                # padding has to be relatively large, since
+                # we do not know what the rvs will be
+                self.synthetics[reg][c] = self.grids[reg].get_synthetic_spectrum(params, np.array([wmin, wmax]))
 
     def ready_comparisons(self):
         """
@@ -295,7 +305,7 @@ class Interface(object):
 
         # setup grids
         debug = kwargs.get('debug', False)
-        mode = kwargs.get('mode', 'custom')
+        mode = kwargs.get('mode', 'default')
 
         self.setup_grids(debug=debug, mode=mode)
 

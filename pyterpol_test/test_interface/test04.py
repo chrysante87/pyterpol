@@ -3,6 +3,7 @@ Testing of RV group
 """
 
 import pyterpol
+import matplotlib.pyplot as plt
 
 
 debug=False
@@ -45,4 +46,6 @@ print itf.list_comparisons()
 
 # try to build synthetic spectra
 itf.ready_synthetic_spectra()
+
+print itf.synthetics['region00']['primary']
 
