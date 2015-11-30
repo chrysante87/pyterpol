@@ -206,7 +206,7 @@ class SyntheticSpectrum:
 
         return bump_wave, bump_intens
 
-    def get_spectrum(self, wave=None, rv=None, vrot=None, only_intensity=False):
+    def get_spectrum(self, wave=None, rv=None, vrot=None, lr=None, only_intensity=False):
         """
         Return the sythetic spectrum stored within the class. If
         a set of wavelengths is provided, an interpolated spectrum
@@ -247,6 +247,10 @@ class SyntheticSpectrum:
                 # shift it in RV
                 syn_wave = shift_spectrum(syn_wave, rv)
 
+            # the spectrum is shrinked
+            if lr is not None and abs(lr - 1.0) > ZERO_TOLERANCE:
+                intens = intens*lr
+
             if np.any([x != None for x in [rv, vrot]]):
                 # interpolates back
                 intens = interpolate_spec(syn_wave, intens, wave)
@@ -285,9 +289,9 @@ class SyntheticSpectrum:
                               ' extrapolation has to be employed and THAT IS DANGEROUS! Note that' \
                               ' each spectrum is extended by %f Angstrom at each side.' % (WAVE_BUMP))
 
-                # the part of the spectrum is selected
-                # there is no point in working with the
-                # whole dataset
+            # the part of the spectrum is selected
+            # there is no point in working with the
+            # whole dataset
             # print self.wave
             syn_wave, intens = self.select_interval(wmin, wmax)
 
@@ -296,6 +300,10 @@ class SyntheticSpectrum:
             # adjusts the spectrum
             if rv is not None and abs(rv) > ZERO_TOLERANCE:
                 syn_wave = shift_spectrum(syn_wave, rv)
+
+            # the spectrum is shrinked
+            if lr is not None and abs(lr - 1.0) > ZERO_TOLERANCE:
+                intens = intens*lr
 
             # interpolates to the user specified wavelengths
             intens = interpolate_spec(syn_wave, intens, wave)

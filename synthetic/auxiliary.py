@@ -97,6 +97,16 @@ def keys_to_lowercase(d):
 
     return dnew
 
+def sum_dict_keys(d):
+    """
+    Sums dictionary key records.
+    :param d: the dictionary
+    :return: s the sum
+    """
+    s = 0.0
+    for key in d.keys():
+        s += d[key]
+    return s
 
 def read_text_file(f):
     """

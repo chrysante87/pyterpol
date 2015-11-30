@@ -2,13 +2,15 @@
 import copy
 import warnings
 import numpy as np
+import matplotlib.pyplot as plt
 from pyterpol.synthetic.makespectrum import SyntheticGrid
 from pyterpol.synthetic.makespectrum import SyntheticSpectrum
 from pyterpol.observed.observations import ObservedSpectrum
 from pyterpol.fitting.parameter import Parameter
 from pyterpol.fitting.parameter import parameter_definitions
-from pyterpol.synthetic.auxiliary import keys_to_lowercase
 from pyterpol.synthetic.auxiliary import generate_least_number
+from pyterpol.synthetic.auxiliary import keys_to_lowercase
+from pyterpol.synthetic.auxiliary import sum_dict_keys
 from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
 
 
@@ -79,7 +81,7 @@ class Interface(object):
                                         observed = observed,
                                         groups = groups,
                                         synthetic = {x: None for x in parameters.keys()},
-                                        ))
+                                     ))
 
     def clear_all(self):
         """
@@ -97,6 +99,8 @@ class Interface(object):
         """
         Converts a list of parameter class to a
         dictionary.
+        :param l
+        :param attr
         :return:
         """
         params = {par['name']: par['value'] for par in l}
@@ -144,7 +148,79 @@ class Interface(object):
         the comparisonList.
         :return:
         """
-        pass
+        # go over ech comparison in the list
+        for rec in self.comparisonList:
+
+            # get the region
+            region = rec['region']
+            wmin = self.rl.mainList[region]['wmin']
+            wmax = self.rl.mainList[region]['wmax']
+
+            # go over each component
+            for c in rec['parameters'].keys():
+                pars = self.extract_parameters(rec['parameters'][c])
+
+                # use only those parameters that are not constrained with the grid
+                pars = {x:pars[x] for x in pars.keys() if x in self._not_given_by_grid}
+                print pars
+
+                # populate with the intensity vector of each component
+                wave = rec['observed'].get_spectrum(wmin, wmax)[0]
+                rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
+                                                                              only_intensity=True,
+                                                                              **pars)
+
+    def plot_comparison(self, index, savefig=False, figname=None):
+        """
+        :param index
+        :param savefig
+        :param figname
+        :return:
+        """
+        # the comparison
+        cpr = self.comparisonList[index]
+         # boundaries
+        reg = cpr['region']
+        wmin = self.rl.mainList[reg]['wmin']
+        wmax = self.rl.mainList[reg]['wmax']
+        w, oi, ei = cpr['observed'].get_spectrum(wmin, wmax)
+
+        # merge the spectra
+        si = sum_dict_keys(cpr['synthetic'])
+
+        # names
+        obsname = cpr['observed'].filename
+        synname = ''
+        for c in cpr['parameters']:
+            synname += 'Component: %s ' % c
+            synname += str(self.extract_parameters(cpr['parameters'][c])) + '\n'
+
+        if figname is None:
+            figname = "_".join([obsname, 'wmin', str(int(wmin)), 'wmax', str(int(wmax))]) +'.png'
+
+        # do the plot
+        fig = plt.figure(figsize=(16, 10), dpi=100)
+        ax = fig.add_subplot(211)
+        ax.errorbar(w, oi, yerr=ei, fmt='-', color='k', label=obsname)
+        ax.plot(w, si, 'r-', label=synname)
+        ax.set_xlim(wmin, wmax)
+        ax.set_ylim(0.95*oi.min(), 1.05*oi.max())
+        ax.set_xlabel('$\lambda$(\AA)$')
+        ax.set_ylabel('$F_{\lambda}$(rel.)')
+        ax.legend(fontsize=8, loc=3)
+
+        ax = fig.add_subplot(212)
+        resid = oi-si
+        ax.plot(w, resid, 'y', label='residuals')
+        ax.set_xlabel('$\lambda$(\AA)$')
+        ax.set_ylabel('$F_{\lambda}$(rel.)')
+        ax.set_xlim(wmin, wmax)
+        ax.set_ylim(0.95*resid.min(), 1.05*resid.max())
+        ax.legend(fontsize=8, loc=3)
+
+        # save the figure
+        if savefig:
+            plt.savefig(figname)
 
     def ready_synthetic_spectra(self):
         """
@@ -245,7 +321,7 @@ class Interface(object):
                         obs = obs[0]
                     else:
                         continue
-                    print obs, rv_group
+                    # print obs, rv_group
                     c = obs.component
 
                     # in case of korel spectrum we compare only one component
@@ -313,8 +389,10 @@ class Interface(object):
         # setup grids
         debug = kwargs.get('debug', False)
         mode = kwargs.get('mode', 'default')
-
         self.setup_grids(debug=debug, mode=mode)
+
+        # create the basic interpolated spectra
+        self.ready_synthetic_spectra()
 
     def setup_grids(self, **kwargs):
         """

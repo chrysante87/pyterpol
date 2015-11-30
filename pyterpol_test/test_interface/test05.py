@@ -1,5 +1,5 @@
 """
-Testing of RV group
+Testing the comparison of synthetic and observed spectra.
 """
 
 import pyterpol
@@ -28,8 +28,8 @@ rl.add_region(wmin=4460, wmax=4500, groups={'teff':1})
 
 # 3) define a star
 sl = pyterpol.StarList(debug=debug)
-sl.add_component(component='primary', teff=20000., logg=4.5, rv=0.0, vrot=0.0, lr=1.0, z=1.0)
-sl.add_component(component='secondary', teff=20000., logg=4.5, rv=0.0, vrot=0.0, lr=1.0, z=1.0)
+sl.add_component(component='primary', teff=20000., logg=4.5, rv=-30., vrot=150., lr=0.5, z=1.0)
+sl.add_component(component='secondary', teff=20000., logg=4.5, rv=30., vrot=10., lr=0.5, z=1.0)
 
 # 4) define interface
 itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=True)
@@ -44,12 +44,11 @@ itf.ready_comparisons()
 # check the list of comparisons
 print itf.list_comparisons()
 
-# plot the synthetic spectra
-itf.synthetics['region00']['primary'].plot(savefig=True)
-itf.synthetics['region01']['primary'].plot(savefig=True)
+# try to populatte comparisons
+itf.populate_comparisons()
 
-# plot the observed spectra
-itf.get_observed_spectrum('o.asc').plot(savefig=True)
-itf.get_observed_spectrum('o2.asc').plot(savefig=True)
+# do some plots of the comparisons
+for i in range(0, len(itf.comparisonList)):
+    itf.plot_comparison(i, savefig=True)
 
 
