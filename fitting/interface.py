@@ -544,7 +544,7 @@ class ObservedList(object):
     """
     def __init__(self, observedSpectraList=None, debug=False):
         """
-        :param osl: this should not be used in general, this creates the class
+        :param observedSpectraList: this should not be used in general, this creates the class
                     assuming that we are passin the self.observedSpectraList,
                     this shoudl not be used probably
         :param debug: debug mode
