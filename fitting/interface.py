@@ -32,6 +32,7 @@ class Interface(object):
         self.sl = sl
         self.rl = rl
         self.ol = ol
+        self.synthetics = {}
         self.grids = {}
 
         # debug mode
@@ -39,6 +40,9 @@ class Interface(object):
 
         # define empty comparison list
         self.comparisonList = None
+
+        # parameters that cannot be obatined through interpolation
+        self._not_given_by_grid = ['lr', 'rv', 'vrot']
 
     def __str__(self):
         """
@@ -81,12 +85,172 @@ class Interface(object):
         Clears the class.
         :return:
         """
-
-        self.grids = {}
-        self.sl = None
-        self.rl = None
-        self.ol = None
         self.comparisonList = None
+        self.grids = {}
+        self.ol = None
+        self.rl = None
+        self.sl = None
+        self.synthetics = {}
+
+    def extract_parameters(self, l, attr='value'):
+        """
+        Converts a list of parameter class to a
+        dictionary.
+        :return:
+        """
+        params = {par['name']: par['value'] for par in l}
+        return params
+
+    def list_comparisons(self):
+        """
+        This function displays all comparisons.
+        :return: string
+        """
+        string = ''
+        for i,rec in enumerate(self.comparisonList):
+            string += "========================= Comparison %s =========================\n" % str(i).zfill(3)
+            reg = rec['region']
+            # list region
+            string += 'region: %s:(%s,%s)\n' % (reg, str(self.rl.mainList[reg]['wmin']),
+                                                str(self.rl.mainList[reg]['wmax']))
+
+            # list observed spectrum
+            string += "observed: %s\n" % (rec['observed'].filename)
+
+            # lists all parameters
+            for c in rec['parameters'].keys():
+                string += 'component: %s ' % (c)
+                # print rec['parameters'][c]
+                for par in rec['parameters'][c]:
+                    string += "%s: %s " % (par['name'], str(par['value']))
+                string += '\n'
+
+            # list all groups
+            string += 'groups: %s\n' % str(rec['groups'])
+
+        return string
+
+    def populate_comparisons(self):
+        """
+        Creates a synthetic spectrum for every record in
+        the comparisonList.
+        :return:
+        """
+        pass
+
+    def ready_synthetic_spectra(self):
+        """
+        Readies the synthetic spectra for each region.
+        :return:
+        """
+        for reg in self.rl._registered_regions:
+
+            # get all parameters for a given region
+            reg_groups = self.rl.mainList[reg]['groups'][0]
+            reg_groups = {x: reg_groups[x] for x in reg_groups.keys() \
+                          if x not in self._not_given_by_grid}
+            grid_pars = [x for x in self.sl.get_physical_parameters() \
+                         if x not in self._not_given_by_grid]
+
+
+            print grid_pars, reg_groups
+            # setup default groups - ie zero
+            for par in grid_pars:
+                if par not in reg_groups.keys():
+                    reg_groups[par] = 0
+
+            # get list of Parameters
+            parlist = self.sl.get_parameter(**reg_groups)
+
+            for c in self.sl._registered_components:
+                # convert Parameter list to dictionary
+                params = self.extract_parameters(parlist[c])
+                print params
+
+
+    def ready_comparisons(self):
+        """
+        This function creates a dictionary, which is one of the
+        cornerstones of the class. It creates a list of all
+        combinations of the parameters.
+        :return:
+        """
+
+        # start a list of comparisons that will
+        # be carried out with the given dataset
+        self.comparisonList = []
+
+        # go region by region
+        for reg in self.rl.mainList.keys():
+        # reg = self.rl.mainList.keys()[0]
+            # fitted region
+            wmin = self.rl.mainList[reg]['wmin']
+            wmax = self.rl.mainList[reg]['wmax']
+
+            # region-dfined groups
+            reg_groups = copy.deepcopy(self.rl.mainList[reg]['groups'][0])
+            phys_pars = [x for x in self.sl.get_physical_parameters() if x not in ['rv']]
+            # print reg, phys_pars, reg_groups
+
+            # if the group is not defined, it is zero
+            for par in phys_pars:
+                if par not in reg_groups.keys():
+                    reg_groups[par] = 0
+
+            # print reg_groups
+
+            # extract all parameters
+            reg_pars = self.sl.get_parameter(**reg_groups)
+
+            # create a list of unique rv groups
+            rv_groups = self.sl.get_defined_groups(parameter='rv')
+            rv_groups = np.unique(np.ravel([rv_groups[key]['rv'] for key in rv_groups.keys()])).tolist()
+
+
+            for rv_group in rv_groups:
+                if rv_group not in self.rel_rvgroup_region[reg]:
+                    continue
+                # append rv_group to groups
+                all_groups = copy.deepcopy(reg_groups)
+                all_groups['rv'] = rv_group
+
+                # append rv parameter to the remaining parameters
+                rv_pars = self.sl.get_parameter(rv=rv_group)
+                all_pars = copy.deepcopy(reg_pars)
+                for c in rv_pars.keys():
+                    all_pars[c].extend(rv_pars[c])
+
+                if self.ol is not None:
+                    # the wmin wmax is used to check again that
+                    # we are in the correct region.
+                    obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_group)
+                    if len(obs) > 0:
+                        obs = obs[0]
+                    else:
+                        continue
+                    print obs, rv_group
+                    c = obs.component
+
+                    # in case of korel spectrum we compare only one component
+                    if c != 'all':
+                        all_pars = dict(c=all_pars[c])
+                else:
+                    obs = None
+
+                self.add_comparison(region=reg,
+                                parameters=all_pars,
+                                groups = all_groups,
+                                observed=obs,
+                            )
+
+    def remove_parameter(self, component, parameter, group):
+        """
+        :param component: component for which the parameter is deleted
+        :param parameter:deleted paramer
+        :return:
+        """
+
+        self.sl.remove_parameter(component, parameter, group)
 
     def setup(self, **kwargs):
         """
@@ -134,6 +298,18 @@ class Interface(object):
         mode = kwargs.get('mode', 'custom')
 
         self.setup_grids(debug=debug, mode=mode)
+
+    def setup_grids(self, **kwargs):
+        """
+        Initializes grid of synthetic spectra for each region -
+        i.e. there is no point in calling the function without
+        having the regions set up.
+
+        :params kwargs -see pyterpol.
+        :return:
+        """
+        for reg in self.rl.mainList.keys():
+            self.grids[reg] = SyntheticGrid(**kwargs)
 
     def setup_rv_groups(self):
         """
@@ -230,131 +406,6 @@ class Interface(object):
 
         # finalize the list of rv_groups for each region
         self.rel_rvgroup_region = {x: np.unique(reg2rv[x]).tolist() for x in reg2rv.keys()}
-
-    def ready_comparisons(self):
-        """
-        This function creates a dictionary, which is one of the
-        cornerstones of the class. It creates a list of all
-        combinations of the parameters.
-        :return:
-        """
-
-        # start a list of comparisons that will
-        # be carried out with the given dataset
-        self.comparisonList = []
-
-        # go region by region
-        for reg in self.rl.mainList.keys():
-        # reg = self.rl.mainList.keys()[0]
-            # fitted region
-            wmin = self.rl.mainList[reg]['wmin']
-            wmax = self.rl.mainList[reg]['wmax']
-
-            # region-dfined groups
-            reg_groups = self.rl.mainList[reg]['groups'][0]
-            phys_pars = [x for x in self.sl.get_physical_parameters() if x not in ['rv']]
-            # print reg, phys_pars, reg_groups
-
-            # if the group is not defined, it is zero
-            for par in phys_pars:
-                if par not in reg_groups.keys():
-                    reg_groups[par] = 0
-
-            # print reg_groups
-
-            # extract all parameters
-            reg_pars = self.sl.get_parameter(**reg_groups)
-
-            # create a list of unique rv groups
-            rv_groups = self.sl.get_defined_groups(parameter='rv')
-            rv_groups = np.unique(np.ravel([rv_groups[key]['rv'] for key in rv_groups.keys()])).tolist()
-
-
-            for rv_group in rv_groups:
-                if rv_group not in self.rel_rvgroup_region[reg]:
-                    continue
-                # append rv_group to groups
-                all_groups = copy.deepcopy(reg_groups)
-                all_groups['rv'] = rv_group
-
-                # append rv parameter to the remaining parameters
-                rv_pars = self.sl.get_parameter(rv=rv_group)
-                all_pars = copy.deepcopy(reg_pars)
-                for c in rv_pars.keys():
-                    all_pars[c].extend(rv_pars[c])
-
-                if self.ol is not None:
-                    # the wmin wmax is used to check again that
-                    # we are in the correct region.
-                    obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_group)
-                    if len(obs) > 0:
-                        obs = obs[0]
-                    else:
-                        continue
-                    print obs, rv_group
-                    c = obs.component
-
-                    # in case of korel spectrum we compare only one component
-                    if c != 'all':
-                        all_pars = dict(c=all_pars[c])
-                else:
-                    obs = None
-
-                self.add_comparison(region=reg,
-                                parameters=all_pars,
-                                groups = all_groups,
-                                observed=obs,
-                            )
-
-    def list_comparisons(self):
-        """
-        This function displays all comparisons.
-        :return: string
-        """
-        string = ''
-        for i,rec in enumerate(self.comparisonList):
-            string += "========================= Comparison %s =========================\n" % str(i).zfill(3)
-            reg = rec['region']
-            # list region
-            string += 'region: %s:(%s,%s)\n' % (reg, str(self.rl.mainList[reg]['wmin']),
-                                                str(self.rl.mainList[reg]['wmax']))
-
-            # list observed spectrum
-            string += "observed: %s\n" % (rec['observed'].filename)
-
-            # lists all parameters
-            for c in rec['parameters'].keys():
-                string += 'component: %s ' % (c)
-                # print rec['parameters'][c]
-                for par in rec['parameters'][c]:
-                    string += "%s: %s " % (par['name'], str(par['value']))
-                string += '\n'
-
-            # list all groups
-            string += 'groups: %s\n' % str(rec['groups'])
-
-        return string
-
-    def remove_parameter(self, component, parameter, group):
-        """
-        :param component: component for which the parameter is deleted
-        :param parameter:deleted paramer
-        :return:
-        """
-
-        self.sl.remove_parameter(component, parameter, group)
-
-    def setup_grids(self, **kwargs):
-        """
-        Initializes grid of synthetic spectra for each region -
-        i.e. there is no point in calling the function without
-        having the regions set up.
-
-        :params kwargs -see pyterpol.
-        :return:
-        """
-        for reg in self.rl.mainList.keys():
-            self.grids[reg] = SyntheticGrid(**kwargs)
 
     def verify(self):
         pass

@@ -43,3 +43,6 @@ itf.ready_comparisons()
 # check the list of comparisons
 print itf.list_comparisons()
 
+# try to build synthetic spectra
+itf.ready_synthetic_spectra()
+
