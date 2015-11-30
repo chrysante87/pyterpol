@@ -32,6 +32,6 @@ itf.setup_groups()
 print ol.observedSpectraList
 print ol.observedSpectraList['spectrum'][0]
 print ol.observedSpectraList['spectrum'][1]
-# 5) back control of defined groups for data
-# print itf.ol
-# print itf.sl
+
+# try to query observed spectra for different rv groups
+print ol.get_spectra(rv=1, component='primary')[0]

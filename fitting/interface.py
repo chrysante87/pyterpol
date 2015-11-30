@@ -437,7 +437,8 @@ class ObservedList(object):
 
             # these can be tested on equality as strings
             if keytest in self._queriables:
-                vind = np.where(np.array(osl['properties'][keytest], dtype=str) == str(kwargs[key]))[0]
+                vind = np.where((np.array(osl['properties'][keytest], dtype=str) == str(kwargs[key])) or \
+                                (np.array(osl['properties'][keytest], dtype=str) == 'all'))[0]
 
             # that cannot be tested on equality
             elif keytest == 'wmin':
@@ -448,10 +449,19 @@ class ObservedList(object):
 
             # those that are defined in groups
             elif keytest in osl['group'].keys():
-                # vind = []
-                vind = np.where(osl['group'][keytest] == kwargs[key])[0]
+                vind = []
+                # print osl['spectrum'], len(osl['spectrum'])
+                # print len(osl), keytest, kwargs[key], osl['group'][keytest]
+                for i in range(0, len(osl['spectrum'])):
+                    if isinstance(osl['group'][keytest][i], (tuple, list)):
+                        if kwargs[key] in osl['group'][keytest][i]:
+                            vind.append(i)
+                    else:
+                        if kwargs[key] == osl['group'][keytest][i]:
+                            vind.append(i)
+                vind = np.array(vind)
 
-            # print keytest, vind
+            print keytest, vind
 
             # TODO Improve this, so the warning is not issued,
             # TODO when the observed spectra are lusted under all.
@@ -620,6 +630,7 @@ class ObservedList(object):
                 for key in kwargs.keys():
                     setattr(self.observedSpectraList['spectrum'][i], key, kwargs[key])
         self.read_groups()
+        self.groupValues = self.get_defined_groups()
 
     def _set_groups_to_spectra(self):
         """
