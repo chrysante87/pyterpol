@@ -99,6 +99,9 @@ class SyntheticSpectrum:
         # prints properties of the spectrum
         for prop in self.properties:
             string = string + "%s:%s " % (prop, str(self[prop]))
+
+        # get the wavelength boundaries
+        string += "(wmin, wmax): (%s, %s)" % (str(self.wmin), str(self.wmax))
         string = string + '\n'
 
         return string
@@ -326,6 +329,41 @@ class SyntheticSpectrum:
         # return dictionary with the physical properties
         props = {key: self[key] for key in self.properties}
         return props
+
+    def plot(self, ax=None, savefig=False, figname=None, **kwargs):
+        """
+        :param figname
+        :param savefig
+        :param ax: AxesSubplot
+        :param kwargs:
+        :return:
+        """
+        w = self.wave
+        i = self.intens
+        if ax is None:
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+
+        props = str({prop: self[prop] for prop in self.properties})
+        ax.plot(w, i, label=props, **kwargs)
+        ax.set_xlim(self.wmin, self.wmax)
+        ax.set_ylim(0.95*i.min(), 1.05*i.max())
+        ax.set_xlabel('$\lambda(\AA)$')
+        ax.set_ylabel('$F_{\lambda}$(rel.)')
+        ax.legend(fontsize=10)
+
+        # save the figure
+        if savefig:
+            if figname is None:
+                figname = []
+                for key in self.properties:
+                    # print key, self.properties
+                    figname.extend([key, str(self[key])])
+                figname.extend(['wmin', str(self.wmin)])
+                figname.extend(['wmax', str(self.wmax)])
+                figname = '_'.join(figname) + '.png'
+            # save the plot
+            plt.savefig(figname)
 
     def select_interval(self, wmin, wmax):
         """

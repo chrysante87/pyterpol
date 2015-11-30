@@ -47,5 +47,8 @@ print itf.list_comparisons()
 # try to build synthetic spectra
 itf.ready_synthetic_spectra()
 
-print itf.synthetics['region00']['primary']
+# plot the synthetic spectra
+print itf.synthetics['region00']['primary'].plot(savefig=True)
+print itf.synthetics['region01']['primary'].plot(savefig=True)
+
 

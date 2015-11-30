@@ -349,7 +349,7 @@ class Interface(object):
         # rv_group, spectrum and region
         reg2rv = {x: [] for x in regs}
 
-        # for every region we have a look if we have some data
+        # for every region we have a look if we have some datas
         for wmin, wmax, reg in zip(wmins, wmaxs, regs):
 
             # query spectra for each region
@@ -1197,6 +1197,7 @@ class RegionList(List):
                         while gn in self._user_defined_groups[key]:
                             gn += 1
                         self.mainList[region]['groups'][i][key] = gn
+
 
 class StarList(object):
     """
