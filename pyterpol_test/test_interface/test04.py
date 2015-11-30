@@ -8,13 +8,17 @@ import pyterpol
 debug=False
 # 1) define some observations
 ol = pyterpol.ObservedList(debug=debug)
+# obs = [
+#        dict(filename='o.asc', error=0.01, group=dict(rv=10)),
+#        dict(filename='o2.asc', error=0.01, group=dict(rv=10))
+#        ]
 obs = [
        dict(filename='o.asc', error=0.01),
        dict(filename='o2.asc', error=0.01)
        ]
 
 ol.add_observations(obs)
-print ol
+# print ol
 
 # 2) define fitted regions
 rl = pyterpol.RegionList(debug=debug)
@@ -29,12 +33,13 @@ sl.add_component(component='secondary', teff=20000., logg=4.5, rv=0.0, vrot=0.0,
 # 4) define interface
 itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=True)
 itf.setup_groups()
-print ol.observedSpectraList
-print ol.observedSpectraList['spectrum'][0]
-print ol.observedSpectraList['spectrum'][1]
+print itf
+print itf.rel_rvgroup_region
 
 # Start building the table for spectra creation
-itf.get_comparisons()
+itf.ready_comparisons()
+
 
 # check the list of comparisons
 print itf.list_comparisons()
+# print itf

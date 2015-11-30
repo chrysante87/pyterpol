@@ -143,10 +143,15 @@ class Interface(object):
         new_groups = dict()
 
         # get wavelength boundaries of defined regions
-        wmins, wmaxs = self.rl.get_wavelengths()
+        wmins, wmaxs, regs = self.rl.get_wavelengths(verbose=True)
+
+        # this dictionary is needed to have
+        # unambiguous relationship between
+        # rv_group, spectrum and region
+        reg2rv = {x: [] for x in regs}
 
         # for every region we have a look if we have some data
-        for wmin, wmax in zip(wmins, wmaxs):
+        for wmin, wmax, reg in zip(wmins, wmaxs, regs):
 
             # query spectra for each region
             observed_spectra = self.ol.get_spectra(wmin=wmin, wmax=wmax)
@@ -164,6 +169,7 @@ class Interface(object):
                 # We define group for our observation
                 if rv_group is None:
                     gn = generate_least_number(def_groups)
+                    reg2rv[reg].append(gn)
 
                     # save the newly registered group
                     if spectrum.filename not in new_groups.keys():
@@ -172,12 +178,14 @@ class Interface(object):
 
                 elif rv_group not in def_groups:
                     gn = rv_group
+                    reg2rv[reg].append(rv_group)
 
                 # if the group is defined we only need to
                 # add it among the user defined one, so it
                 # so it is not deleted later
                 elif rv_group in def_groups:
                     registered_groups.append(rv_group)
+                    reg2rv[reg].append(rv_group)
                     continue
 
                 # the group number is assigned to the spectrum
@@ -202,14 +210,15 @@ class Interface(object):
             if gref not in registered_groups:
                 self.remove_parameter(c, 'rv', gref)
 
-        print new_groups
+        # print new_groups
         # back register the group numbers to the observed spectra
         for filename in new_groups.keys():
             self.ol.set_spectrum(filename=filename, group={'rv': new_groups[filename]})
 
+        # finalize the list of rv_groups for each region
+        self.rel_rvgroup_region = {x: np.unique(reg2rv[x]).tolist() for x in reg2rv.keys()}
 
-
-    def get_comparisons(self):
+    def ready_comparisons(self):
         """
         This function creates a dictionary, which is one of the
         cornerstones of the class. It creates a list of all
@@ -221,54 +230,67 @@ class Interface(object):
         # be carried out with the given dataset
         self.comparisonList = []
 
-        reg = self.rl.mainList.keys()[0]
-        wmin = self.rl.mainList[reg]['wmin']
-        wmax = self.rl.mainList[reg]['wmax']
-        reg_groups = self.rl.mainList[reg]['groups'][0]
-        phys_pars = [x for x in self.sl.get_physical_parameters() if x not in ['rv']]
-        print reg, phys_pars, reg_groups
+        # go region by region
+        for reg in self.rl.mainList.keys():
+        # reg = self.rl.mainList.keys()[0]
+            # fitted region
+            wmin = self.rl.mainList[reg]['wmin']
+            wmax = self.rl.mainList[reg]['wmax']
 
-        for par in phys_pars:
-            if par not in reg_groups.keys():
-                reg_groups[par] = 0
+            # region-dfined groups
+            reg_groups = self.rl.mainList[reg]['groups'][0]
+            phys_pars = [x for x in self.sl.get_physical_parameters() if x not in ['rv']]
+            # print reg, phys_pars, reg_groups
 
-        print reg_groups
+            # if the group is not defined, it is zero
+            for par in phys_pars:
+                if par not in reg_groups.keys():
+                    reg_groups[par] = 0
 
-        reg_pars = self.sl.get_parameter(**reg_groups)
-        for c in reg_pars.keys():
-            for p in reg_pars[c]:
-                print c, ': ', p
+            # print reg_groups
 
-        # get defined rv-groups for each component
-        rv_groups = self.sl.get_defined_groups(parameter='rv')
-        rv_groups = np.unique(np.ravel([rv_groups[key]['rv'] for key in rv_groups.keys()]))
+            # extract all parameters
+            reg_pars = self.sl.get_parameter(**reg_groups)
 
-         # append rv_group to groups
-        all_groups = copy.deepcopy(reg_groups)
-        all_groups['rv'] = rv_groups[0]
+            # create a list of unique rv groups
+            rv_groups = self.sl.get_defined_groups(parameter='rv')
+            rv_groups = np.unique(np.ravel([rv_groups[key]['rv'] for key in rv_groups.keys()]))
 
-        # append rv parameter
-        rv_pars = self.sl.get_parameter(rv=rv_groups[0])
-        all_pars = copy.deepcopy(reg_pars)
-        for c in rv_pars.keys():
-            all_pars[c].extend(rv_pars[c])
 
-        if self.ol is not None:
-            # the wmin wmax is used to check again that
-            # we are in the correct region.
-            obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_groups[0])[0]
-            c = obs.component
+            for rv_group in rv_groups:
+                if rv_group not in self.rel_rvgroup_region[reg]:
+                    continue
+                # append rv_group to groups
+                all_groups = copy.deepcopy(reg_groups)
+                all_groups['rv'] = rv_group
 
-            # in case of korel spectrum we compare only one component
-            if c != 'all':
-                all_pars = dict(c=all_pars[c])
-        else:
-            obs = None
+                # append rv parameter to the remaining parameters
+                rv_pars = self.sl.get_parameter(rv=rv_group)
+                all_pars = copy.deepcopy(reg_pars)
+                for c in rv_pars.keys():
+                    all_pars[c].extend(rv_pars[c])
 
-        self.add_comparison(region=reg,
-                            parameters=all_pars,
-                            groups = all_groups,
-                            observed=obs,
+                if self.ol is not None:
+                    # the wmin wmax is used to check again that
+                    # we are in the correct region.
+                    obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_group)
+                    if len(obs) > 0:
+                        obs = obs[0]
+                    else:
+                        continue
+                    print obs, rv_group
+                    c = obs.component
+
+                    # in case of korel spectrum we compare only one component
+                    if c != 'all':
+                        all_pars = dict(c=all_pars[c])
+                else:
+                    obs = None
+
+                self.add_comparison(region=reg,
+                                parameters=all_pars,
+                                groups = all_groups,
+                                observed=obs,
                             )
 
     def list_comparisons(self):
@@ -294,6 +316,10 @@ class Interface(object):
                 for par in rec['parameters'][c]:
                     string += "%s: %s " % (par['name'], str(par['value']))
                 string += '\n'
+
+            # list all groups
+            string += 'groups: %s\n' % str(rec['groups'])
+
         return string
 
 
@@ -965,18 +991,24 @@ class RegionList(List):
         """
         return self.mainList.keys()
 
-    def get_wavelengths(self):
+    def get_wavelengths(self, verbose=False):
         """
         Returns registered wavelengths
+        :param verbose
         :return: wmins, wmaxs = arrays of minimal/maximal wavelength for each region
         """
         wmins = []
         wmaxs = []
+        regs = []
         for reg in self.mainList.keys():
             wmins.append(self.mainList[reg]['wmin'])
             wmaxs.append(self.mainList[reg]['wmax'])
+            regs.append(reg)
 
-        return wmins, wmaxs
+        if verbose:
+            return wmins, wmaxs, regs
+        else:
+            return wmins, wmaxs
 
     def get_regions_from_obs(self, ol, append=False):
         """
