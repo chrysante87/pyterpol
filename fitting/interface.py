@@ -251,7 +251,7 @@ class Interface(object):
         rv_pars = self.sl.get_parameter(rv=rv_groups[0])
         all_pars = copy.deepcopy(reg_pars)
         for c in rv_pars.keys():
-            all_pars[c].append(rv_pars[c])
+            all_pars[c].extend(rv_pars[c])
 
         if self.ol is not None:
             # the wmin wmax is used to check again that
@@ -270,6 +270,32 @@ class Interface(object):
                             groups = all_groups,
                             observed=obs,
                             )
+
+    def list_comparisons(self):
+        """
+        This function displays all comparisons.
+        :return: string
+        """
+        string = ''
+        for i,rec in enumerate(self.comparisonList):
+            string += "========================= Comparison %s =========================\n" % (str(i).zfill(3))
+            reg = rec['region']
+            # list region
+            string += 'region: %s:(%s,%s)\n' % (reg, str(self.rl.mainList[reg]['wmin']),
+                                                str(self.rl.mainList[reg]['wmax']))
+
+            # list observed spectrum
+            string += "observed: %s\n" % (rec['observed'].filename)
+
+            # lists all parameters
+            for c in rec['parameters'].keys():
+                string += 'component: %s ' % (c)
+                # print rec['parameters'][c]
+                for par in rec['parameters'][c]:
+                    string += "%s: %s " % (par['name'], str(par['value']))
+                string += '\n'
+        return string
+
 
     def remove_parameter(self, component, parameter, group):
         """

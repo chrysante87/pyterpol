@@ -36,7 +36,5 @@ print ol.observedSpectraList['spectrum'][1]
 # Start building the table for spectra creation
 itf.get_comparisons()
 
-# print list of comparisons
-for row in itf.comparisonList:
-    for key in row.keys():
-           print row[key]
+# check the list of comparisons
+print itf.list_comparisons()
