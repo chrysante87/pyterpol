@@ -102,6 +102,13 @@ class Interface(object):
         params = {par['name']: par['value'] for par in l}
         return params
 
+    def get_observed_spectrum(self, filename=None):
+        """
+        Returns
+        :return:
+        """
+        return self.ol.get_spectra(filename=filename)[0]
+
     def list_comparisons(self):
         """
         This function displays all comparisons.
@@ -160,7 +167,7 @@ class Interface(object):
             grid_pars = [x for x in self.sl.get_physical_parameters() \
                          if x not in self._not_given_by_grid]
 
-            print grid_pars, reg_groups
+            # print grid_pars, reg_groups
             # setup default groups - ie zero
             for par in grid_pars:
                 if par not in reg_groups.keys():
@@ -172,7 +179,7 @@ class Interface(object):
             for c in self.sl._registered_components:
                 # convert Parameter list to dictionary
                 params = self.extract_parameters(parlist[c])
-                print params
+                # print params
 
                 # padding has to be relatively large, since
                 # we do not know what the rvs will be
@@ -648,9 +655,11 @@ class ObservedList(object):
 
             # these can be tested on equality as strings
             if keytest in self._queriables:
+                # print osl['properties'][keytest], kwargs[key]
+                vind = np.where(np.array(osl['properties'][keytest], dtype=str) == str(kwargs[key]))
+            elif keytest == 'component':
                 vind = np.where((np.array(osl['properties'][keytest], dtype=str) == str(kwargs[key])) or \
                                 (np.array(osl['properties'][keytest], dtype=str) == 'all'))[0]
-
             # that cannot be tested on equality
             elif keytest == 'wmin':
                 vind = np.where(np.array(osl['properties'][keytest]) <= kwargs[key])[0]

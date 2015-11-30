@@ -3,10 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import splrep
 from scipy.interpolate import splev
-
-
-# tolerance on float comparison
-floatToler = 1e-6
+from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
 
 # repeat userwarnings
 warnings.simplefilter('always', UserWarning)
@@ -251,6 +248,36 @@ class ObservedSpectrum:
             raise Exception('The spectrum %s has not been loaded yet!' % str(self))
         else:
             return self.wave.copy()
+
+    def plot(self, ax=None, savefig=False, figname=None, **kwargs):
+        """
+        :param figname
+        :param savefig
+        :param ax: AxesSubplot
+        :param kwargs:
+        :return:
+        """
+        w = self.wave
+        i = self.intens
+        if ax is None:
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+
+        props = str({'filename': self.filename})
+        ax.plot(w, i, label=props, **kwargs)
+        ax.set_xlim(self.wmin, self.wmax)
+        ax.set_ylim(0.95*i.min(), 1.05*i.max())
+        ax.set_xlabel('$\lambda(\AA)$')
+        ax.set_ylabel('$F_{\lambda}$(rel.)')
+        ax.legend(fontsize=10)
+
+        # save the figure
+        if savefig:
+            if figname is None:
+                figname = self.filename + '.png'
+
+            # save the plot
+            plt.savefig(figname)
 
     def read_size(self):
         """

@@ -48,7 +48,11 @@ print itf.list_comparisons()
 itf.ready_synthetic_spectra()
 
 # plot the synthetic spectra
-print itf.synthetics['region00']['primary'].plot(savefig=True)
-print itf.synthetics['region01']['primary'].plot(savefig=True)
+itf.synthetics['region00']['primary'].plot(savefig=True)
+itf.synthetics['region01']['primary'].plot(savefig=True)
+
+# plot the observed spectra
+itf.get_observed_spectrum('o.asc').plot(savefig=True)
+itf.get_observed_spectrum('o2.asc').plot(savefig=True)
 
 
