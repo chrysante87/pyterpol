@@ -108,6 +108,14 @@ class Interface(object):
         cloned_comps = []
         registered_groups = []
 
+        # dictionary for newly registered groups
+        # this is necessary in case we do not
+        # the newly registered groups have to
+        # be assigned back to the spectra
+        # otherwise we would not know which rv
+        # belongs to which spectrum
+        new_groups = dict()
+
         # get wavelength boundaries of defined regions
         wmins, wmaxs = self.rl.get_wavelengths()
 
@@ -125,11 +133,17 @@ class Interface(object):
 
                 # readout groups that were already defined
                 def_groups = self.sl.get_defined_groups(component=component, parameter='rv')[component]['rv']
-                print spectrum, wmin, wmax, component, rv_group, def_groups
+                # print spectrum, wmin, wmax, component, rv_group, def_groups
 
                 # We define group for our observation
                 if rv_group is None:
                     gn = generate_least_number(def_groups)
+
+                    # save the newly registered group
+                    if spectrum.filename not in new_groups.keys():
+                        new_groups[spectrum.filename] = []
+                    new_groups[spectrum.filename].append(gn)
+
                 elif rv_group not in def_groups:
                     gn = rv_group
 
@@ -155,13 +169,20 @@ class Interface(object):
                         cloned_comps.append(component)
                     registered_groups.append(gn)
 
-        print registered_groups, cloned_comps
+        # print registered_groups, cloned_comps
         # remove the default groups
         for c in cloned_comps:
             gref = self.sl.componentList[c]['rv'][0]['group']
             if gref not in registered_groups:
                 self.remove_parameter(c, 'rv', gref)
-    #
+
+        print new_groups
+        # back register the group numbers to the observed spectra
+        for filename in new_groups.keys():
+            self.ol.set_spectrum(filename=filename, group={'rv': new_groups[filename]})
+
+
+
     def get_combinations(self):
         """
         This function creates a dictionary, which is one of the
@@ -242,7 +263,7 @@ class ObservedList(object):
         self.groupValues = dict()
 
         # list of properties
-        self._property_list = ['loaded', 'hasErrors', 'component', 'wmin', 'wmax', 'korel']
+        self._property_list = ['component', 'filename', 'hasErrors', 'korel', 'loaded', 'wmin', 'wmax']
         # self._queriables = copy.deepcopy(self._property_list).extend(['group'])
 
         # although wmin, wmax can be queried, it is treated separately from the remaining
@@ -366,7 +387,10 @@ class ObservedList(object):
             for key in spectrum.group.keys():
                 if key not in groups.keys():
                     groups[key] = []
-                groups[key].append(spectrum.group[key])
+                if isinstance(spectrum.group[key], (list, tuple)):
+                    groups[key].extend(spectrum.group[key])
+                else:
+                    groups[key].append(spectrum.group[key])
 
         # only unique values are needed
         for key in groups.keys():
@@ -424,6 +448,7 @@ class ObservedList(object):
 
             # those that are defined in groups
             elif keytest in osl['group'].keys():
+                # vind = []
                 vind = np.where(osl['group'][keytest] == kwargs[key])[0]
 
             # print keytest, vind
@@ -582,6 +607,19 @@ class ObservedList(object):
         for i, spectrum in enumerate(self.observedSpectraList['spectrum']):
             for key in self._property_list:
                 self.observedSpectraList['properties'][key][i] = getattr(spectrum, key)
+
+    def set_spectrum(self, filename=None, **kwargs):
+        """
+        Sets spectrum to a given value.
+        :param kwargs:
+        :return:
+        """
+        print kwargs
+        for i in range(0, len(self)):
+            if self.observedSpectraList['spectrum'][i].filename == filename:
+                for key in kwargs.keys():
+                    setattr(self.observedSpectraList['spectrum'][i], key, kwargs[key])
+        self.read_groups()
 
     def _set_groups_to_spectra(self):
         """

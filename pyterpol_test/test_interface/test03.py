@@ -34,7 +34,6 @@ itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=True)
 
 # 5) communicate groups
 itf.setup_groups()
-print itf
 itf.clear_all()
 
 # 5) communicate groups - without attaching the data
@@ -45,4 +44,3 @@ sl.add_component(component='secondary', teff=20000., logg=4.5, rv=0.0, vrot=0.0,
 
 itf = pyterpol.Interface(sl=sl, rl=rl, debug=True)
 itf.setup_groups()
-print itf
