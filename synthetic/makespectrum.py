@@ -183,8 +183,8 @@ class SyntheticSpectrum:
         r_bump_wave = np.arange(wn + step, wn + bumpsize, step)
 
         # continuum - just ones
-        l_cont = np.ones(len(l_bump_wave))
-        r_cont = np.ones(len(r_bump_wave))
+        # l_cont = np.ones(len(l_bump_wave))
+        # r_cont = np.ones(len(r_bump_wave))
 
         # continuum - just ones
         l_cont = 1.0 - np.linspace(0, bumpsize, len(l_bump_wave)) * (1.0 - intens[0]) / bumpsize

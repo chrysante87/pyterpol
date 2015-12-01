@@ -81,6 +81,12 @@ class Interface(object):
         :return: None
 
         """
+
+        if self.debug:
+            print 'Settting comparison for region: %s \n groups: %s. \n parameters: %s' % \
+                  (str(region), str(groups), str(parameters))
+
+
         if self.comparisonList is None:
             raise Exception('The comparisonList has not been defined yet. Use Inteface.get_comparison for that.')
         else:
@@ -174,13 +180,28 @@ class Interface(object):
 
                 # use only those parameters that are not constrained with the grid
                 pars = {x:pars[x] for x in pars.keys() if x in self._not_given_by_grid}
-                print pars
+                # print pars
 
                 # populate with the intensity vector of each component
                 wave = rec['observed'].get_spectrum(wmin, wmax)[0]
+
+                # get KOREL mode
+                korelmode = rec['observed'].korel
+
                 rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
                                                                               only_intensity=True,
+                                                                              korel=korelmode,
                                                                               **pars)
+
+    def plot_all_comparisons(self):
+        """
+        Creates a plot of all setup comparisons.
+        :return: None
+        """
+        if len(self.comparisonList) == 0:
+            raise ValueError('The comparison list is empty. Did you run interface.setup() and interface.populate()?')
+        for i in range(0, len(self.comparisonList)):
+            self.plot_comparison(i, savefig=True)
 
     def plot_comparison(self, index, savefig=False, figname=None):
         """
@@ -209,6 +230,10 @@ class Interface(object):
 
         if figname is None:
             figname = "_".join([obsname, 'wmin', str(int(wmin)), 'wmax', str(int(wmax))]) +'.png'
+
+        if self.debug:
+            print "Plotting comparison: observed: %s" % obsname
+            print "Plotting comparison: synthetics: %s" % synname
 
         # do the plot
         fig = plt.figure(figsize=(16, 10), dpi=100)
@@ -311,8 +336,15 @@ class Interface(object):
 
             # create a list of unique rv groups
             rv_groups = self.sl.get_defined_groups(parameter='rv')
-            rv_groups = np.unique(np.ravel([rv_groups[key]['rv'] for key in rv_groups.keys()])).tolist()
-
+            rv_groups = [rv_groups[key]['rv'] for key in rv_groups.keys()]
+            # print rv_groups
+            temp = []
+            for row in rv_groups:
+                temp.extend(row)
+            rv_groups = np.unique(temp)
+            # print rv_groups
+            # rv_groups = np.unique(np.ravel([rv_groups[key]['rv'] for key in rv_groups.keys()])).tolist()
+            # print 'rv_groups: %s' % str(rv_groups)
 
             for rv_group in rv_groups:
                 if rv_group not in self.rel_rvgroup_region[reg]:
@@ -340,10 +372,12 @@ class Interface(object):
 
                     # in case of korel spectrum we compare only one component
                     if c != 'all':
-                        all_pars = dict(c=all_pars[c])
+                        all_pars = {c: all_pars[c]}
                 else:
                     obs = None
 
+                # add the comparison
+                # print reg, all_pars, all_groups, obs
                 self.add_comparison(region=reg,
                                 parameters=all_pars,
                                 groups = all_groups,
@@ -387,11 +421,13 @@ class Interface(object):
             # we go for default ones
             warnings.warn('Using default grid and synthetic spectra settings.')
             self.set_grid_properties()
-
         self._setup_grids()
 
         # create the basic interpolated spectra
         self.ready_synthetic_spectra()
+
+        # prepare list of comparisons
+        self.ready_comparisons()
 
     def set_grid_properties(self, **kwargs):
         """
