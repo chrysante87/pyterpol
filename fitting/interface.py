@@ -366,27 +366,32 @@ class Interface(object):
                     # we are in the correct region.
                     obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_group)
                     print len(obs)
-                    if len(obs) > 0:
-                        obs = obs[0]
-                    else:
+                    if len(obs) == 0:
                         continue
                     # print obs, rv_group
                     print rv_group, obs
-                    c = obs.component
+                    # c = obs.component
 
                     # in case of korel spectrum we compare only one component
-                    if c != 'all':
-                        all_pars = {c: all_pars[c]}
+                    # if c != 'all':
+                    #     all_pars = {c: all_pars[c]}
                 else:
-                    obs = None
+                    obs = [None]
 
-                # add the comparison
-                # print reg, all_pars, all_groups, obs
-                self.add_comparison(region=reg,
-                                parameters=all_pars,
-                                groups = all_groups,
-                                observed=obs,
-                            )
+                # add the comparison for each observed spectrum
+                # because in an unlikely event, when we fit the
+                # same RVs for several spectra
+                for o in obs:
+                    # setup component
+                    c = o.component
+                    if c != 'all':
+                        temp_all_pars = {c: all_pars[c]}
+
+                    self.add_comparison(region=reg,
+                                        parameters=temp_all_pars,
+                                        groups = all_groups,
+                                        observed=o,
+                                        )
 
     def remove_parameter(self, component, parameter, group):
         """
