@@ -101,8 +101,9 @@ class SyntheticSpectrum:
             string = string + "%s:%s " % (prop, str(self[prop]))
 
         # get the wavelength boundaries
-        string += "(wmin, wmax): (%s, %s)" % (str(self.wmin), str(self.wmax))
-        string = string + '\n'
+        if self.loaded:
+            string += "(wmin, wmax): (%s, %s)" % (str(self.wmin), str(self.wmax))
+            string = string + '\n'
 
         return string
 
@@ -496,6 +497,8 @@ class SyntheticGrid:
         wmin = wave.min() - padding
         wmax = wave.max() + padding
         step = step
+
+        print wmin, wmax, step, order, padding
 
         # overwrite the wave vector for
         self.set_wavelength_vector(wmin, wmax, step)

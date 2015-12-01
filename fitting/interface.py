@@ -46,6 +46,14 @@ class Interface(object):
         # parameters that cannot be obatined through interpolation
         self._not_given_by_grid = ['lr', 'rv', 'vrot']
 
+        # properties of synthetic spectra
+        self._synthetic_spectrum_kwargs = {}
+        # properties of grids
+        self._grid_kwargs = {}
+
+        # initialization of various boolean variables
+        self.grid_properties_passed = False
+
     def __str__(self):
         """
         String representation of the class
@@ -94,6 +102,10 @@ class Interface(object):
         self.rl = None
         self.sl = None
         self.synthetics = {}
+        self._grid_kwargs = {}
+        self._synthetic_spectrum_kwargs = {}
+        self.rel_rvgroup_region = {}
+        self.grid_properties_passed = False
 
     def extract_parameters(self, l, attr='value'):
         """
@@ -259,7 +271,9 @@ class Interface(object):
 
                 # padding has to be relatively large, since
                 # we do not know what the rvs will be
-                self.synthetics[reg][c] = self.grids[reg].get_synthetic_spectrum(params, np.array([wmin, wmax]))
+                self.synthetics[reg][c] = self.grids[reg].get_synthetic_spectrum(params,
+                                                                                 np.array([wmin, wmax]),
+                                                                                 **self._synthetic_spectrum_kwargs)
 
     def ready_comparisons(self):
         """
@@ -345,32 +359,13 @@ class Interface(object):
 
         self.sl.remove_parameter(component, parameter, group)
 
-    def setup(self, **kwargs):
+    def setup(self):
         """
         This function probes the observed and
         region list and propagates group definitions
         from them to the starlist.
         :return:
         """
-
-        # # get registered components
-        # components = copy.deepcopy(self.sl._registered_components)
-        # components.append('all')
-        #
-        # # read the groups from observed data
-        # # and region definitions
-        # if self.ol is not None:
-        #     groups_data = self.ol.get_data_groups(components)
-        # if self.rl is not None:
-        #     groups_regs = self.rl.get_region_groups()
-        #
-        # if self.debug:
-        #     print "Reading groups: %s from data." % str(groups_data)
-        #     print "Reading groups: %s from regions." % str(groups_regs)
-        #
-        # for groups in [groups_data, groups_regs]:
-        #     self.sl.set_groups(groups)
-
         # first setup region groups
         if self.rl is not None:
             region_groups = self.rl.get_region_groups()
@@ -387,14 +382,40 @@ class Interface(object):
                           'different velocity of course.')
 
         # setup grids
-        debug = kwargs.get('debug', False)
-        mode = kwargs.get('mode', 'default')
-        self.setup_grids(debug=debug, mode=mode)
+        if not self.grid_properties_passed:
+            # if the settings of the grids were not passed,
+            # we go for default ones
+            warnings.warn('Using default grid and synthetic spectra settings.')
+            self.set_grid_properties()
+
+        self._setup_grids()
 
         # create the basic interpolated spectra
         self.ready_synthetic_spectra()
 
-    def setup_grids(self, **kwargs):
+    def set_grid_properties(self, **kwargs):
+        """
+        :param kwargs: parameters for the SyntheticGrid.__init__
+        :param kwargs: padding - number of spectra to use for
+                padding of synthetic spectra
+        :param kwargs: nspectra - maximal number of spectra
+                for interpolation
+        :return:
+        """
+        if kwargs is not None:
+            # setup how the grids are cretaed
+            self._grid_kwargs = dict(mode = kwargs.get('mode', 'default'),
+                                    debug = kwargs.get('debug', self.debug))
+
+            # setup keyword for individual spectra
+            self._synthetic_spectrum_kwargs = dict(padding = kwargs.get('padding', 20),
+                                                  order = kwargs.get('order', 4),
+                                                  step = kwargs.get('step', 0.01))
+
+        self.grid_properties_passed = True
+
+
+    def _setup_grids(self):
         """
         Initializes grid of synthetic spectra for each region -
         i.e. there is no point in calling the function without
@@ -404,7 +425,7 @@ class Interface(object):
         :return:
         """
         for reg in self.rl.mainList.keys():
-            self.grids[reg] = SyntheticGrid(**kwargs)
+            self.grids[reg] = SyntheticGrid(**self._grid_kwargs)
 
     def setup_rv_groups(self):
         """
