@@ -207,7 +207,7 @@ class SyntheticSpectrum:
 
         return bump_wave, bump_intens
 
-    def get_spectrum(self, wave=None, rv=None, vrot=None, lr=None, only_intensity=False):
+    def get_spectrum(self, wave=None, rv=None, vrot=None, lr=None, korel=False, only_intensity=False):
         """
         Return the sythetic spectrum stored within the class. If
         a set of wavelengths is provided, an interpolated spectrum
@@ -308,6 +308,10 @@ class SyntheticSpectrum:
 
             # interpolates to the user specified wavelengths
             intens = interpolate_spec(syn_wave, intens, wave)
+
+        # if we want to extract the spectra in KOREL format
+        if korel:
+            intens = 1.0 - (1.0 - intens)
 
         if only_intensity:
             return intens
