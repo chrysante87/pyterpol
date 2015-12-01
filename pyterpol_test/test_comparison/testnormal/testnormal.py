@@ -24,8 +24,9 @@ ol.add_observations(obs)
 itf = pyterpol.Interface(ol=ol, sl=sl)
 
 # set grid properties
-itf.set_grid_properties(order=3)
+itf.set_grid_properties(order=2)
 
 itf.setup()
-itf.populate_comparisons()
-itf.plot_all_comparisons()
+
+# itf.populate_comparisons()
+# itf.plot_all_comparisons()

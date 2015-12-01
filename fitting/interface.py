@@ -453,8 +453,10 @@ class Interface(object):
             self.set_grid_properties()
         self._setup_grids()
 
+        # print self.grids['region00']
+
         # create the basic interpolated spectra
-        # self.ready_synthetic_spectra()
+        self.ready_synthetic_spectra()
 
         # prepare list of comparisons
         self.ready_comparisons()

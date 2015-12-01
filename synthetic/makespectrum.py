@@ -980,7 +980,9 @@ class SyntheticGrid:
         vals = [props[key] for key in props.keys()]
 
         # gets the parameter list
+        print order, props
         parlist = self.select_parameters(order=order,**props)
+        print parlist
 
         if len(parlist) == 0:
             raise Exception('Do %s lie within the grid? I do not think so...' % (str(props)))
@@ -992,6 +994,7 @@ class SyntheticGrid:
 
         # checks the result
         temp = np.array(parlist)
+        print temp, vals
         for i, val in enumerate(vals):
             if not is_within_interval(val, temp[:, i]):
                 raise ValueError('Parameters %s lie outside the grid.' % (str(props)))
@@ -1021,10 +1024,22 @@ class SyntheticGrid:
 
         # list eligible values for a given parameter
         elig_vals = np.array(self.get_available_values_fast(key, **constraints))
+        print key, elig_vals
 
         # sorts the grid, from nearest to farthest
         ind = np.argsort(abs(elig_vals - v))
         vals = elig_vals[ind]
+
+
+        # what if the grid step is inhomogeneous? - actually it is
+        # in z - what shall we do, what shall we do???
+        if vals[:order].min() > v or vals[:order].max() < v:
+            # TODO think of something better than this!!!!!!
+            lower = np.max(vals[np.where(vals - v < ZERO_TOLERANCE)[0]])
+            upper = np.min(vals[np.where(vals - v > ZERO_TOLERANCE)[0]])
+            vals = np.array([lower, upper])
+            print lower, upper, vals
+
 
         # checks that there is not equality
         if np.any(abs(vals - v) < ZERO_TOLERANCE):
