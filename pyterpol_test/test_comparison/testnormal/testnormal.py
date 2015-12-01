@@ -16,7 +16,7 @@ sl.add_component('secondary', teff=31205., logg=3.36, vrot=213.0, lr=0.551, rv=6
 # 3) setup observed data
 ol = pyterpol.ObservedList()
 obs = [
-    dict(filename='d')
+    dict(filename='d', error=0.01)
 ]
 ol.add_observations(obs)
 
@@ -26,7 +26,9 @@ itf = pyterpol.Interface(ol=ol, sl=sl)
 # set grid properties
 itf.set_grid_properties(order=2)
 
+# setut the grid
 itf.setup()
 
-# itf.populate_comparisons()
-# itf.plot_all_comparisons()
+# do the comparisons
+itf.populate_comparisons()
+itf.plot_all_comparisons()

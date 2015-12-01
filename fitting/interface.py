@@ -169,7 +169,7 @@ class Interface(object):
         # go over ech comparison in the list
         for rec in self.comparisonList:
 
-            print rec
+            # print rec
             # get the region
             region = rec['region']
             wmin = self.rl.mainList[region]['wmin']
@@ -232,7 +232,7 @@ class Interface(object):
             w = np.linspace(wmin, wmax, len(si))
 
         # names
-        if pr['observed'] is not None:
+        if cpr['observed'] is not None:
             obsname = cpr['observed'].filename
         else:
             obsname = 'NONE'
@@ -257,7 +257,7 @@ class Interface(object):
         ax.plot(w, si, 'r-', label=synname)
         ax.set_xlim(wmin, wmax)
         ax.set_ylim(0.95*oi.min(), 1.05*oi.max())
-        ax.set_xlabel('$\lambda$(\AA)$')
+        ax.set_xlabel('$\lambda(\AA)$')
         ax.set_ylabel('$F_{\lambda}$(rel.)')
         ax.legend(fontsize=8, loc=3)
 
@@ -265,7 +265,7 @@ class Interface(object):
             ax = fig.add_subplot(212)
             resid = oi-si
             ax.plot(w, resid, 'y', label='residuals')
-            ax.set_xlabel('$\lambda$(\AA)$')
+            ax.set_xlabel('$\lambda(\AA)$')
             ax.set_ylabel('$F_{\lambda}$(rel.)')
             ax.set_xlim(wmin, wmax)
             ax.set_ylim(0.95*resid.min(), 1.05*resid.max())
