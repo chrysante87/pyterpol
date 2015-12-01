@@ -503,7 +503,7 @@ class SyntheticGrid:
         wmax = wave.max() + padding
         step = step
 
-        print wmin, wmax, step, order, padding
+        # print wmin, wmax, step, order, padding
 
         # overwrite the wave vector for
         self.set_wavelength_vector(wmin, wmax, step)

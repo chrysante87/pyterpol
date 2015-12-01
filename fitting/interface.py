@@ -169,6 +169,7 @@ class Interface(object):
         # go over ech comparison in the list
         for rec in self.comparisonList:
 
+            print rec
             # get the region
             region = rec['region']
             wmin = self.rl.mainList[region]['wmin']
@@ -183,12 +184,15 @@ class Interface(object):
                 # print pars
 
                 # populate with the intensity vector of each component
-                wave = rec['observed'].get_spectrum(wmin, wmax)[0]
+                # print rec['observed']
+                if rec['observed'] is not None:
+                    wave = rec['observed'].get_spectrum(wmin, wmax)[0]
+                    korelmode = rec['observed'].korel
+                else:
+                    wave = np.array([wmin, wmax])
+                    korelmode = False
 
-                # get KOREL mode
-                korelmode = rec['observed'].korel
-
-                print korelmode, pars, wave.min(), wave.max()
+                # print korelmode, pars, wave.min(), wave.max()
 
                 rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
                                                                               only_intensity=True,
@@ -218,13 +222,20 @@ class Interface(object):
         reg = cpr['region']
         wmin = self.rl.mainList[reg]['wmin']
         wmax = self.rl.mainList[reg]['wmax']
-        w, oi, ei = cpr['observed'].get_spectrum(wmin, wmax)
 
         # merge the spectra
         si = sum_dict_keys(cpr['synthetic'])
 
+        if cpr['observed'] is not None:
+            w, oi, ei = cpr['observed'].get_spectrum(wmin, wmax)
+        else:
+            w = np.linspace(wmin, wmax, len(si))
+
         # names
-        obsname = cpr['observed'].filename
+        if pr['observed'] is not None:
+            obsname = cpr['observed'].filename
+        else:
+            obsname = 'NONE'
         synname = ''
         for c in cpr['parameters']:
             synname += 'Component: %s ' % c
@@ -240,7 +251,9 @@ class Interface(object):
         # do the plot
         fig = plt.figure(figsize=(16, 10), dpi=100)
         ax = fig.add_subplot(211)
-        ax.errorbar(w, oi, yerr=ei, fmt='-', color='k', label=obsname)
+
+        if cpr['observed'] is not None:
+            ax.errorbar(w, oi, yerr=ei, fmt='-', color='k', label=obsname)
         ax.plot(w, si, 'r-', label=synname)
         ax.set_xlim(wmin, wmax)
         ax.set_ylim(0.95*oi.min(), 1.05*oi.max())
@@ -248,14 +261,15 @@ class Interface(object):
         ax.set_ylabel('$F_{\lambda}$(rel.)')
         ax.legend(fontsize=8, loc=3)
 
-        ax = fig.add_subplot(212)
-        resid = oi-si
-        ax.plot(w, resid, 'y', label='residuals')
-        ax.set_xlabel('$\lambda$(\AA)$')
-        ax.set_ylabel('$F_{\lambda}$(rel.)')
-        ax.set_xlim(wmin, wmax)
-        ax.set_ylim(0.95*resid.min(), 1.05*resid.max())
-        ax.legend(fontsize=8, loc=3)
+        if cpr['observed'] is not None:
+            ax = fig.add_subplot(212)
+            resid = oi-si
+            ax.plot(w, resid, 'y', label='residuals')
+            ax.set_xlabel('$\lambda$(\AA)$')
+            ax.set_ylabel('$F_{\lambda}$(rel.)')
+            ax.set_xlim(wmin, wmax)
+            ax.set_ylim(0.95*resid.min(), 1.05*resid.max())
+            ax.legend(fontsize=8, loc=3)
 
         # save the figure
         if savefig:
@@ -365,11 +379,11 @@ class Interface(object):
                     # the wmin wmax is used to check again that
                     # we are in the correct region.
                     obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_group)
-                    print len(obs)
+                    # print len(obs)
                     if len(obs) == 0:
                         continue
                     # print obs, rv_group
-                    print rv_group, obs
+                    # print rv_group, obs
                     # c = obs.component
 
                     # in case of korel spectrum we compare only one component
@@ -383,9 +397,13 @@ class Interface(object):
                 # same RVs for several spectra
                 for o in obs:
                     # setup component
+                    if o is None:
+                        c = 'all'
                     c = o.component
                     if c != 'all':
                         temp_all_pars = {c: all_pars[c]}
+                    else:
+                        temp_all_pars = all_pars
 
                     self.add_comparison(region=reg,
                                         parameters=temp_all_pars,
@@ -414,7 +432,10 @@ class Interface(object):
             region_groups = self.rl.get_region_groups()
             self.sl.set_groups(region_groups)
         else:
-            raise ValueError('Cannot setup groups without the RegionList attached to the interface.')
+            self.rl = RegionList()
+            self.rl.get_regions_from_obs(copy.deepcopy(self.ol.observedSpectraList['spectrum']))
+            region_groups = self.rl.get_region_groups()
+            self.sl.set_groups(region_groups)
 
         # setup radial velocity groups
         if self.ol is not None:
@@ -433,7 +454,7 @@ class Interface(object):
         self._setup_grids()
 
         # create the basic interpolated spectra
-        self.ready_synthetic_spectra()
+        # self.ready_synthetic_spectra()
 
         # prepare list of comparisons
         self.ready_comparisons()
@@ -924,39 +945,10 @@ class ObservedList(object):
                 else:
 
                     gn = spectrum.get_group(key)
-                    # def_groups = groups[key]
-
-                    # try to set groups component-wise
-                    # component = spectrum.component
-                    # comp_groups = self.get_defined_groups(component=component)
-                    # # print comp_groups
-                    # if 'rv' not in comp_groups.keys():
-                    #     comp_groups['rv'] = []
-                    # def_groups = comp_groups[key]
-                    # # print def_groups
-                    #
-                    # # if spectrum has no group
-                    # if gn is None and len(def_groups) > 0:
-                    #     if gn_rv is None:
-                    #         gn = 0
-                    #     else:
-                    #         gn = gn_rv+1
-                    #     while gn in def_groups:
-                    #         gn+=1
-                    #
-                    # # if no group is defined for all spectra, start with zero
-                    # elif gn is None and len(def_groups) == 0:
-                    #     if gn_rv is None:
-                    #         gn = 0
-                    #     else:
-                    #         gn = gn_rv + 1
-                    # print key, gn, def_groups
                     if gn is None:
                         self.observedSpectraList['group'][key][i] = None
                     else:
                         self.observedSpectraList['group'][key][i] = gn
-
-                    # gn_rv = gn
 
         # propagate the groups back to spectra
         self._set_groups_to_spectra()
@@ -982,7 +974,7 @@ class ObservedList(object):
         :param kwargs:
         :return:
         """
-        print kwargs
+        # print kwargs
         for i in range(0, len(self)):
             if self.observedSpectraList['spectrum'][i].filename == filename:
                 for key in kwargs.keys():
@@ -1252,6 +1244,10 @@ class RegionList(List):
         :param append are we appending to existing list?
         :return: list of unique limits
         """
+        if len(ol) == 0:
+            raise ValueError('Cannot setup regions from observed spectra, because'
+                             ' their list is empty!')
+
         # clear the regions if needed
         if not append:
             self.clear_all()

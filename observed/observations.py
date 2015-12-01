@@ -226,7 +226,11 @@ class ObservedSpectrum:
         else:
             # the whole spectrum
             if wmin is None and wmax is None:
-                return self.wave.copy(), self.intens.copy(), self.error.copy()
+                if self.error is not None:
+                    return self.wave.copy(), self.intens.copy(), self.error.copy()
+
+                else:
+                    return self.wave.copy(), self.intens.copy()
             else:
                 # corrects boundaries if needed
                 if wmin is None:
@@ -235,8 +239,12 @@ class ObservedSpectrum:
                     wmax = self.wave.max()
 
                 # selects the spectrum part
-                ind = np.where((self.wave >= wmin) & (self.wave <= wmax))
-                return self.wave[ind].copy(), self.intens[ind].copy(), self.error[ind].copy()
+                ind = np.where((self.wave >= wmin) & (self.wave <= wmax))[0]
+
+                if self.error is not None:
+                    return self.wave[ind].copy(), self.intens[ind].copy(), self.error[ind].copy()
+                else:
+                    return self.wave[ind].copy(), self.intens[ind].copy()
 
     def get_wavelength(self):
         """
