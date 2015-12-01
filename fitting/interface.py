@@ -188,6 +188,8 @@ class Interface(object):
                 # get KOREL mode
                 korelmode = rec['observed'].korel
 
+                print korelmode, pars, wave.min(), wave.max()
+
                 rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
                                                                               only_intensity=True,
                                                                               korel=korelmode,
@@ -451,7 +453,6 @@ class Interface(object):
                                                   step = kwargs.get('step', 0.01))
 
         self.grid_properties_passed = True
-
 
     def _setup_grids(self):
         """

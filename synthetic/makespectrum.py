@@ -218,6 +218,7 @@ class SyntheticSpectrum:
           rv.. radila velocity in km/s
           vrot.. projected rotational velocity in km/s
           only_intensity.. returns intensity only
+          :param korel
         output:
           wave, intens.. synthetic spectrum
         """
@@ -311,7 +312,7 @@ class SyntheticSpectrum:
 
         # if we want to extract the spectra in KOREL format
         if korel:
-            intens = 1.0 - (1.0 - intens)
+            intens = 1.0 - (lr - intens)
 
         if only_intensity:
             return intens
@@ -979,7 +980,7 @@ class SyntheticGrid:
         vals = [props[key] for key in props.keys()]
 
         # gets the parameter list
-        parlist = self.select_parameters(order=order, **props)
+        parlist = self.select_parameters(order=order,**props)
 
         if len(parlist) == 0:
             raise Exception('Do %s lie within the grid? I do not think so...' % (str(props)))
