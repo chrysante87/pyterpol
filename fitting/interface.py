@@ -363,11 +363,13 @@ class Interface(object):
                     # the wmin wmax is used to check again that
                     # we are in the correct region.
                     obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_group)
+                    print len(obs)
                     if len(obs) > 0:
                         obs = obs[0]
                     else:
                         continue
                     # print obs, rv_group
+                    print rv_group, obs
                     c = obs.component
 
                     # in case of korel spectrum we compare only one component
@@ -503,8 +505,8 @@ class Interface(object):
                 component = spectrum.component
                 rv_group = spectrum.group['rv']
 
-                # readout groups that were already defined
-                def_groups = self.sl.get_defined_groups(component=component, parameter='rv')[component]['rv']
+                # readout groups that were already defined for all components
+                def_groups = self.sl.get_defined_groups(component='all', parameter='rv')['all']['rv']
                 # print spectrum, wmin, wmax, component, rv_group, def_groups
 
                 # We define group for our observation
@@ -528,11 +530,6 @@ class Interface(object):
                     registered_groups.append(rv_group)
                     reg2rv[reg].append(rv_group)
                     continue
-
-                # the group number is assigned to the spectrum
-                # NOT A GOOD IDEA
-                # self.ol.observedSpectraList['spectrum'][i].group['rv'] = gn
-                # self.ol.observedSpectraList['group']['rv'][i] = gn
 
                 # attachs new parameter to the StarList
                 self.sl.clone_parameter(component, 'rv', group=gn)

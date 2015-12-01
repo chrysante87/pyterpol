@@ -27,10 +27,11 @@ sl.add_component(component='primary', teff=20000., logg=4.5, rv=-30., vrot=150.,
 sl.add_component(component='secondary', teff=20000., logg=4.5, rv=30., vrot=10., lr=0.5, z=1.0)
 
 # 4) define interface
-itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=True)
+itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=debug)
 itf.setup()
 print itf
+print itf.rel_rvgroup_region
 print itf.list_comparisons()
 
-# itf.populate_comparisons()
-# itf.plot_all_comparisons()
+itf.populate_comparisons()
+itf.plot_all_comparisons()
