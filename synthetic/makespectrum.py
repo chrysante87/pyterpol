@@ -435,7 +435,7 @@ class SyntheticSpectrum:
 
 
 class SyntheticGrid:
-    def __init__(self, mode='custom', debug=False):
+    def __init__(self, mode='default', debug=False):
         """
         Setup the grid.
         input:
@@ -587,6 +587,7 @@ class SyntheticGrid:
         """
 
         parLis = np.array(self.parameterList)
+        # print parLis
 
         for key in constraints.keys():
             # value
@@ -1022,6 +1023,7 @@ class SyntheticGrid:
         key = props.keys()[0].lower()
         v = props.pop(key)
 
+        # print key, constraints, props
         # list eligible values for a given parameter
         elig_vals = np.array(self.get_available_values_fast(key, **constraints))
         # print key, elig_vals
@@ -1031,23 +1033,27 @@ class SyntheticGrid:
         vals = elig_vals[ind]
 
 
+        # print vals, v, key
         # what if the grid step is inhomogeneous? - actually it is
         # in z - what shall we do, what shall we do???
         if vals[:order].min() > v or vals[:order].max() < v:
             # TODO think of something better than this!!!!!!
-            lower = np.max(vals[np.where(vals - v < ZERO_TOLERANCE)[0]])
-            upper = np.min(vals[np.where(vals - v > ZERO_TOLERANCE)[0]])
-            vals = np.array([lower, upper])
+            try:
+                lower = np.max(vals[np.where(vals - v < ZERO_TOLERANCE)[0]])
+                upper = np.min(vals[np.where(vals - v > ZERO_TOLERANCE)[0]])
+                vals = np.array([lower, upper])
+            except:
+                pass
             # print lower, upper, vals
 
 
         # checks that there is not equality
-        if np.any(abs(vals - v) < ZERO_TOLERANCE):
-            ind = np.argmin(abs(vals - v))
-            vals = [vals[ind]]
+        # if np.any(abs(vals - v) < ZERO_TOLERANCE):
+        #     ind = np.argmin(abs(vals - v))
+        #     vals = [vals[ind]]
 
-            if self.debug:
-                print "%s=%s is precise. Skipping choice of parameters." % (key, str(v))
+            # if self.debug:
+            #     print "%s=%s is precise. Skipping choice of parameters." % (key, str(v))
 
         # if the eligible values do not surround the parameter
         if not is_within_interval(v, vals):

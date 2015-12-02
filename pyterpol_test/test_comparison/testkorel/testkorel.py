@@ -7,5 +7,23 @@ import pyterpol
 
 # 1) setup the model
 sl = pyterpol.StarList()
-sl.add_component('primary', teff=32554, logg=3.77, vrot=64.5, lr=0.449, rv=6.685, z=1.003)
-sl.add_component('secondary', teff=31205, logg=3.36, vrot=213.0, lr=0.551, rv=6.685, z=1.003)
+sl.add_component('primary', teff=11257., logg=4.43, vrot=28.8, lr=0.744, rv=-17.94, z=1.000)
+sl.add_component('secondary', teff=7714., logg=4.25, vrot=26.42, lr=0.256, rv=-16.73, z=1.000)
+
+# setup the data
+obs = [
+    dict(filename='output000', korel=True, component='primary', error=0.01),
+    dict(filename='output001', korel=True, component='secondary', error=0.01)
+]
+ol = pyterpol.ObservedList()
+ol.add_observations(obs)
+
+# create interface
+itf = pyterpol.Interface(ol=ol, sl=sl)
+itf.setup()
+
+# populate the comparisons
+itf.populate_comparisons()
+
+# plot the comparisons
+itf.plot_all_comparisons()
