@@ -483,6 +483,33 @@ class SyntheticGrid:
         """
         self.SyntheticSpectraList = []
 
+    def deselect_exact(self, l, **props):
+        """
+        Deletes all cases where we interpolate at exact value.
+        :param l: list of spectra selected with self.select_parameters
+        :param props: values at which we interpolate
+        :return:
+        """
+
+        l = np.array(l)
+        # print np.shape(l)[-1]
+        keys = props.keys()
+
+        # go column by column
+        for i in range(0, np.shape(l)[-1]):
+            v = props[keys[i]]
+            # print v, np.unique(l[:,i])
+
+            # deselects extact matches
+            if np.any(abs(np.unique(l[:,i]) - v) < ZERO_TOLERANCE):
+                ind = np.where(abs(l[:,i] - v) < ZERO_TOLERANCE)
+                l = l[ind]
+
+        return l
+
+
+
+
     def get_synthetic_spectrum(self, params, wave, order=2, step=0.01, padding=20.0):
         """
         Method which computes the interpolated spectrum
@@ -511,6 +538,9 @@ class SyntheticGrid:
         # first of all we need to get list of parameters,
         # which the program will interpolate in
         parlist, vals, keys = self.select_and_verify_parameters(order=order, **params)
+
+        # deselect redundant spectra
+        parlist = self.deselect_exact(parlist, **params)
 
         # second creates a list of the spectra used for interpolation
         spectra = self.get_spectra_for_interpolation(parlist, keys, step=step,
@@ -763,6 +793,7 @@ class SyntheticGrid:
                     print "Interpolating in vector: %s at value %s." % (str(x), xnew)
 
                 # everything is sorted, we can interpolate
+                # unless our value is exact ofc.
                 intens = interpolate_block(x, t_syns, xnew)
 
                 # add it to new plists and syns
@@ -1019,6 +1050,7 @@ class SyntheticGrid:
           values of spectra for interpolation
         """
 
+
         # extract the parameter and its values
         key = props.keys()[0].lower()
         v = props.pop(key)
@@ -1032,6 +1064,7 @@ class SyntheticGrid:
         ind = np.argsort(abs(elig_vals - v))
         vals = elig_vals[ind]
 
+        # equality check
 
         # print vals, v, key
         # what if the grid step is inhomogeneous? - actually it is
@@ -1051,9 +1084,9 @@ class SyntheticGrid:
         # if np.any(abs(vals - v) < ZERO_TOLERANCE):
         #     ind = np.argmin(abs(vals - v))
         #     vals = [vals[ind]]
-
-            # if self.debug:
-            #     print "%s=%s is precise. Skipping choice of parameters." % (key, str(v))
+        #
+        #     if self.debug:
+        #         print "%s=%s is precise. Skipping choice of parameters." % (key, str(v))
 
         # if the eligible values do not surround the parameter
         if not is_within_interval(v, vals):

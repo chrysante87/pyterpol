@@ -6,6 +6,7 @@ import pyterpol
 
 # create the grid
 sygri = pyterpol.SyntheticGrid(debug=True, mode='default')
-parlis = sygri.select_parameters(**{'logg':4.25, 'z':1.0, 'teff':7714.})
+parlis = sygri.select_parameters(order=4, **{'logg':3.5, 'z':1.5, 'teff':20000.})
 print parlis
-
+parlis = sygri.deselect_exact(parlis,  **{'logg':3.5, 'z':1.5, 'teff':20000.})
+print parlis

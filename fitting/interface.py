@@ -1319,6 +1319,8 @@ class RegionList(List):
         for component in limits.keys():
             if len(limits[component][0]) != len(limits[component][1]):
                 raise ValueError('The limits were not read out correctly from observed spectra.')
+            # set up group and relations
+
 
             # setup the regions
             for i in range(0, len(limits[component][0])):
