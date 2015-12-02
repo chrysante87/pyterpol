@@ -202,7 +202,7 @@ class Interface(object):
                     wave = rec['observed'].get_spectrum(wmin, wmax)[0]
                     korelmode = rec['observed'].korel
                 else:
-                    wave = np.array([wmin, wmax])
+                    wave = np.arange(wmin, wmax, 0.01)
                     korelmode = False
 
                 # print korelmode, pars, wave.min(), wave.max()
@@ -274,7 +274,7 @@ class Interface(object):
             ax.errorbar(w, oi, yerr=ei, fmt='-', color='k', label=obsname)
         ax.plot(w, si, 'r-', label=synname)
         ax.set_xlim(wmin, wmax)
-        ax.set_ylim(0.95*oi.min(), 1.05*oi.max())
+        ax.set_ylim(0.95*si.min(), 1.05*si.max())
         ax.set_xlabel('$\lambda(\AA)$')
         ax.set_ylabel('$F_{\lambda}$(rel.)')
         ax.legend(fontsize=8, loc=3)
@@ -381,8 +381,6 @@ class Interface(object):
             # print 'rv_groups: %s' % str(rv_groups)
 
             for rv_group in rv_groups:
-                if rv_group not in self.rel_rvgroup_region[reg]:
-                    continue
                 # append rv_group to groups
                 all_groups = copy.deepcopy(reg_groups)
                 all_groups['rv'] = rv_group
@@ -394,6 +392,10 @@ class Interface(object):
                     all_pars[c].extend(rv_pars[c])
 
                 if self.ol is not None:
+
+                    if rv_group not in self.rel_rvgroup_region[reg]:
+                        continue
+
                     # the wmin wmax is used to check again that
                     # we are in the correct region.
                     obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_group)
@@ -417,7 +419,8 @@ class Interface(object):
                     # setup component
                     if o is None:
                         c = 'all'
-                    c = o.component
+                    else:
+                        c = o.component
                     if c != 'all':
                         temp_all_pars = {c: all_pars[c]}
                     else:
@@ -452,6 +455,12 @@ class Interface(object):
         else:
             self.rl = RegionList()
             self.rl.get_regions_from_obs(copy.deepcopy(self.ol.observedSpectraList['spectrum']))
+
+            # TODO setting up the region <-> rv relation better - this is a quick fix
+            # TODO and unlikely a robust one
+            self.rel_rvgroup_region = {reg:[0] for reg in self.rl._registered_regions}
+            # print self.rel_rvgroup_region
+
             region_groups = self.rl.get_region_groups()
             self.sl.set_groups(region_groups)
 
@@ -1301,7 +1310,6 @@ class RegionList(List):
 
         # empty arrays for limits
         limits = {}
-
         # the rounding is there get over stupid problems with float precision
         for obs in ol:
             component = obs.component
@@ -1319,8 +1327,6 @@ class RegionList(List):
         for component in limits.keys():
             if len(limits[component][0]) != len(limits[component][1]):
                 raise ValueError('The limits were not read out correctly from observed spectra.')
-            # set up group and relations
-
 
             # setup the regions
             for i in range(0, len(limits[component][0])):
