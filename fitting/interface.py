@@ -441,6 +441,26 @@ class Interface(object):
 
         self.sl.remove_parameter(component, parameter, group)
 
+    def set_all_rv(self, component='all', **kwargs):
+        """
+        This function does the same as self.set_parameter()
+        it just does that for all components.
+        :param component
+        :param kwargs properties to be set for each component
+        :return:
+        """
+        # get groups defined for each component
+        groups = self.sl.get_defined_groups(parameter='rv')
+
+        if component == 'all':
+            comps = self.sl._registered_components
+        else:
+            comps = [component]
+
+
+        for c in comps:
+            pass
+
     def setup(self):
         """
         This function probes the observed and

@@ -539,9 +539,6 @@ class SyntheticGrid:
         # which the program will interpolate in
         parlist, vals, keys = self.select_and_verify_parameters(order=order, **params)
 
-        # deselect redundant spectra
-        parlist = self.deselect_exact(parlist, **params)
-
         # second creates a list of the spectra used for interpolation
         spectra = self.get_spectra_for_interpolation(parlist, keys, step=step,
                                                      wmin=wmin, wmax=wmax)
@@ -1015,6 +1012,9 @@ class SyntheticGrid:
         # print order, props
         parlist = self.select_parameters(order=order,**props)
         # print parlist
+
+        # deselect reduntdant spectra
+        parlist = self.deselect_exact(parlist, **props)
 
         if len(parlist) == 0:
             raise Exception('Do %s lie within the grid? I do not think so...' % (str(props)))
