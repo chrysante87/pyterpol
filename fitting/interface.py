@@ -145,11 +145,11 @@ class Interface(object):
                                                 str(self.rl.mainList[reg]['wmax']))
 
             # list observed spectrum
-            string += "observed: %s\n" % (rec['observed'].filename)
+            string += "observed: %s\n" % rec['observed'].filename
 
             # lists all parameters
             for c in rec['parameters'].keys():
-                string += 'component: %s ' % (c)
+                string += 'component: %s ' % c
                 # print rec['parameters'][c]
                 for par in rec['parameters'][c]:
                     string += "%s: %s " % (par['name'], str(par['value']))
@@ -226,11 +226,6 @@ class Interface(object):
         # merge the spectra
         si = sum_dict_keys(cpr['synthetic'])
 
-        if cpr['observed'] is not None:
-            w, oi, ei = cpr['observed'].get_spectrum(wmin, wmax)
-        else:
-            w = np.linspace(wmin, wmax, len(si))
-
         # names
         if cpr['observed'] is not None:
             obsname = cpr['observed'].filename
@@ -240,6 +235,16 @@ class Interface(object):
         for c in cpr['parameters']:
             synname += 'Component: %s ' % c
             synname += str(self.extract_parameters(cpr['parameters'][c])) + '\n'
+
+        if cpr['observed'] is not None:
+            try:
+                w, oi, ei = cpr['observed'].get_spectrum(wmin, wmax)
+            except:
+                w, oi, = cpr['observed'].get_spectrum(wmin, wmax)
+                ei = np.zeros(len(w))
+                warnings.warn('Your data observed spectrum: %s has not errors attached!' )
+        else:
+            w = np.linspace(wmin, wmax, len(si))
 
         if figname is None:
             figname = "_".join([obsname, 'wmin', str(int(wmin)), 'wmax', str(int(wmax))]) +'.png'
@@ -477,8 +482,8 @@ class Interface(object):
 
             # setup keyword for individual spectra
             self._synthetic_spectrum_kwargs = dict(padding = kwargs.get('padding', 20),
-                                                  order = kwargs.get('order', 4),
-                                                  step = kwargs.get('step', 0.01))
+                                                   order = kwargs.get('order', 4),
+                                                   step = kwargs.get('step', 0.01))
 
         self.grid_properties_passed = True
 
@@ -683,6 +688,7 @@ class ObservedList(object):
         """
         Adds observation to the list.
         :param update - update the observed spectra list
+        :param kwargs
             see class ObservedSpectrum (observations module) for details.
         """
         # adds the spectrum and loads it
@@ -819,7 +825,7 @@ class ObservedList(object):
                 # print osl['properties'][keytest], kwargs[key]
                 vind = np.where(np.array(osl['properties'][keytest], dtype=str) == str(kwargs[key]))
             elif keytest == 'component':
-                vind = np.where((np.array(osl['properties'][keytest], dtype=str) == str(kwargs[key])) or \
+                vind = np.where((np.array(osl['properties'][keytest], dtype=str) == str(kwargs[key])) or
                                 (np.array(osl['properties'][keytest], dtype=str) == 'all'))[0]
             # that cannot be tested on equality
             elif keytest == 'wmin':
@@ -856,7 +862,6 @@ class ObservedList(object):
             if self.debug:
                 dbg_string += '%s: %s ' % (key, str(kwargs[key]))
                 print "%s.. %s spectra remain." % (dbg_string, str(len(vind)))
-
 
             # extract them from the list
             for dic in osl.keys():
@@ -935,7 +940,7 @@ class ObservedList(object):
                     if gn is None and len(def_groups) > 0:
                         gn = 0
                         while gn in def_groups:
-                            gn+=1
+                            gn += 1
 
                     # if no group is defined for all spectra, start with zero
                     elif gn is None and len(def_groups) == 0:
@@ -1023,7 +1028,7 @@ class RegionList(List):
         :return: string
         """
 
-        string =''
+        string = ''
 
         # go over regions
         for key0 in self.mainList.keys():
@@ -1609,7 +1614,6 @@ class StarList(object):
         :param parameter: physical parameter
         :return: dictionary of groups
         """
-
         groups = {}
 
         # setup parameters

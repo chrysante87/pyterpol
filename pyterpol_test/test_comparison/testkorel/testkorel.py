@@ -12,8 +12,8 @@ sl.add_component('secondary', teff=7714., logg=4.25, vrot=26.42, lr=0.256, rv=-1
 
 # setup the data
 obs = [
-    dict(filename='output000', korel=True, component='primary', error=0.01),
-    dict(filename='output001', korel=True, component='secondary', error=0.01)
+    dict(filename='output000', korel=True, component='primary',),
+    dict(filename='output001', korel=True, component='secondary')
 ]
 ol = pyterpol.ObservedList()
 ol.add_observations(obs)
