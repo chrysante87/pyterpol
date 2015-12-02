@@ -10,6 +10,7 @@ from pyterpol.fitting.parameter import Parameter
 from pyterpol.fitting.parameter import parameter_definitions
 from pyterpol.synthetic.auxiliary import generate_least_number
 from pyterpol.synthetic.auxiliary import keys_to_lowercase
+from pyterpol.synthetic.auxiliary import parlist_to_list
 from pyterpol.synthetic.auxiliary import sum_dict_keys
 from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
 
@@ -127,6 +128,14 @@ class Interface(object):
         """
         params = {par['name']: par['value'] for par in l}
         return params
+
+    def get_fitted_parameters(self):
+        """
+        lists all fitted parameters
+        :return:
+        """
+
+        return self.sl.get_fitted_parameters()
 
     def get_observed_spectrum(self, filename=None):
         """
@@ -1686,6 +1695,15 @@ class StarList(object):
         Returns a list of fitted parameters wrapped within the Parameter class ofc.
         :return:
         """
+        fit_pars = []
+        # go over all parameters and components
+        for c in self._registered_components:
+            for parname in self.get_physical_parameters():
+                for par in self.componentList[c][parname]:
+                    if par['fitted']:
+                        fit_pars.append(par)
+
+        return fit_pars
 
     def get_index(self, component, parameter, group):
         """

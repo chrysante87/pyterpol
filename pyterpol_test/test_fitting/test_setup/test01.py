@@ -13,5 +13,13 @@ itf = pyterpol.Interface(sl=sl, rl=rl)
 print itf
 
 itf.set_parameter(parname='teff', value=20000., vmin=25000., vmax=15000., fitted=True)
+itf.set_parameter(parname='logg', value=3.5, vmin=3., vmax=4., fitted=True)
 print itf
+
+parlist = itf.get_fitted_parameters()
+print pyterpol.parlist_to_list(parlist)
+
+itf.setup()
+itf.populate_comparisons()
+itf.plot_all_comparisons()
 

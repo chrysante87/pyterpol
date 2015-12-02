@@ -41,9 +41,7 @@ def interpolate_block(x, block, xnew):
 	
     return intens
 	
-	
-    
-  
+
 def interpolate_spec(wave0, intens0, wave1):
     """
     input:
@@ -96,6 +94,20 @@ def keys_to_lowercase(d):
         dnew[keynew] = d[key]
 
     return dnew
+
+def parlist_to_list(l, property='value'):
+    """
+    Converts a list of Parameter class to a
+    regular list - only the property is returned
+    :param l:
+    :param prop:
+    :return:
+    """
+    ol = []
+    for par in l:
+        ol.append(par[property])
+
+    return ol
 
 def sum_dict_keys(d):
     """
