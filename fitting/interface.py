@@ -46,8 +46,12 @@ class Interface(object):
         # parameters that cannot be obatined through interpolation
         self._not_given_by_grid = ['lr', 'rv', 'vrot']
 
+        # relation between rv_groups and regions
+        self.rel_rvgroup_region = {}
+
         # properties of synthetic spectra
         self._synthetic_spectrum_kwargs = {}
+
         # properties of grids
         self._grid_kwargs = {}
 
@@ -486,6 +490,32 @@ class Interface(object):
                                                    step = kwargs.get('step', 0.01))
 
         self.grid_properties_passed = True
+
+    def set_parameter(self, component='all', parname=None, group=0, **kwargs):
+        """
+        :param component:
+        :param parname
+        :param group:
+        :param kwargs: keywords to be set up for each parameter
+        :return:
+        """
+
+        # check the results
+        if parname is None:
+            print "I cannot adjust parameter: %s." % str(parname)
+        if len(kwargs.keys()) == 0:
+            return
+
+        # setup the components
+        if component == 'all':
+            component = self.sl._registered_components
+        else:
+            component = [component]
+
+        # propagate to teh starl
+        for c in component:
+            self.sl.set_parameter(parname, c, group, **kwargs)
+
 
     def _setup_grids(self):
         """
@@ -978,6 +1008,7 @@ class ObservedList(object):
     def set_spectrum(self, filename=None, **kwargs):
         """
         Sets spectrum to a given value.
+        :param filename
         :param kwargs:
         :return:
         """
@@ -1466,7 +1497,7 @@ class StarList(object):
         :return:
         """
         if p is None:
-            self.componentList[component][kwargs['name']]= []
+            self.componentList[component][kwargs['name']] = []
             self.componentList[component][kwargs['name']].append(Parameter(**kwargs))
         else:
             # print p['name']
@@ -1521,7 +1552,7 @@ class StarList(object):
         if all:
             self.add_parameter_to_all(p=clone)
         else:
-            self.add_parameter_to_component(component,p=clone)
+            self.add_parameter_to_component(component, p=clone)
 
         return clone
 
@@ -1650,6 +1681,12 @@ class StarList(object):
 
         return groups
 
+    def get_fitted_parameters(self):
+        """
+        Returns a list of fitted parameters wrapped within the Parameter class ofc.
+        :return:
+        """
+
     def get_index(self, component, parameter, group):
         """
         Returns index of a component/parameter/group.
@@ -1741,7 +1778,7 @@ class StarList(object):
 
                 # bool variable for case, when we want to completely overwrite
                 # previous settings
-                first_in_list=True
+                first_in_list = True
 
                 for group in groups[component][parkey]:
                     # setting group for all components
@@ -1772,6 +1809,28 @@ class StarList(object):
                                 while len(self.groups[one_comp][parkey]) > 1:
                                     del self.groups[one_comp][parkey][0]
                                 first_in_list = False
+
+
+    def set_parameter(self, name, component, group, **kwargs):
+        """
+        :param name:
+        :param component:
+        :param group:
+        :param kwargs
+        :return:
+        """
+        name = name.lower()
+        if name not in self.get_physical_parameters():
+            raise Exception("Parameter: %s unknown." % name)
+        elif component not in self._registered_components:
+            # print self._registered_components, component
+            raise Exception("Component: %s unknown" % component)
+        else:
+            for i, par in enumerate(self.componentList[component][name]):
+                if par['name']== name and par['group'] == group:
+                    for key in kwargs.keys():
+                        keytest = key.lower()
+                        self.componentList[component][name][i][keytest] = kwargs[key]
 
 
 class SyntheticList(List):

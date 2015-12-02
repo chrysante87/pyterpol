@@ -19,7 +19,7 @@ ol = pyterpol.ObservedList()
 ol.add_observations(obs)
 
 # create interface
-itf = pyterpol.Interface(ol=ol, sl=sl)
+itf = pyterpol.Interface(ol=ol, sl=sl, debug=True)
 itf.setup()
 
 # populate the comparisons
