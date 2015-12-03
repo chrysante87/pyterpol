@@ -10,7 +10,7 @@ fitters = dict(
 class Fitter(object):
     """
     """
-    def __init__(self, fitparams=None, verbose=False, debug=False, output='fit.log'):
+    def __init__(self, fitparams=[], verbose=False, debug=False, output='fit.log'):
         """
         :param fitparams a list of Parameter types
         :param verbose whether to save detailed chi_square information
@@ -25,6 +25,7 @@ class Fitter(object):
 
         # empty parameters
         self.fitter = None
+        self.fittername = None
         self.fit_kwargs = {}
         self.par0 = []
 
@@ -54,6 +55,20 @@ class Fitter(object):
         # run fitting
         self.result = self.fitter(func, self.par0, args=args, **self.fit_kwargs)
 
+    def __str__(self):
+        """
+        String representation of the class.
+        :return:
+        """
+        string = 'Initial parameters:'
+        string += 'Fitter: %s optional_arguments: %s\n' % (self.fittername, str(self.fit_kwargs))
+        for i, par in enumerate(self.fitparams):
+            string += "(%s, group): (%s, %s); " % (par['name'], str(self.par0[i]), str(par['group']))
+        string += '\n'
+
+        return string
+
+
     def choose_fitter(self, name, fitparams=None, **kwargs):
         """
         Prepares the variables for the fitting
@@ -61,12 +76,13 @@ class Fitter(object):
         :param kwargs:
         :return:
         """
+        # print fitparams
 
         # check the input
         if name.lower() not in fitters:
             raise ValueError('Fitter: %s is unknown.' % name)
         else:
-            self.fitter = fitters[name].object
+            self.fitter = fitters[name]['object']
             self.fittername = name
         for key in kwargs.keys():
             if key not in fitters[name]['optional_kwargs']:
@@ -83,6 +99,8 @@ class Fitter(object):
         # if we want to change the fitted parameters
         if fitparams is None:
             fitparams = self.fitparams
+        else:
+            self.fitparams = fitparams
 
         if fitters[name]['par0type'] == 'value':
             self.par0 = parlist_to_list(fitparams, property='value')

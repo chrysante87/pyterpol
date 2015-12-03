@@ -19,25 +19,20 @@ obs = [
 ol = pyterpol.ObservedList()
 ol.add_observations(obs)
 
+# setup the class
 itf = pyterpol.Interface(sl=sl, ol=ol, rl=rl)
 itf.setup()
 
-# this reduces the list of observed spectra
-reduced = itf.get_comparisons(rv=1)
 
 # setup fitted parameterss
+itf.set_parameter(parname='rv', group=3, fitted=True)
+fitpars =  itf.get_fitted_parameters()
+
+# choose a fitter
+itf.choose_fitter('np_nelder_mead', fitparams=fitpars)
+
+# print itf.list_comparisons()
 print itf
-
-# this computes the models and chi-square
-itf.compute_chi2([
-    -100., 100.,
-    -100., 100.,
-    -100., 100.,
-                ])
-itf.plot_all_comparisons()
-
-print itf.list_comparisons()
-# print itf
 
 
 

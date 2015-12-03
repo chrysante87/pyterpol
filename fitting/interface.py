@@ -70,13 +70,15 @@ class Interface(object):
         :return:
         """
         string = ""
-        for attr, name in zip(['sl', 'rl', 'ol'], ['StarList', 'RegionList', 'ObservedList']):
+        for attr, name in zip(['sl', 'rl', 'ol', 'fitter'], ['StarList', 'RegionList', 'ObservedList', 'Fitter']):
             string += '%s%s\n' % (name[:len(name)/2].rjust(50, '='), name[len(name)/2:].ljust(50, '='))
             string += str(getattr(self, attr))
         # too much information
         # for key in self.grids.keys():
         #     string += 'Grid for region: %s.\n' % key
         #     string += str(self.grids[key])
+        string += ''.ljust(100,'=')
+
         return string
 
     def add_comparison(self, region=None, parameters={}, observed=None, synthetic={}, groups={}):
@@ -165,6 +167,7 @@ class Interface(object):
         """
         # fitter is rather simple, so if there is none set, we set an empty
         # one
+        # print kwargs
         if self.fitter is None:
             self.fitter = Fitter(debug=self.debug)
         self.fitter.choose_fitter(*args, **kwargs)
@@ -372,6 +375,8 @@ class Interface(object):
         wmax = self.rl.mainList[reg]['wmax']
 
         # merge the spectra
+        if any([cpr['synthetic'][key] == None for key in cpr['synthetic'].keys()]):
+            raise ValueError('The synthetic spectra are not computed. Did you run Interface.populate_comparisons()?')
         si = sum_dict_keys(cpr['synthetic'])
 
         # names
