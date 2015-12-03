@@ -62,6 +62,7 @@ class Interface(object):
 
         # initialization of various boolean variables
         self.grid_properties_passed = False
+        self.fit_is_running = False
 
     def __str__(self):
         """
@@ -106,9 +107,11 @@ class Interface(object):
                                         synthetic = {x: None for x in parameters.keys()},
                                         chi2 = 0.0
                                      ))
-    def compute_chi2(self, pars, l=None):
+    def compute_chi2(self, pars, l=None, verbose=False):
         """
         :param pars:
+        :param l
+        :param verbose
         :return: chi square
         """
         if l is None:
@@ -119,7 +122,18 @@ class Interface(object):
         self.propagate_and_update_parameters(l, pars)
 
         # reads out the chi_2 from individual spectra
-        chi2 = self.read_chi2_from_comparisons(l)
+        chi2 = self.read_chi2_from_comparisons(l, verbose)
+
+        # store chi_square within the fitter
+        if verbose:
+            chi2 = chi2[0]
+            chi2_detailed = chi2[1]
+        else:
+            chi2_detailed = []
+
+        # if we are fitting we store the info on the parameters
+        if self.fit_is_running:
+            self.fitter.append_iteration(dict(parameters=pars, chi2=chi2, detailed=chi2_detailed))
 
         return chi2
 
@@ -497,7 +511,7 @@ class Interface(object):
                 self.synthetics[reg][c] = self.grids[reg].get_synthetic_spectrum(params,
                                                                                  np.array([wmin, wmax]),
                                                                                  **self._synthetic_spectrum_kwargs)
-    def read_chi2_from_comparisons(self, l=None):
+    def read_chi2_from_comparisons(self, l=None, verbose=False):
         """
         Reads the chi-squares from the list.
         :param l:
@@ -509,12 +523,25 @@ class Interface(object):
         if l is None:
             l = self.comparisonList
 
-        # read out the chi squares
+        #
         chi2 = 0.0
+        if verbose:
+            chi2_detailed = []
+
+        # read out the chi squares
         for i in range(0, len(l)):
             chi2 += l[i]['chi2']
 
-        return chi2
+            # if verbosity is desired a detailed chi-square
+            # info on each region is returned
+            if verbose:
+                self.chi2_detailed.append(dict(chi2=l[i]['chi2'],
+                                          region=self.rl.mainList[l[i]['region']],
+                                          rv_group=l[i]['groups']['rv']))
+        if verbose:
+            return chi2, chi2_detailed
+        else:
+            return chi2
 
     def ready_comparisons(self):
         """
@@ -623,6 +650,18 @@ class Interface(object):
 
         self.sl.remove_parameter(component, parameter, group)
 
+    def run_fit(self, l=None, verbose=False):
+        """
+        Starts the fitting
+        :param l:
+        :param verbose:
+        :return:
+        """
+        self.fit_is_running = True
+        self.fitter(self.compute_chi2,l,verbose)
+        self.fit_is_running = False
+
+
     def set_all_rv(self, component='all', **kwargs):
         """
         This function does the same as self.set_parameter()
@@ -655,7 +694,7 @@ class Interface(object):
             region_groups = self.rl.get_region_groups()
             self.sl.set_groups(region_groups)
         else:
-            self.rl = RegionList()
+            self.rl = RegionList(debug=self.debug)
             self.rl.get_regions_from_obs(copy.deepcopy(self.ol.observedSpectraList['spectrum']))
 
             # TODO setting up the region <-> rv relation better - this is a quick fix
@@ -689,6 +728,9 @@ class Interface(object):
 
         # prepare list of comparisons
         self.ready_comparisons()
+
+        # setup fitter
+        self.fitter = Fitter(debug=self.debug)
 
     def set_grid_properties(self, **kwargs):
         """

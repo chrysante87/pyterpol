@@ -31,15 +31,16 @@ class Fitter(object):
         # empty list of all trial fits
         self.iters = []
 
-    def __call__(self, func, **args, **kwargs):
+    def __call__(self, func, *args, **kwargs):
         """
         :param func:
         :param args:
         :param kwargs:
         :return:
         """
-        # reset the counter
+        # reset the counter and clear the fitting
         self.iter_number = 0
+        self.iters = []
 
         # debug
         if self.debug:
@@ -51,7 +52,7 @@ class Fitter(object):
             raise ValueError('No initial vector of parameters (wrapped in Parameter class) was passeed.')
 
         # run fitting
-        self.result = self.fitter(func, self.par0, **self.fit_kwargs)
+        self.result = self.fitter(func, self.par0, args=args, **self.fit_kwargs)
 
     def choose_fitter(self, name, fitparams=None, **kwargs):
         """
