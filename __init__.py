@@ -7,6 +7,7 @@ from .fitting.interface import StarList
 from .fitting.interface import RegionList
 from .fitting.interface import Interface
 from .fitting.parameter import Parameter
+from .fitting.fitter import Fitter
 
 from .synthetic.auxiliary import parlist_to_list
 # setup default directories of the grid
