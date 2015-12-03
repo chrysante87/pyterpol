@@ -22,9 +22,20 @@ ol.add_observations(obs)
 itf = pyterpol.Interface(sl=sl, ol=ol, rl=rl)
 itf.setup()
 
+# this reduces the list of observed spectra
 reduced = itf.get_comparisons(rv=1)
 print itf.read_chi2_from_comparisons()
 print itf.read_chi2_from_comparisons(reduced)
+
+# setup fitted parameterss
+itf.set_parameter(parname='rv', group=0, fitted=True)
+print itf
+
+# this computes the models and chi-square
+itf.compute_chi2([-100., 100.])
+print itf
+
+
 
 
 

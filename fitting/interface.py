@@ -363,7 +363,14 @@ class Interface(object):
         :param pars
         :return:
         """
-        pass
+        print self.list_comparisons()
+        # parameters are passed by reference, so
+        # this should also change the starlist
+        fitpars = self.sl.get_fitted_parameters()
+        for i,v in enumerate(pars):
+            fitpars[i]['value'] = v
+
+        print self.list_comparisons()
 
 
     def ready_synthetic_spectra(self):
@@ -620,7 +627,7 @@ class Interface(object):
 
         self.grid_properties_passed = True
 
-    def set_parameter(self, component='all', parname=None, group=0, **kwargs):
+    def set_parameter(self, component='all', parname=None, group='all', **kwargs):
         """
         :param component:
         :param parname
@@ -641,9 +648,20 @@ class Interface(object):
         else:
             component = [component]
 
-        # propagate to teh starl
+        # create a list of unique groups if all are needed
+        if group is 'all':
+            groups = []
+            dict_groups = self.sl.get_defined_groups(parameter=parname)
+            for c in dict_groups.keys():
+                groups.extend(dict_groups[c][parname])
+            groups = np.unique(groups)
+        else:
+            groups = [group]
+
+        # propagate to the star
         for c in component:
-            self.sl.set_parameter(parname, c, group, **kwargs)
+            for g in groups:
+                self.sl.set_parameter(parname, c, g, **kwargs)
 
 
     def _setup_grids(self):
