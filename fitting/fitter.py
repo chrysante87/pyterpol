@@ -40,6 +40,17 @@ class Fitter(object):
         """
         # reset the counter
         self.iter_number = 0
+
+        # debug
+        if self.debug:
+            print "Started fitted with fitting environment: %s\n" \
+                  " vector of parameters: %s and optional" \
+                  " enviromental parameters: %s." % (self.fittername, str(self.par0), str(self.fit_kwargs))
+
+        if len(self.par0) == 0:
+            raise ValueError('No initial vector of parameters (wrapped in Parameter class) was passeed.')
+
+        # run fitting
         self.result = self.fitter(func, self.par0, **self.fit_kwargs)
 
     def choose_fitter(self, name, fitparams=None, **kwargs):
@@ -55,6 +66,7 @@ class Fitter(object):
             raise ValueError('Fitter: %s is unknown.' % name)
         else:
             self.fitter = fitters[name].object
+            self.fittername = name
         for key in kwargs.keys():
             if key not in fitters[name]['optional_kwargs']:
                 raise KeyError('The parameter: %s is not listed among '
@@ -62,6 +74,10 @@ class Fitter(object):
                                'optional_kwargs are: %s'  % (key, name, str(fitters[name]['optional_kwargs'])))
             else:
                 self.fit_kwargs[key] = kwargs[key]
+
+        if self.debug:
+            print 'Choosing environment: %s\n' \
+                  ' environmental parameters: %s.' % (name, str(self.fit_kwargs))
 
         # if we want to change the fitted parameters
         if fitparams is None:
@@ -73,6 +89,9 @@ class Fitter(object):
             vmins = parlist_to_list(fitparams, property='vmin')
             vmaxs = parlist_to_list(fitparams, property='vmax')
             self.par0 = [[vmin, vmax] for vmin, vmax in zip(vmins, vmaxs)]
+
+        if self.debug:
+            print 'Setting initial parameters: %s' % str(self.par0)
 
     def append_iteration(self, iter):
         """

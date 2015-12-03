@@ -8,6 +8,7 @@ from pyterpol.synthetic.makespectrum import SyntheticSpectrum
 from pyterpol.observed.observations import ObservedSpectrum
 from pyterpol.fitting.parameter import Parameter
 from pyterpol.fitting.parameter import parameter_definitions
+from pyterpol.fitting.fitter import Fitter
 from pyterpol.synthetic.auxiliary import generate_least_number
 from pyterpol.synthetic.auxiliary import keys_to_lowercase
 from pyterpol.synthetic.auxiliary import parlist_to_list
@@ -24,11 +25,13 @@ warnings.simplefilter('always', UserWarning)
 class Interface(object):
     """
     """
-    def __init__(self, sl=None, rl=None, ol=None, debug=False):
+    def __init__(self, sl=None, rl=None, ol=None, fitter=None, debug=False):
         """
         :param sl: StarList type
         :param rl: RegionList type
         :param ol: ObservedList type
+        :param fitter
+        :param debug
         :return:
         """
 
@@ -37,6 +40,7 @@ class Interface(object):
         self.ol = ol
         self.synthetics = {}
         self.grids = {}
+        self.fitter = fitter
 
         # debug mode
         self.debug = debug
@@ -129,11 +133,26 @@ class Interface(object):
         self.ol = None
         self.rl = None
         self.sl = None
+        self.fitter = None
         self.synthetics = {}
         self._grid_kwargs = {}
         self._synthetic_spectrum_kwargs = {}
         self.rel_rvgroup_region = {}
         self.grid_properties_passed = False
+
+    def choose_fitter(self, *args, **kwargs):
+        """
+        Just wrapper for the Fitter.choose_fitter method
+        see parameter descriptio there.
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        # fitter is rather simple, so if there is none set, we set an empty
+        # one
+        if self.fitter is None:
+            self.fitter = Fitter(debug=self.debug)
+        self.fitter.choose_fitter(*args, **kwargs)
 
     def extract_parameters(self, l, attr='value'):
         """
