@@ -1,3 +1,5 @@
+import os
+import warnings
 from scipy.optimize import fmin
 from pyterpol.synthetic.auxiliary import parlist_to_list
 
@@ -32,6 +34,12 @@ class Fitter(object):
 
         # empty list of all trial fits
         self.iters = []
+
+        # clear the fitting log
+        if os.path.isfile(fitlog):
+            warnings.warn('A fitlog from previous fitting was found and overwritten..muhahahaha!')
+            open(fitlog, 'w')
+
 
     def __call__(self, func, *args, **kwargs):
         """
