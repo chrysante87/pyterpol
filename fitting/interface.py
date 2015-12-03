@@ -305,26 +305,34 @@ class Interface(object):
             # setup the chi2
             rec['chi2'] = np.sum(((intens - syn)/error)**2)
 
-    def plot_all_comparisons(self):
+    def plot_all_comparisons(self, l=None):
         """
         Creates a plot of all setup comparisons.
+        :param l
         :return: None
         """
-        if len(self.comparisonList) == 0:
+        if l is None:
+            l = self.comparisonList
+        if len(l) == 0:
             raise ValueError('The comparison list is empty. Did you run interface.setup() and interface.populate()?')
-        for i in range(0, len(self.comparisonList)):
-            self.plot_comparison_by_index(i, savefig=True)
+        for i in range(0, len(l)):
+            self.plot_comparison_by_index(i, l=l, savefig=True)
 
-    def plot_comparison_by_index(self, index, savefig=False, figname=None):
+    def plot_comparison_by_index(self, index, l=None, savefig=False, figname=None):
         """
         :param index
+        :param l
         :param savefig
         :param figname
         :return:
         """
         # the comparison
-        cpr = self.comparisonList[index]
-         # boundaries
+        if l is None:
+            cpr = self.comparisonList[index]
+        else:
+            cpr = l[index]
+
+        # boundaries
         reg = cpr['region']
         wmin = self.rl.mainList[reg]['wmin']
         wmax = self.rl.mainList[reg]['wmax']
