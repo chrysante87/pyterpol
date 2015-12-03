@@ -238,10 +238,12 @@ class Interface(object):
 
         return string
 
-    def populate_comparisons(self, l=None):
+    def populate_comparisons(self, l=None, demand_errors=False):
         """
         Creates a synthetic spectrum for every record in
         the comparisonList.
+        :param l
+        :param demand_errors
         :return:
         """
         if l is None:
@@ -266,7 +268,18 @@ class Interface(object):
                 # populate with the intensity vector of each component
                 # print rec['observed']
                 if rec['observed'] is not None:
-                    wave = rec['observed'].get_spectrum(wmin, wmax)[0]
+                    try:
+                        wave, intens, error = rec['observed'].get_spectrum(wmin, wmax)
+                    except:
+
+                        # if we are fitting we will demand errors
+                        if demand_errors:
+                            raise ValueError('It is not allowed to call chi-square without having'
+                                             ' uncertainties set. SET THE ERRORS FFS!')
+                        else:
+                            wave = rec['observed'].get_spectrum(wmin, wmax)[0]
+                            error = None
+
                     korelmode = rec['observed'].korel
                 else:
                     wave = np.arange(wmin, wmax, 0.01)
@@ -278,6 +291,19 @@ class Interface(object):
                                                                               only_intensity=True,
                                                                               korel=korelmode,
                                                                               **pars)
+
+            # it is mandatory to provide errors for
+            # computation of the chi2
+            if error is not None:
+                # sum component spectra
+                for i,c in enumerate(rec['synthetic'].keys()):
+                    if i == 0:
+                        syn = rec['synthetic'][c].copy()
+                    else:
+                        syn = syn + rec['synthetic'][c]
+
+            # setup the chi2
+            rec['chi2'] = ((intens - syn)/error)**2
 
     def plot_all_comparisons(self):
         """
@@ -381,7 +407,20 @@ class Interface(object):
 
         # we have to recompute the synthetic spectra
         # if one grid parameter was passed
+        # first check for which parameters
+        # the grid parameters are fitted
+        components_to_update = []
+        for c in self.sl.fitted_types.keys():
+            for rec in self.sl.fitted_types[c]:
+                if rec not in self._not_given_by_grid:
+                    components_to_update.append(c)
 
+        # update the syntrhetic spectra
+        if len(components_to_update) > 0:
+            self.ready_synthetic_spectra(complist=components_to_update)
+
+        # populate the comparison
+        self.populate_comparisons(l=l, demand_errors=True)
 
 
     def ready_synthetic_spectra(self, complist=[]):
@@ -1651,6 +1690,7 @@ class StarList(object):
 
         # readout the groups
         self.read_groups()
+        self.get_fitted_types()
 
     def add_parameter_to_component(self, component, p=None, **kwargs):
         """
@@ -1669,6 +1709,7 @@ class StarList(object):
 
         # redefine groups
         self.read_groups()
+        self.get_fitted_types()
 
     def add_parameter_to_all(self, **kwargs):
         """
