@@ -33,7 +33,10 @@ itf.choose_fitter('np_nelder_mead', fitparams=fitpars)
 
 # print itf.list_comparisons()
 print itf
-
+reduced = itf.get_comparisons(rv=3)
+print itf.list_comparisons(l=reduced)
+itf.run_fit(l=reduced)
+print itf
 
 
 
