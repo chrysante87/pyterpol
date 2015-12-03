@@ -10,7 +10,7 @@ fitters = dict(
 class Fitter(object):
     """
     """
-    def __init__(self, fitparams=[], verbose=False, debug=False, output='fit.log'):
+    def __init__(self, fitparams=[], verbose=False, debug=False, fitlog='fit.log'):
         """
         :param fitparams a list of Parameter types
         :param verbose whether to save detailed chi_square information
@@ -21,6 +21,7 @@ class Fitter(object):
         # pass the parameters
         self.fitparams = fitparams
         self.verbose = verbose
+        self.fitlog = fitlog
         self.debug = debug
 
         # empty parameters
@@ -119,6 +120,30 @@ class Fitter(object):
         """
         self.iter_number += 1
         self.iters.append(iter)
+        if len(iters) > 1000:
+            self.flush_iters()
+        self.iters = []
+
+    def flush_iters(self, f=None):
+        """
+        Flushes all records within self.iters to a file
+        :param f:
+        :return:
+        """
+        if f is None:
+            f = self.fitlog
+
+        lines = []
+        for row in self.iters:
+            line = ''
+            for key in row.keys():
+                line += "%s: %s" % str(key, row[key])
+            line += '\n'
+            lines.append(line)
+
+        ofile = open(f, 'a')
+        ofile.writelines(lines)
+        ofile.close()
 
 
 
