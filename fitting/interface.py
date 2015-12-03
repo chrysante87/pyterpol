@@ -120,6 +120,9 @@ class Interface(object):
         if l is None:
             l = self.comparisonList
 
+        if self.debug:
+            print 'Computing model for following set of parameters: %s ' % str(pars)
+
         # propagate the parameters to the
         # parameterlist and update it
         self.propagate_and_update_parameters(l, pars)
@@ -663,8 +666,14 @@ class Interface(object):
         :param verbose:
         :return:
         """
+        # this starts recording of each iteration chi2
         self.fit_is_running = True
+
+        # runs the fitting
         self.fitter(self.compute_chi2,l,verbose)
+
+        # writes the remaining iterations within the file
+        self.fitter.flush_iters()
         self.fit_is_running = False
 
 
