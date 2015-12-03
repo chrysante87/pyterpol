@@ -52,7 +52,7 @@ print "Final settings:", final_pars, final_chi2
 
 # plot initial comparison
 itf.plot_all_comparisons(l=l, figname='final')
-print itf.fitter.iters
+# print itf.fitter.iters
 
 
 

@@ -139,6 +139,7 @@ class Interface(object):
 
         # if we are fitting we store the info on the parameters
         if self.fit_is_running:
+            # print dict(parameters=pars, chi2=chi2, detailed=chi2_detailed)
             self.fitter.append_iteration(dict(parameters=pars, chi2=chi2, detailed=chi2_detailed))
 
         return chi2
@@ -681,7 +682,6 @@ class Interface(object):
 
         # turn of the fitting
         self.fit_is_running = False
-
 
     def setup(self):
         """

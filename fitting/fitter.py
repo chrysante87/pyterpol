@@ -125,7 +125,7 @@ class Fitter(object):
         # they are written to a file
         if len(self.iters) > 1000:
             self.flush_iters()
-        self.iters = []
+            self.iters = []
 
     def flush_iters(self, f=None):
         """
@@ -141,7 +141,7 @@ class Fitter(object):
         for row in self.iters:
             line = ''
             for key in row.keys():
-                line += "%s: %s" % str(key, row[key])
+                line += "%s: %s " % (key, str(row[key]))
             line += '\n'
             lines.append(line)
 
