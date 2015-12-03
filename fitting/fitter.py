@@ -120,7 +120,10 @@ class Fitter(object):
         """
         self.iter_number += 1
         self.iters.append(iter)
-        if len(iters) > 1000:
+
+        # if the number of iterations exceeds a certain number
+        # they are written to a file
+        if len(self.iters) > 1000:
             self.flush_iters()
         self.iters = []
 
@@ -133,6 +136,7 @@ class Fitter(object):
         if f is None:
             f = self.fitlog
 
+        # create a block of lines
         lines = []
         for row in self.iters:
             line = ''
@@ -141,6 +145,7 @@ class Fitter(object):
             line += '\n'
             lines.append(line)
 
+        # write the to a file
         ofile = open(f, 'a')
         ofile.writelines(lines)
         ofile.close()
