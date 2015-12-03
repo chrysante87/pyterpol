@@ -303,7 +303,7 @@ class Interface(object):
                         syn = syn + rec['synthetic'][c]
 
             # setup the chi2
-            rec['chi2'] = ((intens - syn)/error)**2
+            rec['chi2'] = np.sum(((intens - syn)/error)**2)
 
     def plot_all_comparisons(self):
         """
