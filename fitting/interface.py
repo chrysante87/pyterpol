@@ -81,6 +81,28 @@ class Interface(object):
 
         return string
 
+    def accept_fit(self):
+        """
+        Propagates the fitting result to the class.
+        :return:
+        """
+
+        # this should be done more carefully
+        # print self.fitter.result
+        final_pars = self.fitter.result
+
+        # list fitted parameters
+        fitparams = self.get_fitted_parameters()
+
+        # updates the parameters with the result
+        for i in range(0, len(final_pars)):
+            fitparams[i]['value'] = final_pars[i]
+
+        # update the fitter with new initial parameters
+        self.fitter.par0 = copy.deepcopy(final_pars)
+
+
+
     def add_comparison(self, region=None, parameters={}, observed=None, synthetic={}, groups={}):
         """
         :param region the name of the corresponding region
