@@ -1,5 +1,5 @@
 """
-Test computation of chi2 - fitting of one RV
+Test computation of chi2 - fitting of one RV on one spectrum
 """
 import pyterpol
 
@@ -29,8 +29,7 @@ itf.set_parameter(parname='rv', group=3, fitted=True)
 fitpars =  itf.get_fitted_parameters()
 
 # choose a fitter
-itf.choose_fitter('np_nelder_mead', fitparams=fitpars)
-print itf
+itf.choose_fitter('sp_nelder_mead', fitparams=fitpars)
 
 # first of all reduce the comparison list
 l = itf.get_comparisons(rv=3)
@@ -38,10 +37,23 @@ l = itf.get_comparisons(rv=3)
 # have a look at the chi-2
 init_pars = pyterpol.parlist_to_list(fitpars)
 init_chi2 = itf.compute_chi2(init_pars, l=l)
-"Initial settings:",  init_pars, init_chi2
+print "Initial settings:",  init_pars, init_chi2
 
 # plot initial comparison
-itf.plot_all_comparisons(l=l)
+itf.plot_all_comparisons(l=l, figname='initial')
+
+# do the fitting
+itf.run_fit(l=l)
+
+# evaluate final parameters
+final_pars = pyterpol.parlist_to_list(itf.get_fitted_parameters())
+final_chi2 = itf.compute_chi2(final_pars, l=l)
+print "Final settings:", final_pars, final_chi2
+
+# plot initial comparison
+itf.plot_all_comparisons(l=l, figname='final')
+print itf.fitter.iters
+
 
 
 

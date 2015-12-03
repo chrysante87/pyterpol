@@ -2,7 +2,7 @@ from scipy.optimize import fmin
 from pyterpol.synthetic.auxiliary import parlist_to_list
 
 fitters = dict(
-    np_nelder_mead=dict(par0type='value',
+    sp_nelder_mead=dict(par0type='value',
                         optional_kwargs=['xtol', 'ftol', 'maxiter', 'maxfun'],
                         object=fmin)
 )

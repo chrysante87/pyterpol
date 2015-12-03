@@ -678,28 +678,10 @@ class Interface(object):
 
         # writes the remaining iterations within the file
         self.fitter.flush_iters()
+
+        # turn of the fitting
         self.fit_is_running = False
 
-
-    def set_all_rv(self, component='all', **kwargs):
-        """
-        This function does the same as self.set_parameter()
-        it just does that for all components.
-        :param component
-        :param kwargs properties to be set for each component
-        :return:
-        """
-        # get groups defined for each component
-        groups = self.sl.get_defined_groups(parameter='rv')
-
-        if component == 'all':
-            comps = self.sl._registered_components
-        else:
-            comps = [component]
-
-        # setup every rv_group
-        for c in comps:
-            pass
 
     def setup(self):
         """
