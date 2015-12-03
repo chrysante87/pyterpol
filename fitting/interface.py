@@ -371,12 +371,16 @@ class Interface(object):
         # this should also change the starlist
         # and corresponding
         fitpars = self.sl.get_fitted_parameters()
+
+        if len(pars) != len(fitpars):
+            raise ValueError('Length of the vector passed with the fitting environment does '
+                             'mot match length of the parameters marked as fitted.')
+
         for i,v in enumerate(pars):
             fitpars[i]['value'] = v
 
         # we have to recompute the synthetic spectra
-
-        if self.has_grid_parameters(fitpars):
+        # if one grid parameter was passed
 
 
 
@@ -1856,6 +1860,32 @@ class StarList(object):
 
         return fit_pars
 
+    def get_fitted_types(self):
+        """
+        Stores a dictionary of fitted types for
+        each component in the class. This should
+        be updated whenever a parameter is chganged.
+        :return:
+        """
+
+        fitted_types = {}
+
+        # go over each component
+        for c in self.componentList.keys():
+            fitted_types[c] = []
+
+            # go over each parameter type
+            for parname in self.componentList[c]:
+
+                # and finaly over each parameter
+                for par in self.componentList[c][parname]:
+                    if parname not in fitted_types[c] and par['fitted']:
+                        fitted_types.append(parname)
+                    else:
+                        break
+        self.fitted_types = fitted_types
+
+
     def get_index(self, component, parameter, group):
         """
         Returns index of a component/parameter/group.
@@ -1982,6 +2012,8 @@ class StarList(object):
 
     def set_parameter(self, name, component, group, **kwargs):
         """
+        Sets values defined in kwargs for a parameter
+        of a given component and group.
         :param name:
         :param component:
         :param group:
@@ -2000,6 +2032,9 @@ class StarList(object):
                     for key in kwargs.keys():
                         keytest = key.lower()
                         self.componentList[component][name][i][keytest] = kwargs[key]
+
+        # update the list of fitted types
+        self.get_fitted_parameters()
 
 
 class SyntheticList(List):
