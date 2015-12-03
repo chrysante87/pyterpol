@@ -70,7 +70,8 @@ class Interface(object):
         :return:
         """
         string = ""
-        for attr in ['sl', 'rl', 'ol']:
+        for attr, name in zip(['sl', 'rl', 'ol'], ['StarList', 'RegionList', 'ObservedList']):
+            string += '%s%s\n' % (name[:len(name)/2].rjust(50, '='), name[len(name)/2:].ljust(50, '='))
             string += str(getattr(self, attr))
         # too much information
         # for key in self.grids.keys():
