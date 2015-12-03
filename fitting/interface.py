@@ -112,7 +112,7 @@ class Interface(object):
 
         # propagate the parameters to the
         # parameterlist and update it
-        self.propagate_and_update_parameters()
+        self.propagate_and_update_parameters(l, pars)
 
         # reads out the chi_2 from individual spectra
         chi2 = self.read_chi2_from_comparisons(l)

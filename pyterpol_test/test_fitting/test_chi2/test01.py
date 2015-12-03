@@ -19,10 +19,13 @@ obs = [
 ol = pyterpol.ObservedList()
 ol.add_observations(obs)
 
-itf = pyterpol.Interface(sl=sl, ol=ol, rl=rl, debug=True)
+itf = pyterpol.Interface(sl=sl, ol=ol, rl=rl)
 itf.setup()
-itf.populate_comparisons()
-itf.plot_all_comparisons()
+
+reduced = itf.get_comparisons(rv=1)
+print itf.read_chi2_from_comparisons()
+print itf.read_chi2_from_comparisons(reduced)
+
 
 
 

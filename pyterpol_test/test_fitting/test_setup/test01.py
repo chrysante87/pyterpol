@@ -23,10 +23,9 @@ print pyterpol.parlist_to_list(parlist)
 
 # setup and plot
 itf.setup()
-# itf.populate_comparisons()
-# itf.plot_all_comparisons()
+itf.populate_comparisons()
+itf.plot_all_comparisons()
 
 reduced = itf.get_comparisons(rv=0)
 itf.populate_comparisons(l=reduced)
-print itf.list_comparisons()
 
