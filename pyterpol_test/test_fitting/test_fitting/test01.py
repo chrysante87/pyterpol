@@ -1,5 +1,5 @@
 """
-Test computation of chi2
+Test computation of chi2 - fitting of one RV
 """
 import pyterpol
 
@@ -30,13 +30,19 @@ fitpars =  itf.get_fitted_parameters()
 
 # choose a fitter
 itf.choose_fitter('np_nelder_mead', fitparams=fitpars)
+print itf
 
-# print itf.list_comparisons()
-print itf
-reduced = itf.get_comparisons(rv=3)
-print itf.list_comparisons(l=reduced)
-itf.run_fit(l=reduced)
-print itf
+# first of all reduce the comparison list
+l = itf.get_comparisons(rv=3)
+
+# have a look at the chi-2
+init_pars = pyterpol.parlist_to_list(fitpars)
+init_chi2 = itf.compute_chi2(init_pars, l=l)
+"Initial settings:",  init_pars, init_chi2
+
+# plot initial comparison
+itf.plot_all_comparisons(l=l)
+
 
 
 

@@ -345,10 +345,11 @@ class Interface(object):
             # setup the chi2
             rec['chi2'] = np.sum(((intens - syn)/error)**2)
 
-    def plot_all_comparisons(self, l=None):
+    def plot_all_comparisons(self, l=None, figname=None):
         """
         Creates a plot of all setup comparisons.
         :param l
+        :param figname
         :return: None
         """
         if l is None:
@@ -356,7 +357,7 @@ class Interface(object):
         if len(l) == 0:
             raise ValueError('The comparison list is empty. Did you run interface.setup() and interface.populate()?')
         for i in range(0, len(l)):
-            self.plot_comparison_by_index(i, l=l, savefig=True)
+            self.plot_comparison_by_index(i, l=l, savefig=True, figname=figname)
 
     def plot_comparison_by_index(self, index, l=None, savefig=False, figname=None):
         """
@@ -366,6 +367,7 @@ class Interface(object):
         :param figname
         :return:
         """
+
         # the comparison
         if l is None:
             cpr = self.comparisonList[index]
@@ -404,6 +406,8 @@ class Interface(object):
 
         if figname is None:
             figname = "_".join([obsname, 'wmin', str(int(wmin)), 'wmax', str(int(wmax))]) +'.png'
+        else:
+            figname = "_".join([figname, obsname, 'wmin', str(int(wmin)), 'wmax', str(int(wmax))]) +'.png'
 
         if self.debug:
             print "Plotting comparison: observed: %s" % obsname
