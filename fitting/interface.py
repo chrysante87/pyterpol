@@ -102,6 +102,22 @@ class Interface(object):
                                         synthetic = {x: None for x in parameters.keys()},
                                         chi2 = 0.0
                                      ))
+    def compute_chi2(self, pars, l=None):
+        """
+        :param pars:
+        :return: chi square
+        """
+        if l is None:
+            l = self.comparisonList
+
+        # propagate the parameters to the
+        # parameterlist and update it
+        self.propagate_and_update_parameters()
+
+        # reads out the chi_2 from individual spectra
+        chi2 = self.read_chi2_from_comparisons(l)
+
+        return chi2
 
     def clear_all(self):
         """
@@ -159,7 +175,6 @@ class Interface(object):
                 if key == 'region' and self.comparisonList[i]['region'] != kwargs[key]:
                     include = False
                     break
-
             # if it survived all tests it is included
             if include:
                 clist.append(self.comparisonList[i])
@@ -170,12 +185,6 @@ class Interface(object):
             return clist, indices
         else:
             return clist
-
-
-
-
-
-
 
     def get_fitted_parameters(self):
         """
@@ -206,7 +215,10 @@ class Interface(object):
                                                 str(self.rl.mainList[reg]['wmax']))
 
             # list observed spectrum
-            string += "observed: %s\n" % rec['observed'].filename
+            if rec['observed'] is not None:
+                string += "observed: %s\n" % rec['observed'].filename
+            else:
+                string += "observed: NONE\n"
 
             # lists all parameters
             for c in rec['parameters'].keys():
@@ -218,17 +230,21 @@ class Interface(object):
 
             # list all groups
             string += 'groups: %s\n' % str(rec['groups'])
+            string += 'chi2: %s\n' % str(rec['chi2'])
+        string += "==================================================================\n"
 
         return string
 
-    def populate_comparisons(self):
+    def populate_comparisons(self, l=None):
         """
         Creates a synthetic spectrum for every record in
         the comparisonList.
         :return:
         """
+        if l is None:
+            l = self.comparisonList
         # go over ech comparison in the list
-        for rec in self.comparisonList:
+        for rec in l:
 
             # print rec
             # get the region
@@ -259,7 +275,6 @@ class Interface(object):
                                                                               only_intensity=True,
                                                                               korel=korelmode,
                                                                               **pars)
-
 
     def plot_all_comparisons(self):
         """
@@ -342,6 +357,15 @@ class Interface(object):
         if savefig:
             plt.savefig(figname)
 
+    def propagate_and_update_parameters(self, l, pars):
+        """
+        :param l
+        :param pars
+        :return:
+        """
+        pass
+
+
     def ready_synthetic_spectra(self):
         """
         Readies the synthetic spectra for each region.
@@ -382,6 +406,24 @@ class Interface(object):
                 self.synthetics[reg][c] = self.grids[reg].get_synthetic_spectrum(params,
                                                                                  np.array([wmin, wmax]),
                                                                                  **self._synthetic_spectrum_kwargs)
+    def read_chi2_from_comparisons(self, l=None):
+        """
+        Reads the chi-squares from the list.
+        :param l:
+        :return:
+        """
+
+        # work with the min comparisonList if no other
+        # is provided
+        if l is None:
+            l = self.comparisonList
+
+        # read out the chi squares
+        chi2 = 0.0
+        for i in range(0, len(l)):
+            chi2 += l[i]['chi2']
+
+        return chi2
 
     def ready_comparisons(self):
         """
