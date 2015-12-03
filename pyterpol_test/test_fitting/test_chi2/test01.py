@@ -28,12 +28,13 @@ print itf.read_chi2_from_comparisons()
 print itf.read_chi2_from_comparisons(reduced)
 
 # setup fitted parameterss
-itf.set_parameter(parname='rv', group=0, fitted=True)
+itf.set_parameter(parname='rv', group='all', fitted=True)
 print itf
 
 # this computes the models and chi-square
 itf.compute_chi2([-100., 100.])
-print itf
+print itf.list_comparisons(reduced)
+# print itf
 
 
 

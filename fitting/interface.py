@@ -201,13 +201,16 @@ class Interface(object):
         """
         return self.ol.get_spectra(filename=filename)[0]
 
-    def list_comparisons(self):
+    def list_comparisons(self, l=None):
         """
         This function displays all comparisons.
         :return: string
         """
+        if l is None:
+            l = self.comparisonList
+
         string = ''
-        for i,rec in enumerate(self.comparisonList):
+        for i,rec in enumerate(l):
             string += "========================= Comparison %s =========================\n" % str(i).zfill(3)
             reg = rec['region']
             # list region
@@ -363,21 +366,32 @@ class Interface(object):
         :param pars
         :return:
         """
-        print self.list_comparisons()
+
         # parameters are passed by reference, so
         # this should also change the starlist
+        # and corresponding
         fitpars = self.sl.get_fitted_parameters()
         for i,v in enumerate(pars):
             fitpars[i]['value'] = v
 
-        print self.list_comparisons()
+        # we have to recompute the synthetic spectra
+
+        if self.has_grid_parameters(fitpars):
 
 
-    def ready_synthetic_spectra(self):
+
+    def ready_synthetic_spectra(self, complist=[]):
         """
         Readies the synthetic spectra for each region.
+        :param complist
         :return:
         """
+        # if there is no list of components
+        # for which to set the synthetic
+        # parameters
+        if len(complist) == 0:
+            complist = self.sl._registered_components
+
         for reg in self.rl._registered_regions:
             # add the region to synthetics
             if reg not in self.synthetics.keys():
@@ -403,7 +417,7 @@ class Interface(object):
             # get list of Parameters
             parlist = self.sl.get_parameter(**reg_groups)
 
-            for c in self.sl._registered_components:
+            for c in complist:
                 # convert Parameter list to dictionary
                 params = self.extract_parameters(parlist[c])
                 # print params
