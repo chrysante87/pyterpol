@@ -100,6 +100,7 @@ class Interface(object):
                                         observed = observed,
                                         groups = groups,
                                         synthetic = {x: None for x in parameters.keys()},
+                                        chi2 = 0.0
                                      ))
 
     def clear_all(self):
@@ -128,6 +129,53 @@ class Interface(object):
         """
         params = {par['name']: par['value'] for par in l}
         return params
+
+    def get_comparisons(self, verbose=False, **kwargs):
+        """
+        Narrows down the number of comparisons.
+        :param verbose
+        :param kwargs
+        :return:
+        """
+
+        clist = []
+        indices = []
+        keys = kwargs.keys()
+
+        for i in range(0, len(self.comparisonList)):
+            # print i, clist
+            include = True
+            for key in keys:
+                # what if the key lies
+                if key in self.comparisonList[i]['groups'].keys() \
+                        and (kwargs[key] != self.comparisonList[i]['groups'][key]):
+                    # print key, kwargs[key], self.comparisonList[i]['groups'][key]
+                    include = False
+                    break
+                if hasattr(self.comparisonList[i]['observed'], key) and \
+                             self.comparisonList[i]['observed'].key != kwargs[key]:
+                    include = False
+                    break
+                if key == 'region' and self.comparisonList[i]['region'] != kwargs[key]:
+                    include = False
+                    break
+
+            # if it survived all tests it is included
+            if include:
+                clist.append(self.comparisonList[i])
+                indices.append(i)
+
+        # if we want to get indices of the found in the original array
+        if verbose:
+            return clist, indices
+        else:
+            return clist
+
+
+
+
+
+
 
     def get_fitted_parameters(self):
         """
@@ -212,6 +260,7 @@ class Interface(object):
                                                                               korel=korelmode,
                                                                               **pars)
 
+
     def plot_all_comparisons(self):
         """
         Creates a plot of all setup comparisons.
@@ -220,9 +269,9 @@ class Interface(object):
         if len(self.comparisonList) == 0:
             raise ValueError('The comparison list is empty. Did you run interface.setup() and interface.populate()?')
         for i in range(0, len(self.comparisonList)):
-            self.plot_comparison(i, savefig=True)
+            self.plot_comparison_by_index(i, savefig=True)
 
-    def plot_comparison(self, index, savefig=False, figname=None):
+    def plot_comparison_by_index(self, index, savefig=False, figname=None):
         """
         :param index
         :param savefig
@@ -457,7 +506,7 @@ class Interface(object):
         else:
             comps = [component]
 
-
+        # setup every rv_group
         for c in comps:
             pass
 
