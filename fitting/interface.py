@@ -142,9 +142,6 @@ class Interface(object):
         if l is None:
             l = self.comparisonList
 
-        if self.debug:
-            print 'Computing model for following set of parameters: %s ' % str(pars)
-
         # propagate the parameters to the
         # parameterlist and update it
         self.propagate_and_update_parameters(l, pars)
@@ -163,6 +160,9 @@ class Interface(object):
         if self.fit_is_running:
             # print dict(parameters=pars, chi2=chi2, detailed=chi2_detailed)
             self.fitter.append_iteration(dict(parameters=pars, chi2=chi2, detailed=chi2_detailed))
+
+        if self.debug:
+            print 'Computed model: %s chi2: %s' % (str(pars), str(chi2))
 
         return chi2
 
