@@ -480,7 +480,9 @@ class Interface(object):
                              'mot match length of the parameters marked as fitted.')
 
         for i,v in enumerate(pars):
+            # print fitpars[i]['value'], v
             fitpars[i]['value'] = v
+
 
         # we have to recompute the synthetic spectra
         # if one grid parameter was passed
@@ -488,7 +490,9 @@ class Interface(object):
         # the grid parameters are fitted
         components_to_update = []
         for c in self.sl.fitted_types.keys():
+            # print self.sl.fitted_types, components_to_update
             for rec in self.sl.fitted_types[c]:
+                # print rec
                 if rec not in self._not_given_by_grid:
                     components_to_update.append(c)
 
@@ -1997,7 +2001,7 @@ class StarList(object):
         """
         Stores a dictionary of fitted types for
         each component in the class. This should
-        be updated whenever a parameter is chganged.
+        be updated whenever a parameter is changed.
         :return:
         """
 
@@ -2009,13 +2013,17 @@ class StarList(object):
 
             # go over each parameter type
             for parname in self.componentList[c]:
-
+                # print c, parname
                 # and finaly over each parameter
                 for par in self.componentList[c][parname]:
-                    if parname not in fitted_types[c] and par['fitted']:
-                        fitted_types.append(parname)
+                    # print par['fitted'], parname
+                    if parname not in fitted_types[c]:
+                        if par['fitted']:
+                            fitted_types[c].append(parname)
                     else:
                         break
+
+        # print fitted_types
         self.fitted_types = fitted_types
 
 
@@ -2165,9 +2173,9 @@ class StarList(object):
                     for key in kwargs.keys():
                         keytest = key.lower()
                         self.componentList[component][name][i][keytest] = kwargs[key]
-
+        # print self
         # update the list of fitted types
-        self.get_fitted_parameters()
+        self.get_fitted_types()
 
 
 class SyntheticList(List):

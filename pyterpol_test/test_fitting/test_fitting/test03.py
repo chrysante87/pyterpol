@@ -29,35 +29,37 @@ itf.setup()
 
 # setup fitted parameters
 itf.set_parameter(parname='rv', group=3, fitted=True)
-# itf.set_parameter(parname='logg', component='primary', fitted=True)
-fitpars =  itf.get_fitted_parameters()
+itf.set_parameter(parname='logg', component='primary', fitted=True)
+fitpars = itf.get_fitted_parameters()
+# itf.sl.get_fitted_types()
+print itf.sl.fitted_types
 
 # choose a fitter
 itf.choose_fitter('sp_nelder_mead', fitparams=fitpars)
-print itf
+# print itf
 
 # first of all reduce the comparison list
-l = itf.get_comparisons(rv=3)
-
-# have a look at the chi-2
-init_pars = pyterpol.parlist_to_list(fitpars)
-init_chi2 = itf.compute_chi2(init_pars, l=l)
-print "Initial settings:",  init_pars, init_chi2
-
-# plot initial comparison
-itf.plot_all_comparisons(l=l, figname='fit_more_spectra')
-
-# do the fitting
-itf.run_fit(l=l)
+# l = itf.get_comparisons(rv=3)
 #
-# evaluate final parameters
-final_pars = pyterpol.parlist_to_list(itf.get_fitted_parameters())
-final_chi2 = itf.compute_chi2(final_pars, l=l)
-print "Final settings:", final_pars, final_chi2
-
-# plot initial comparison
-itf.plot_all_comparisons(l=l, figname='final_spectra')
-itf.accept_fit()
+# # have a look at the chi-2
+# init_pars = pyterpol.parlist_to_list(fitpars)
+# init_chi2 = itf.compute_chi2(init_pars, l=l)
+# print "Initial settings:",  init_pars, init_chi2
+#
+# # plot initial comparison
+# itf.plot_all_comparisons(l=l, figname='fit_more_spectra')
+#
+# # do the fitting
+# itf.run_fit(l=l)
+# #
+# # evaluate final parameters
+# final_pars = pyterpol.parlist_to_list(itf.get_fitted_parameters())
+# final_chi2 = itf.compute_chi2(final_pars, l=l)
+# print "Final settings:", final_pars, final_chi2
+#
+# # plot initial comparison
+# itf.plot_all_comparisons(l=l, figname='final_spectra')
+# itf.accept_fit()
 
 
 
