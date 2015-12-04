@@ -383,12 +383,10 @@ class SyntheticSpectrum:
         """
         Selects a spectral interval from the
         synthetic spectrum.
-        input:
-            wmin.. minimal wavelength
-            wmax.. maximal wavelength
-        output
-            wave.. matching wavelength
-            intens.. corresponding intensities
+        :param wmin minimal wavelength
+        :param wmax maximal wavelength
+        :return wave wavelength vector
+        :return intens iuntensity vector
         """
 
         ind = np.where((self.wave >= wmin) & (self.wave <= wmax))[0]
@@ -400,8 +398,9 @@ class SyntheticSpectrum:
     def set_linear_wavelength(self, wmin, wmax, step):
         """
         In case we want to attach linear wavelengths.
-        input:
-          wmin, wmax, step.. properties of the wavelengths
+        :param wmin
+        :param wmax
+        :param step
         """
 
         self.wave = np.arange(wmin, wmax + step / 2., step)
@@ -506,9 +505,6 @@ class SyntheticGrid:
                 l = l[ind]
 
         return l
-
-
-
 
     def get_synthetic_spectrum(self, params, wave, order=2, step=0.01, padding=20.0):
         """
@@ -1028,6 +1024,7 @@ class SyntheticGrid:
         temp = np.array(parlist)
         # print temp, vals
         for i, val in enumerate(vals):
+            # print val,  temp[:, i], is_within_interval(val, temp[:, i])
             if not is_within_interval(val, temp[:, i]):
                 raise ValueError('Parameters %s lie outside the grid.' % (str(props)))
 

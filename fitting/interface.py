@@ -161,8 +161,9 @@ class Interface(object):
             # print dict(parameters=pars, chi2=chi2, detailed=chi2_detailed)
             self.fitter.append_iteration(dict(parameters=pars, chi2=chi2, detailed=chi2_detailed))
 
-        if self.debug:
-            print 'Computed model: %s chi2: %s' % (str(pars), str(chi2))
+        # if self.debug:
+            # print 'Computed model: %s chi2: %s' % (str(pars), str(chi2))
+        print 'Computed model: %s chi2: %s' % (str(pars), str(chi2))
 
         return chi2
 
@@ -896,6 +897,7 @@ class Interface(object):
                     continue
 
                 # attachs new parameter to the StarList
+                # print component, gn
                 self.sl.clone_parameter(component, 'rv', group=gn)
 
                 if component not in cloned_comps:
@@ -1112,6 +1114,13 @@ class ObservedList(object):
             groups[key] = np.unique(groups[key]).tolist()
 
         return groups
+
+    def get_resolution(self):
+        """
+        Returns a list of resolution for each spectrum.
+        :return:
+        """
+        pass
 
     def get_spectra(self, verbose=False, **kwargs):
         """
@@ -1824,6 +1833,39 @@ class StarList(object):
         self.componentList = {}
         self._registered_components = []
 
+    # def clone_parameter(self, component, parameter, index=0, all=False, **kwargs):
+    #     """
+    #     Clones a parameter and stores it for a given component.
+    #     This function will be primarily used to clone parameters
+    #     to acount for different groups.
+    #
+    #     :param component: component for which we want to clone the parameter
+    #     :param parameter: the cloned parameter
+    #     :param index : the specific cloned parameter
+    #     :param kwargs: values we want to change for the parameter
+    #     :return: clone type_Parameter - the cloned parameter
+    #     """
+    #     # in case we pass
+    #     if component.lower() == 'all':
+    #         all = True
+    #         component = self._registered_components[0]
+    #
+    #     # copy the parameter
+    #     clone = copy.deepcopy(self.componentList[component][parameter][index])
+    #
+    #     # adjust its values
+    #     for key in kwargs.keys():
+    #         keytest = key.lower()
+    #         clone[keytest] = kwargs[key]
+    #
+    #     # append the new component to the componentlist
+    #     if all:
+    #         self.add_parameter_to_all(p=clone)
+    #     else:
+    #         self.add_parameter_to_component(component, p=clone)
+    #
+    #     return clone
+
     def clone_parameter(self, component, parameter, index=0, all=False, **kwargs):
         """
         Clones a parameter and stores it for a given component.
@@ -1838,24 +1880,27 @@ class StarList(object):
         """
         # in case we pass
         if component.lower() == 'all':
-            all = True
-            component = self._registered_components[0]
-
-        # copy the parameter
-        clone = copy.deepcopy(self.componentList[component][parameter][index])
-
-        # adjust its values
-        for key in kwargs.keys():
-            keytest = key.lower()
-            clone[keytest] = kwargs[key]
-
-        # append the new component to the componentlist
-        if all:
-            self.add_parameter_to_all(p=clone)
+            components = self._registered_components
         else:
+            components = [component]
+
+        clones = []
+        # go over each component
+        for component in components:
+
+            # copy the parameter
+            clone = copy.deepcopy(self.componentList[component][parameter][index])
+            clones.append(clone)
+
+            # adjust its values
+            for key in kwargs.keys():
+                keytest = key.lower()
+                clone[keytest] = kwargs[key]
+
+            # append the new component to the componentlist
             self.add_parameter_to_component(component, p=clone)
 
-        return clone
+        return clones
 
     def delete_hollow_groups(self):
         """

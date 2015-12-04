@@ -2,9 +2,6 @@ import numpy as np
 from astropy.constants import c
 from scipy.interpolate import splrep
 from scipy.interpolate import splev
-#from scipy.interpolate import pchip_interpolate
-#from scipy.interpolate import barycentric_interpolate
-#from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import spline
 from scipy.signal import fftconvolve
 
@@ -63,11 +60,11 @@ def is_within_interval(v, arr):
       v.. tested value
       arr.. tested array
     """
-    
-    if (v > max(arr)) | (v < min(arr)):
-	    return False
+    # print v, max(arr), min(arr)
+    if (v - max(arr) > ZERO_TOLERANCE) | (min(arr) - v > ZERO_TOLERANCE):
+        return False
     else:
-	    return True
+        return True
 
 def generate_least_number(l):
     """
