@@ -1,6 +1,7 @@
 import os
 import nlopt
 import warnings
+import numpy as np
 from scipy.optimize import fmin
 from pyterpol.synthetic.auxiliary import parlist_to_list
 
@@ -76,7 +77,15 @@ class Fitter(object):
             raise ValueError('No initial vector of parameters (wrapped in Parameter class) was passeed.')
 
         # run fitting
-        self.result = self.fitter(func, self.par0, args=args, **self.fit_kwargs)
+        if self.family == 'sp':
+            if self.uses_bounds:
+                bounds = [[vmin, vmax] for vmin, vmax in zip(self.vmins, self.vmaxs)]
+                self.result = self.fitter(func, self.par0, args=args, bounds=bounds, **self.fit_kwargs)
+            else:
+                self.result = self.fitter(func, self.par0, args=args, **self.fit_kwargs)
+
+        elif self.family == 'nlopt':
+            pass
 
     def __str__(self):
         """
@@ -213,10 +222,12 @@ class Fitter(object):
                 self.fitter.set_maxeval(self.fit_kwargs[key])
 
         # setup boundaries
-        self.fitter.set_lower_bounds(self.vmins)
-        self.fitter.set_upper_bounds(self.vmaxs)
+        if self.uses_bounds:
+            self.fitter.set_lower_bounds(self.vmins)
+            self.fitter.set_upper_bounds(self.vmaxs)
 
         # setup initial step
+        # TODO Maybe this deserves its attribute variable in Parameter class
         stepsize = ((np.array(self.vmaxs) - np.array(self.vmins))/2.).tolist()
         self.fitter.set_initial_step(stepsize)
 
