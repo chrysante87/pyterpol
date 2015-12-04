@@ -2,6 +2,8 @@ import numpy as np
 from astropy.constants import c
 from scipy.interpolate import splrep
 from scipy.interpolate import splev
+from scipy.interpolate import bisplrep
+from scipy.interpolate import bisplev
 from scipy.interpolate import spline
 from scipy.signal import fftconvolve
 
@@ -39,6 +41,53 @@ def interpolate_block(x, block, xnew):
         # intens[i] = spline(x, y, xnew, order=k)
 
     return intens
+
+def interpolate_block_faster(x, block, xnew):
+    """
+    Interpolation of teh spectra... hopefully faster?
+    :param x:
+    :param block:
+    :param xnew:
+    :return:
+    """
+
+    # length of the datablock
+    nx = len(block[0])
+    ny = len(x)
+    print nx, ny
+
+    if ny > 3:
+        ky = 3
+    else:
+        ky = ny - 1
+
+    # get ready empty arrays
+    tx = np.zeros(nx * ny)
+    ty = np.zeros(nx * ny)
+    tz = np.zeros(nx * ny)
+    txnew = np.arange(nx)
+    tynew = np.ones(nx) * xnew
+
+    imin = 0
+
+    # populate the empty arrays
+    for i in range(0, ny):
+        imax = (i+1) * nx
+        print imin, imax
+
+        tx[imin:imax] = np.arange(nx)
+        ty[imin:imax] = np.ones(nx) * x[i]
+        tz[imin:imax] = block[i]
+        imin = imax
+
+    # perform 2d interpolation in wavelength + one grid parameter
+    tck = bisplrep(tx, ty, tz, kx=3, ky=ky)
+    intens = bisplev(txnew, xnew, tck)
+    # print np.shape(intens[:,0])
+
+    return intens
+
+
 
 
 def interpolate_spec(wave0, intens0, wave1):

@@ -8,6 +8,7 @@ from astropy.constants import c
 from auxiliary import is_within_interval
 from auxiliary import interpolate_spec
 from auxiliary import interpolate_block
+from auxiliary import interpolate_block_faster
 from auxiliary import read_text_file
 from auxiliary import rotate_spectrum
 from auxiliary import shift_spectrum
@@ -670,6 +671,8 @@ class SyntheticGrid:
             if not spectrum.loaded:
                 if self.debug:
                     print "Loading spectrum: %s" % (str(spectrum).rstrip('\n'))
+                else:
+                    print "Loading spectrum: %s" % (str(spectrum).rstrip('\n'))
 
                 spectrum.load_spectrum()
 
@@ -787,7 +790,7 @@ class SyntheticGrid:
 
                 # everything is sorted, we can interpolate
                 # unless our value is exact ofc.
-                intens = interpolate_block(x, t_syns, xnew)
+                intens = interpolate_block_faster(x, t_syns, xnew)
 
                 # add it to new plists and syns
                 new_plist.append(row[:ncol - 1])
