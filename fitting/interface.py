@@ -25,13 +25,16 @@ warnings.simplefilter('always', UserWarning)
 class Interface(object):
     """
     """
-    def __init__(self, sl=None, rl=None, ol=None, fitter=None, debug=False):
+    def __init__(self, sl=None, rl=None, ol=None, fitter=None, debug=False, adaptive_resolution=True):
         """
         :param sl: StarList type
         :param rl: RegionList type
         :param ol: ObservedList type
         :param fitter
         :param debug
+        :param adaptive resolution - this (sounds better than it actually is)
+                just means that resolution of the grid is set to twice
+                the resolution of the spectrum with highest resolution
         :return:
         """
 
@@ -63,6 +66,7 @@ class Interface(object):
         # initialization of various boolean variables
         self.grid_properties_passed = False
         self.fit_is_running = False
+        self.adaptive_resolution = adaptive_resolution
 
     def __str__(self):
         """
@@ -746,7 +750,16 @@ class Interface(object):
             # if the settings of the grids were not passed,
             # we go for default ones
             warnings.warn('Using default grid and synthetic spectra settings.')
-            self.set_grid_properties()
+
+            # choose the resolution of the grid to 2*R_best_observed
+            if self.adaptive_resolution:
+                step = self.ol.get_resolution()
+
+            if self.debug:
+                print "The step size of the grid is: %s Angstrom." % str(step)
+
+            self.set_grid_properties(step=step/2.)
+
         self._setup_grids()
 
         # print self.grids['region00']
@@ -1115,12 +1128,24 @@ class ObservedList(object):
 
         return groups
 
-    def get_resolution(self):
+    def get_resolution(self, verbose=False):
         """
-        Returns a list of resolution for each spectrum.
+        Reads resoolution for each spectrum
+        :param verbose
         :return:
         """
-        pass
+        # create a list of resolutions
+        resolutions = np.zeros(len(self))
+        for i in  range(0, len(self)):
+            resolutions[i] = self.observedSpectraList['spectrum'][i].step
+
+        # if verbose is set returns resolution for each spectrum
+        if verbose:
+            return resolutions
+
+        # or just the maximum value
+        else:
+            return np.max(resolutions)
 
     def get_spectra(self, verbose=False, **kwargs):
         """

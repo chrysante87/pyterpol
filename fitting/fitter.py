@@ -1,4 +1,5 @@
 import os
+import nlopt
 import warnings
 from scipy.optimize import fmin
 from pyterpol.synthetic.auxiliary import parlist_to_list
@@ -6,7 +7,15 @@ from pyterpol.synthetic.auxiliary import parlist_to_list
 fitters = dict(
     sp_nelder_mead=dict(par0type='value',
                         optional_kwargs=['xtol', 'ftol', 'maxiter', 'maxfun'],
-                        object=fmin)
+                        object=fmin,
+                        uses_bounds=False
+                        ),
+    nlopt_nelder_mead=dict(par0type='value',
+                           optional_kwargs=['xtol', 'ftol', 'maxiter', 'maxfun'],
+                           object = nlopt.opt,
+                           environment = nlopt.LN_NELDERMEAD,
+                           uses_bounds=True
+                           ),
 )
 
 class Fitter(object):
@@ -31,6 +40,11 @@ class Fitter(object):
         self.fittername = None
         self.fit_kwargs = {}
         self.par0 = []
+        self.uses_bounds=False
+        self.family=None
+        self.vmins = None
+        self.vmaxs = None
+        self.nlopt_environment = None
 
         # empty list of all trial fits
         self.iters = []
@@ -111,6 +125,7 @@ class Fitter(object):
         else:
             self.fitparams = fitparams
 
+        # set up initial value
         if fitters[name]['par0type'] == 'value':
             self.par0 = parlist_to_list(fitparams, property='value')
         if fitters[name]['par0type'] == 'limit':
@@ -120,6 +135,20 @@ class Fitter(object):
 
         if self.debug:
             print 'Setting initial parameters: %s' % str(self.par0)
+
+        # checks that there are any fitting boundaries
+        if fitters[name]['uses_bounds']:
+            self.uses_bounds = True
+            self.vmins = vmins
+            self.vmaxs = vmaxs
+
+        # set up family
+        self.family = name.split('_')[0]
+
+        if self.family == 'nlopt':
+            self.nlopt_environment = fitters[name]['environment']
+            self.setup_nlopt()
+
 
     def append_iteration(self, iter):
         """
@@ -134,6 +163,7 @@ class Fitter(object):
         if len(self.iters) > 1000:
             self.flush_iters()
             self.iters = []
+
 
     def flush_iters(self, f=None):
         """
@@ -157,6 +187,43 @@ class Fitter(object):
         ofile = open(f, 'a')
         ofile.writelines(lines)
         ofile.close()
+
+    def setup_nlopt(self):
+        """
+        Sets up the the NLOPT fitter.
+        :return:
+        """
+
+        if self.debug:
+            print "Setting up NLOPT minimizer."
+
+        # length of the fitted parameters
+        n = len(self.fitparams)
+
+        # configures the fitter
+        self.fitter = self.fitter(self.nlopt_environment, n)
+
+        # setup parameters for fitting terminatio
+        for key in self.fit_kwargs.keys():
+            if key == 'xtol':
+                self.fitter.set_xtol_rel(self.fit_kwargs[key])
+            if key == 'ftol':
+                self.fitter.set_ftol_rel(self.fit_kwargs[key])
+            if key == 'maxfun':
+                self.fitter.set_maxeval(self.fit_kwargs[key])
+
+        # setup boundaries
+        self.fitter.set_lower_bounds(self.vmins)
+        self.fitter.set_upper_bounds(self.vmaxs)
+
+        # setup initial step
+        stepsize = ((np.array(self.vmaxs) - np.array(self.vmins))/2.).tolist()
+        self.fitter.set_initial_step(stepsize)
+
+
+
+
+
 
 
 
