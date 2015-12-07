@@ -7,12 +7,12 @@ to get over big obstacles.
 import pyterpol
 
 rl = pyterpol.RegionList()
-rl.add_region(wmin=6325, wmax=6375)
-rl.add_region(wmin=6540, wmax=6600)
+rl.add_region(wmin=6325, wmax=6375, groups={'lr':0})
+rl.add_region(wmin=6540, wmax=6600, groups={'lr':0})
 
 sl = pyterpol.StarList()
-sl.add_component(component='primary', teff=16000., logg=4.10, rv=-100.0, z=1.0, vrot=60.0, lr=0.4)
-sl.add_component(component='secondary', teff=22000., logg=4.0, rv=100.0, z=1.0, vrot=160.0, lr=0.6)
+sl.add_component(component='primary', teff=17000., logg=4.0, rv=-100.0, z=1.0, vrot=60.0, lr=0.4)
+sl.add_component(component='secondary', teff=24000., logg=4.0, rv=100.0, z=1.0, vrot=160.0, lr=0.6)
 
 obs = [
     dict(filename='a', error=0.001, group=dict(rv=1)),
@@ -41,7 +41,7 @@ itf.set_parameter(parname='lr', component='primary', fitted=True, vmin=0.2, vmax
 fitpars = itf.get_fitted_parameters()
 
 # # choose a fitter
-itf.choose_fitter('nlopt_nelder_mead', fitparams=fitpars, xtol=1e-4)
+itf.choose_fitter('sp_diff_evol', fitparams=fitpars, popsize=20)
 # print itf
 
 # first of all reduce the comparison list
@@ -67,7 +67,8 @@ print "Final settings:", final_pars, final_chi2
 # 3 plot initial comparison
 itf.plot_all_comparisons(l=l, figname='final_spectra')
 itf.accept_fit()
-print itf
+
+
 
 
 

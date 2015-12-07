@@ -3,6 +3,7 @@ import nlopt
 import warnings
 import numpy as np
 from scipy.optimize import fmin
+from scipy.optimize import differential_evolution
 from pyterpol.synthetic.auxiliary import parlist_to_list
 
 fitters = dict(
@@ -14,6 +15,14 @@ fitters = dict(
                              'Implemetation: http://docs.scipy.org/doc/scipy-0.16.1/reference/generated/' \
                              'scipy.optimize.fmin.html#scipy.optimize.fmin Ineffective for high dimensional' \
                              ' parameter space.'
+                        ),
+    sp_diff_evol=dict(par0type='limit',
+                        optional_kwargs=['popsize', 'tol', 'strategy', 'maxiter'],
+                        object=differential_evolution,
+                        uses_bounds=False,
+                        info='Differential evolution algorithm.'
+                             'Implemetation: http://docs.scipy.org/doc/scipy-0.16.1/reference/generated/' \
+                             'scipy.optimize.fmin.html#scipy.optimize.fmin.'
                         ),
     nlopt_nelder_mead=dict(par0type='value',
                            optional_kwargs=['xtol', 'ftol', 'maxfun'],
@@ -101,8 +110,9 @@ class Fitter(object):
 
         elif self.family == 'nlopt':
 
-            # set up lambda function that is minimized with nlopt
-            f = lambda x, grad : func(x, *args)
+            f = lambda x, grad: func(x)
+
+            print self.par0
 
             # check that we are searching minimum
             self.fitter.set_min_objective(f)

@@ -144,7 +144,6 @@ class Interface(object):
         :param verbose
         :return: chi square
         """
-
         if l is None:
             l = self.comparisonList
 
@@ -852,7 +851,7 @@ class Interface(object):
         # parameters changes
         if 'fitted' in kwargs.keys() and self.fitter.fittername is not None:
             fitparams=self.get_fitted_parameters()
-            self.choose_fitter(name=self.fitter.fittername, fitparams=fitparams, **self.fit_kwargs)
+            self.choose_fitter(name=self.fitter.fittername, fitparams=fitparams, **self.fitter.fit_kwargs)
 
 
 
@@ -1584,7 +1583,6 @@ class RegionList(List):
             self.read_user_defined_groups(groups)
         else:
 
-            # print 'tu'
             # setup identification for
             if ident is None:
                 ident = 'region' + str(len(self._registered_regions)).zfill(2)
@@ -1597,7 +1595,7 @@ class RegionList(List):
             self._registered_regions.append(ident)
 
             # if the luminosity group is not defined
-            if 'lr' not in groups.keys() or len(groups['lr']) == 0:
+            if 'lr' not in groups.keys():# or len(groups['lr']) == 0:
                 all_groups = self.get_defined_groups()
                 if 'lr' in all_groups.keys():
                     def_groups = all_groups['lr']
