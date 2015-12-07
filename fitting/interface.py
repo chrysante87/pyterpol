@@ -22,6 +22,7 @@ from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
 # repeat userwarnings
 warnings.simplefilter('always', UserWarning)
 
+
 class Interface(object):
     """
     """
@@ -143,6 +144,7 @@ class Interface(object):
         :param verbose
         :return: chi square
         """
+
         if l is None:
             l = self.comparisonList
 
@@ -350,7 +352,6 @@ class Interface(object):
                     try:
                         wave, intens, error = rec['observed'].get_spectrum(wmin, wmax)
                     except:
-
                         # if we are fitting we will demand errors
                         if demand_errors:
                             raise ValueError('It is not allowed to call chi-square without having'
@@ -501,7 +502,7 @@ class Interface(object):
             raise ValueError('Length of the vector passed with the fitting environment does '
                              'mot match length of the parameters marked as fitted.')
 
-        for i,v in enumerate(pars):
+        for i, v in enumerate(pars):
             # print fitpars[i]['value'], v
             fitpars[i]['value'] = v
 
@@ -797,13 +798,13 @@ class Interface(object):
         """
         if kwargs is not None:
             # setup how the grids are cretaed
-            self._grid_kwargs = dict(mode = kwargs.get('mode', 'default'),
-                                    debug = kwargs.get('debug', self.debug))
+            self._grid_kwargs = dict(mode=kwargs.get('mode', 'default'),
+                                    debug=kwargs.get('debug', self.debug))
 
             # setup keyword for individual spectra
-            self._synthetic_spectrum_kwargs = dict(padding = kwargs.get('padding', 20),
-                                                   order = kwargs.get('order', 4),
-                                                   step = kwargs.get('step', 0.01))
+            self._synthetic_spectrum_kwargs = dict(padding=kwargs.get('padding', 20),
+                                                   order=kwargs.get('order', 4),
+                                                   step=kwargs.get('step', 0.01))
 
         self.grid_properties_passed = True
 
@@ -1242,7 +1243,7 @@ class ObservedList(object):
         """
         # create a list of resolutions
         resolutions = np.zeros(len(self))
-        for i in  range(0, len(self)):
+        for i in range(0, len(self)):
             resolutions[i] = self.observedSpectraList['spectrum'][i].step
 
         # if verbose is set returns resolution for each spectrum
@@ -1684,8 +1685,6 @@ class RegionList(List):
                             groups[component][key].append(comp_groups[key])
         return groups
 
-
-
     def get_registered_regions(self):
         """
         Returns an array of registered regions.
@@ -1742,7 +1741,7 @@ class RegionList(List):
             limits[component][1].append(np.floor(obs.wmax))
 
             # get only unique values
-            for i in range(0,2):
+            for i in range(0, 2):
                 limits[component][i] = np.unique(limits[component][i])
 
         # check that something funny did not happen

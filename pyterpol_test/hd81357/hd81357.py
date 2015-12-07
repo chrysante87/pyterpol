@@ -3,7 +3,7 @@ import pyterpol
 
 # 1) Generate region
 rl = pyterpol.RegionList()
-rl.add_region(wmin=6450, wmax=6600)
+rl.add_region(wmin=6450, wmax=6650)
 
 
 # 2) Generate components

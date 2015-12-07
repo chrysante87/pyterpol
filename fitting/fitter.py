@@ -17,11 +17,20 @@ fitters = dict(
                         ),
     nlopt_nelder_mead=dict(par0type='value',
                            optional_kwargs=['xtol', 'ftol', 'maxfun'],
-                           object = nlopt.opt,
+                           object = None,
                            environment = nlopt.LN_NELDERMEAD,
                            uses_bounds=True,
                            info='Nelder-Mead Simplex. Implementation NLOPT: Steven G. Johnson, '
                                 'The NLopt nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'
+                           ),
+    nlopt_sbplx=dict(par0type='value',
+                           optional_kwargs=['xtol', 'ftol', 'maxfun'],
+                           object = None,
+                           environment = nlopt.LN_SBPLX,
+                           uses_bounds=True,
+                           info='Sbplx - a variation of the Tom Rowans Subplex. '
+                                'Implementation NLOPT: Steven G. Johnson, The NLopt '
+                                'nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'
                            ),
 )
 
@@ -47,8 +56,8 @@ class Fitter(object):
         self.fittername = None
         self.fit_kwargs = {}
         self.par0 = []
-        self.uses_bounds=False
-        self.family=None
+        self.uses_bounds = False
+        self.family = None
         self.vmins = None
         self.vmaxs = None
         self.nlopt_environment = None
@@ -91,8 +100,15 @@ class Fitter(object):
                 self.result = self.fitter(func, self.par0, args=args, **self.fit_kwargs)
 
         elif self.family == 'nlopt':
-            # first setup the fitted function
-            opt = self.fitter(self.nlopt_environment, len(self.fitparams))
+
+            # set up lambda function that is minimized with nlopt
+            f = lambda x, grad : func(x, *args)
+
+            # check that we are searching minimum
+            self.fitter.set_min_objective(f)
+
+            # the fitting
+            self.result = self.fitter.optimize(self.par0)
 
     def __str__(self):
         """
@@ -168,8 +184,8 @@ class Fitter(object):
         # checks that there are any fitting boundaries
         if fitters[name]['uses_bounds']:
             self.uses_bounds = True
-            self.vmins = vmins
-            self.vmaxs = vmaxs
+            self.vmins = parlist_to_list(fitparams, property='vmin')
+            self.vmaxs = parlist_to_list(fitparams, property='vmax')
 
         # set up family
         self.family = name.split('_')[0]
@@ -212,7 +228,7 @@ class Fitter(object):
             string += "Optional parameters: %s\n" % str(fitters[key]['optional_kwargs'])
             string += "Uses boundaries: %s\n" % str(fitters[key]['uses_bounds'])
             string += "Description: %s\n" % fitters[key]['info']
-            string += ''.rjust(100, '=')
+            string += '\n'.rjust(100, '=')
         return string
 
     def setup_nlopt(self):
@@ -228,7 +244,7 @@ class Fitter(object):
         n = len(self.fitparams)
 
         # configures the fitter
-        self.fitter = self.fitter(self.nlopt_environment, n)
+        self.fitter = nlopt.opt(self.nlopt_environment, n)
 
         # setup parameters for fitting terminatio
         for key in self.fit_kwargs.keys():
@@ -247,6 +263,9 @@ class Fitter(object):
         # setup initial step
         # TODO Maybe this deserves its attribute variable in Parameter class
         stepsize = ((np.array(self.vmaxs) - np.array(self.vmins))/2.).tolist()
+        # print stepsize
+        # print self.fitter.get_lower_bounds(), self.fitter.get_upper_bounds()
+
         self.fitter.set_initial_step(stepsize)
 
 
