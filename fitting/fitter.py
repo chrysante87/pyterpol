@@ -111,8 +111,8 @@ class Fitter(object):
         # print fitparams
 
         # check the input
-        if name.lower() not in fitters:
-            raise ValueError('Fitter: %s is unknown.' % name)
+        if name.lower() not in fitters.keys():
+            raise ValueError('Fitter: %s is unknown. Registered fitters are: %s.' % (name, str(fitters.keys())))
         else:
             self.fitter = fitters[name]['object']
             self.fittername = name

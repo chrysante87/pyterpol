@@ -659,16 +659,8 @@ class Interface(object):
                     # the wmin wmax is used to check again that
                     # we are in the correct region.
                     obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_group)
-                    # print len(obs)
                     if len(obs) == 0:
                         continue
-                    # print obs, rv_group
-                    # print rv_group, obs
-                    # c = obs.component
-
-                    # in case of korel spectrum we compare only one component
-                    # if c != 'all':
-                    #     all_pars = {c: all_pars[c]}
                 else:
                     obs = [None]
 
@@ -978,12 +970,12 @@ class Interface(object):
         if isinstance(region, str):
             regions = [region]
 
+        # go over each region
         for r in self.rl._registered_regions:
 
             # get the wavelengths
             wmin = self.rl.mainList[r]['wmin']
             wmax = self.rl.mainList[r]['wmax']
-            # print wmin, wmax
 
             # get defined groups for the region
             reg_groups = copy.deepcopy(self.rl.mainList[r]['groups'][0])
@@ -992,13 +984,10 @@ class Interface(object):
                 if par not in reg_groups.keys():
                     reg_groups[par] = 0
 
-            # print reg_groups
-
             # get regional parameters
             reg_pars = self.sl.get_parameter(**reg_groups)
 
             for c in components:
-
                 # get defined rv groups
                 rv_groups = self.sl.get_defined_groups(component=c, parameter='rv')[c]['rv']
                 for rvg in rv_groups:
@@ -1010,7 +999,9 @@ class Interface(object):
                     else:
                         oname = '_'.join(['component', c, 'region', str(wmin),
                                       str(wmax), 'rvgroup', str(rvg)])
-                    # print oname
+
+                    if self.debug:
+                        print "Writing spectrum: %s." % oname
 
                     # get the parameters
                     # print rvg
@@ -1018,10 +1009,10 @@ class Interface(object):
                     cpars = reg_pars[c]
                     cpars.extend(rvpar)
 
-                    # separate those that need to be computed
+                    # separate those that need to be computed,
+                    # i.e. those not defined by the grid
                     computepars = [par for par in cpars if par['name'] in self._not_given_by_grid]
                     computepars = self.extract_parameters(computepars)
-                    # print computepars
 
                     # compute the synthetic spectra
                     w,i = self.synthetics[r][c].get_spectrum(wmin=wmin, wmax=wmax, korel=korel, **computepars)
