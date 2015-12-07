@@ -505,7 +505,6 @@ class Interface(object):
             # print fitpars[i]['value'], v
             fitpars[i]['value'] = v
 
-
         # we have to recompute the synthetic spectra
         # if one grid parameter was passed
         # first check for which parameters
@@ -658,7 +657,7 @@ class Interface(object):
 
                 # append rv parameter to the remaining parameters
                 rv_pars = self.sl.get_parameter(rv=rv_group)
-                all_pars = copy.deepcopy(reg_pars)
+                all_pars = reg_pars
                 for c in rv_pars.keys():
                     all_pars[c].extend(rv_pars[c])
 

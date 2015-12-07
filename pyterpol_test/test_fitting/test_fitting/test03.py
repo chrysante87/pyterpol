@@ -41,7 +41,7 @@ itf.set_parameter(parname='lr', component='primary', fitted=True, vmin=0.2, vmax
 fitpars = itf.get_fitted_parameters()
 
 # # choose a fitter
-itf.choose_fitter('sp_diff_evol', fitparams=fitpars, popsize=20)
+itf.choose_fitter('nlopt_nelder_mead', fitparams=fitpars, popsize=20)
 # print itf
 
 # first of all reduce the comparison list
