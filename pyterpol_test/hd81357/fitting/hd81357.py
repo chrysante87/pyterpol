@@ -27,7 +27,7 @@ itf.setup()
 
 # 5) adjust parameters
 itf.set_parameter(component='secondary', parname='teff', fitted=True, vmin=4005., vmax=5000.)
-itf.set_parameter(component='secondary', parname='logg', fitted=True, vmin=1.0, vmax=2.5)
+# itf.set_parameter(component='secondary', parname='logg', fitted=True, vmin=1.0, vmax=2.5)
 itf.set_parameter(component='secondary', parname='vrot', fitted=True, vmin=10., vmax=30.)
 itf.set_parameter(component='secondary', parname='lr', fitted=True, vmin=0.05, vmax=0.4)
 itf.set_parameter(component='secondary', parname='lr', group=1, fitted=True, value=0.10, vmin=0.05, vmax=0.4)
@@ -37,14 +37,15 @@ itf.set_parameter(component='secondary', parname='rv', fitted=True, vmin=-20.0, 
 fitparams = itf.get_fitted_parameters()
 itf.choose_fitter('nlopt_nelder_mead', fitparams=fitparams, xtol=1e-4)
 itf.populate_comparisons()
+print itf
 print itf.list_comparisons()
-l = itf.get_comparisons()
+print itf.rel_rvgroup_region
 
 # 7) run fitting
-itf.run_fit(l=l)
+itf.run_fit()
 #
 # 8) plot result
-print itf
+# print itf
 print itf.list_comparisons()
 itf.plot_all_comparisons()
 itf.write_synthetic_spectra()

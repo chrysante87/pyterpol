@@ -623,7 +623,7 @@ class Interface(object):
             wmin = self.rl.mainList[reg]['wmin']
             wmax = self.rl.mainList[reg]['wmax']
 
-            # region-dfined groups
+            # region-dfined groups and parameters
             reg_groups = copy.deepcopy(self.rl.mainList[reg]['groups'][0])
             phys_pars = [x for x in self.sl.get_physical_parameters() if x not in ['rv']]
             # print reg, phys_pars, reg_groups
@@ -633,33 +633,28 @@ class Interface(object):
                 if par not in reg_groups.keys():
                     reg_groups[par] = 0
 
-            # print reg_groups
-
-            # extract all parameters
-            reg_pars = self.sl.get_parameter(**reg_groups)
-
             # create a list of unique rv groups
             rv_groups = self.sl.get_defined_groups(parameter='rv')
             rv_groups = [rv_groups[key]['rv'] for key in rv_groups.keys()]
-            # print rv_groups
+
             temp = []
             for row in rv_groups:
                 temp.extend(row)
             rv_groups = np.unique(temp)
-            # print rv_groups
-            # rv_groups = np.unique(np.ravel([rv_groups[key]['rv'] for key in rv_groups.keys()])).tolist()
-            # print 'rv_groups: %s' % str(rv_groups)
 
             for rv_group in rv_groups:
+
                 # append rv_group to groups
                 all_groups = copy.deepcopy(reg_groups)
                 all_groups['rv'] = rv_group
 
                 # append rv parameter to the remaining parameters
-                rv_pars = self.sl.get_parameter(rv=rv_group)
-                all_pars = reg_pars
-                for c in rv_pars.keys():
-                    all_pars[c].extend(rv_pars[c])
+                # rv_pars = self.sl.get_parameter(rv=rv_group)
+
+                # get unique set of parameters for a given group
+                all_pars = self.sl.get_parameter(**all_groups)
+                # for c in rv_pars.keys():
+                #     all_pars[c].extend(rv_pars[c])
 
                 if self.ol is not None:
 
@@ -678,7 +673,10 @@ class Interface(object):
                 # because in an unlikely event, when we fit the
                 # same RVs for several spectra
                 for o in obs:
-                    # setup component
+
+                    # What if we are only generating spectra???
+                    # If there are spectra attached we are
+                    # comparing and thats it!!
                     if o is None:
                         c = 'all'
                     else:
@@ -693,6 +691,12 @@ class Interface(object):
                                         groups = all_groups,
                                         observed=o,
                                         )
+                    # clear the last rv in allpars
+                    # if c is not 'all':
+                    #     del all_pars[c][-1]
+                    # else:
+                    #     for c in all_pars.keys():
+                    #         del all_pars[c][-1]
 
     def remove_parameter(self, component, parameter, group):
         """
