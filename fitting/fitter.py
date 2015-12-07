@@ -10,11 +10,13 @@ fitters = dict(
                         optional_kwargs=['xtol', 'ftol', 'maxiter', 'maxfun'],
                         object=fmin,
                         uses_bounds=False,
-                        info='Nelder-Mead simplex algorithm, implementaion numpy. Ineffective for high dimensional' \
-                             'parameter space.'
+                        info='Nelder-Mead simplex algorithm. '
+                             'Implemetation: http://docs.scipy.org/doc/scipy-0.16.1/reference/generated/' \
+                             'scipy.optimize.fmin.html#scipy.optimize.fmin Ineffective for high dimensional' \
+                             ' parameter space.'
                         ),
     nlopt_nelder_mead=dict(par0type='value',
-                           optional_kwargs=['xtol', 'ftol', 'maxiter', 'maxfun'],
+                           optional_kwargs=['xtol', 'ftol', 'maxfun'],
                            object = nlopt.opt,
                            environment = nlopt.LN_NELDERMEAD,
                            uses_bounds=True,
@@ -89,7 +91,8 @@ class Fitter(object):
                 self.result = self.fitter(func, self.par0, args=args, **self.fit_kwargs)
 
         elif self.family == 'nlopt':
-            pass
+            # first setup the fitted function
+            opt = self.fitter(self.nlopt_environment, len(self.fitparams))
 
     def __str__(self):
         """
@@ -129,7 +132,7 @@ class Fitter(object):
 
         # check the input
         if name.lower() not in fitters.keys():
-            raise ValueError('Fitter: %s is unknown. Registered fitters are: %s.' % (name, str(fitters.keys())))
+            raise ValueError('Fitter: %s is unknown. Registered fitters are:\n %s.' % (name, self.list_fitters()))
         else:
             self.fitter = fitters[name]['object']
             self.fittername = name
@@ -208,8 +211,8 @@ class Fitter(object):
             string += "Name: %s\n" % key
             string += "Optional parameters: %s\n" % str(fitters[key]['optional_kwargs'])
             string += "Uses boundaries: %s\n" % str(fitters[key]['uses_bounds'])
-            string += "Description: %s" % fitters[key]['info']
-            string += '\n'.rjust(100, '=')
+            string += "Description: %s\n" % fitters[key]['info']
+            string += ''.rjust(100, '=')
         return string
 
     def setup_nlopt(self):

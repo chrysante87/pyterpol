@@ -24,31 +24,33 @@ ol.add_observations(obs)
 
 # setup the class
 itf = pyterpol.Interface(sl=sl, ol=ol, rl=rl, debug=False)
+itf.set_grid_properties(order=2)
 itf.setup()
 
 
 # setup fitted parameters
-itf.set_parameter(parname='rv', group=3, fitted=True)
+# itf.set_parameter(parname='rv', group=3, fitted=True)
 itf.set_parameter(parname='logg', component='secondary', fitted=True)
 itf.set_parameter(parname='teff', component='secondary', fitted=True)
 itf.set_parameter(parname='vrot', component='secondary', fitted=True)
 fitpars = itf.get_fitted_parameters()
 
 # # choose a fitter
-itf.choose_fitter('sp_nelder_mead', fitparams=fitpars)
+itf.choose_fitter('bah', fitparams=fitpars)
+print itf.list_fitters()
 
 # first of all reduce the comparison list
-# l = itf.get_comparisons(rv=3)
+l = itf.get_comparisons(rv=3)
 #
 # have a look at the chi-2
-# init_pars = pyterpol.parlist_to_list(fitpars)
-# init_chi2 = itf.compute_chi2(init_pars, l=l)
-# print "Initial settings:",  init_pars, init_chi2
-#
+init_pars = pyterpol.parlist_to_list(fitpars)
+init_chi2 = itf.compute_chi2(init_pars, l=l)
+print "Initial settings:",  init_pars, init_chi2
+
 # plot initial comparison
-# itf.plot_all_comparisons(l=l, figname='fit_more_spectra')
-# print itf.list_comparisons(l=l)
-#
+itf.plot_all_comparisons(l=l, figname='initial')
+print itf.list_comparisons(l=l)
+
 # do the fitting
 # itf.run_fit(l=l)
 #

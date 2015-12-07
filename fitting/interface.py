@@ -774,9 +774,8 @@ class Interface(object):
             else:
                 self.set_grid_properties()
 
+        # attach grids to the interface
         self._setup_grids()
-
-        # print self.grids['region00']
 
         # create the basic interpolated spectra
         self.ready_synthetic_spectra()
@@ -847,6 +846,13 @@ class Interface(object):
         # recompute synthetic spectra
         if parname not in self._not_given_by_grid:
             self.ready_synthetic_spectra()
+
+        # update the fitter if number of fitted
+        # parameters changes
+        if 'fitted' in kwargs.keys() and self.fitter.fittername is not None:
+            fitparams=self.get_fitted_parameters()
+            self.choose_fitter(name=self.fitter.fittername, fitparams=fitparams, **self.fit_kwargs)
+
 
 
     def _setup_grids(self):
