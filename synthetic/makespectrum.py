@@ -208,7 +208,7 @@ class SyntheticSpectrum:
 
         return bump_wave, bump_intens
 
-    def get_spectrum(self, wave=None, rv=None, vrot=None, lr=None, korel=False, only_intensity=False):
+    def get_spectrum(self, wave=None, rv=None, vrot=None, lr=None, korel=False, only_intensity=False, wmin=None, wmax=None):
         """
         Return the sythetic spectrum stored within the class. If
         a set of wavelengths is provided, an interpolated spectrum
@@ -230,8 +230,11 @@ class SyntheticSpectrum:
         if wave is None:
             # for some reason we want to work with the
             # whole spectrum
-            wave = self.wave
-            intens = self.intens
+            if wmin is not None and wmax is not None:
+                wave, intens = self.select_interval(wmin, wmax)
+            else:
+                wave = self.wave
+                intens = self.intens
             syn_wave = wave.copy()
 
             if vrot is not None and vrot > 0.0:
