@@ -349,14 +349,19 @@ class Interface(object):
                             error = None
 
                     korelmode = rec['observed'].korel
-                else:
-                    wave = np.arange(wmin, wmax, 0.01)
-                    korelmode = False
 
-                rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
+                    rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
                                                                               only_intensity=True,
                                                                               korel=korelmode,
                                                                               **pars)
+
+                else:
+                    korelmode = False
+                    rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wmin=wmin,
+                                                                                  wmax=wmax,
+                                                                                  only_intensity=True,
+                                                                                  korel=korelmode,
+                                                                                  **pars)
 
             # it is mandatory to provide errors for
             # computation of the chi2
@@ -944,12 +949,13 @@ class Interface(object):
     def verify_before_fitting(self):
         pass
 
-    def write_synthetic_spectra(self, component=None, region=None, outputname=None):
+    def write_synthetic_spectra(self, component=None, region=None, outputname=None, korel=False):
         """
         Writes the synthetic spectra obtained through the fitting.
         :param component
         :param region
         :param outputname
+        :param korel
         :return:
         """
 
@@ -965,19 +971,15 @@ class Interface(object):
         if isinstance(region, str):
             regions = [region]
 
-        # set the output name
-        if outputname is None:
-            oname = ''
-        else:
-            oname = outputname
+        for r in self.rl._registered_regions:
 
-        for r in enumerate(regions):
             # get the wavelengths
-            wmin = self.rl[r].wmin
-            wmax = self.rl[r].wmax
+            wmin = self.rl.mainList[r]['wmin']
+            wmax = self.rl.mainList[r]['wmax']
+            print wmin, wmax
 
             # get defined groups for the region
-            reg_groups = copy.deepcopy(self.rl.mainList[reg]['groups'][0])
+            reg_groups = copy.deepcopy(self.rl.mainList[r]['groups'][0])
             phys_pars = [x for x in self.sl.get_physical_parameters() if x not in ['rv']]
             for par in phys_pars:
                 if par not in reg_groups.keys():
@@ -991,26 +993,44 @@ class Interface(object):
             for c in components:
 
                 # get defined rv groups
-                rv_groups = self.sl.get_defined_groups(component=c, parameter='rv')
+                rv_groups = self.sl.get_defined_groups(component=c, parameter='rv')[c]['rv']
                 for rvg in rv_groups:
 
-                    # finalize the output
-                    oname = '_'.join([oname, c, str(wmin), str(wmax), str(rvg)])
+                    # the outputname
+                    if outputname is not None:
+                        oname = '_'.join([outputname, 'component', c, 'region', str(wmin),
+                                      str(wmax), 'rvgroup', str(rvg)])
+                    else:
+                        oname = '_'.join(['component', c, 'region', str(wmin),
+                                      str(wmax), 'rvgroup', str(rvg)])
+                    print oname
 
                     # get the parameters
+                    print rvg
                     rvpar = self.sl.get_parameter(rv=rvg)[c]
                     cpars = reg_pars[c]
-                    cpars.append(rvpar)
+                    cpars.extend(rvpar)
 
                     # separate those that need to be computed
                     computepars = [par for par in cpars if par['name'] in self._not_given_by_grid]
+                    computepars = self.extract_parameters(computepars)
+                    print computepars
 
                     # compute the synthetic spectra
-                    w,i = self.synthetics[r][c].get_spectrum()
+                    w,i = self.synthetics[r][c].get_spectrum(wmin=wmin, wmax=wmax, korel=korel, **computepars)
 
+                    # constrauct header of the file
+                    header = ''
+                    header += '# Component: %s\n' % str(c)
+                    header += '# Region: (%s,%s)\n' % (str(wmin), str(wmax))
+                    header += '# KOREL: %s\n' % str(korel)
+                    header += '# Parameters: %s\n' % str(self.extract_parameters(cpars))
 
-
-
+                    # write the file
+                    ofile = open(oname, 'w')
+                    ofile.writelines(header)
+                    np.savetxt(ofile, np.column_stack([w,i]), fmt='%15.10e')
+                    ofile.close()
 
 
 class List(object):

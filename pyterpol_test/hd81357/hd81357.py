@@ -21,6 +21,9 @@ sl.add_component(component='secondary', teff=4200., logg=1.86, vrot=vsini)
 
 # construct the interface
 itf = pyterpol.Interface(sl=sl, rl=rl)
+itf.set_grid_properties(order=2)
 itf.setup()
+
+# write the spectra
 itf.write_synthetic_spectra()
 
