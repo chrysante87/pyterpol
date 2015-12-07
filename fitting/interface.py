@@ -941,6 +941,31 @@ class Interface(object):
     def verify_before_fitting(self):
         pass
 
+    def write_synthetic_spectra(self, component=None, region=None, outputname=None):
+        """
+        Writes the synthetic spectra obtained through the fitting.
+        :param component
+        :param region
+        :param outputname
+        :return:
+        """
+
+        # set defaults for component
+        if component is None:
+            components = self.sl._registered_components
+        if isinstance(component, str):
+            components = [component]
+
+        # set defaults for region
+        if region is None:
+            regions = self.rl._registered_regions
+        if isinstance(region, str):
+            regions = [region]
+
+        for r in regions:
+            for c in components:
+                pass
+
 
 class List(object):
     """

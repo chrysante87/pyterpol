@@ -233,3 +233,13 @@ def shift_spectrum(wave, RV):
     new_wave = wave * (1 + RV * 1000 / c.value)
 
     return new_wave
+
+def write_numpy(f, cols, fmt):
+    """
+    :param f: outputfile or handler
+    :param cols: block of data to be writte
+    :param fmt: format of the blocs
+    :return:
+    """
+
+    np.savetxt(f, cols, fmt=fmt)
