@@ -353,8 +353,6 @@ class Interface(object):
                     wave = np.arange(wmin, wmax, 0.01)
                     korelmode = False
 
-                # print korelmode, pars, wave.min(), wave.max()
-
                 rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
                                                                               only_intensity=True,
                                                                               korel=korelmode,
@@ -752,13 +750,18 @@ class Interface(object):
             warnings.warn('Using default grid and synthetic spectra settings.')
 
             # choose the resolution of the grid to 2*R_best_observed
-            if self.adaptive_resolution:
-                step = self.ol.get_resolution()
+            if self.ol is not None:
+                if self.adaptive_resolution:
+                    step = self.ol.get_resolution()
 
-            if self.debug:
-                print "The step size of the grid is: %s Angstrom." % str(step)
+                    if self.debug:
+                        print "The step size of the grid is: %s Angstrom." % str(step)
 
-            self.set_grid_properties(step=step/2.)
+                    self.set_grid_properties(step=step/2.)
+                else:
+                    self.set_grid_properties()
+            else:
+                self.set_grid_properties()
 
         self._setup_grids()
 
@@ -962,9 +965,52 @@ class Interface(object):
         if isinstance(region, str):
             regions = [region]
 
-        for r in regions:
+        # set the output name
+        if outputname is None:
+            oname = ''
+        else:
+            oname = outputname
+
+        for r in enumerate(regions):
+            # get the wavelengths
+            wmin = self.rl[r].wmin
+            wmax = self.rl[r].wmax
+
+            # get defined groups for the region
+            reg_groups = copy.deepcopy(self.rl.mainList[reg]['groups'][0])
+            phys_pars = [x for x in self.sl.get_physical_parameters() if x not in ['rv']]
+            for par in phys_pars:
+                if par not in reg_groups.keys():
+                    reg_groups[par] = 0
+
+            print reg_groups
+
+            # get regional parameters
+            reg_pars = self.sl.get_parameter(**reg_groups)
+
             for c in components:
-                pass
+
+                # get defined rv groups
+                rv_groups = self.sl.get_defined_groups(component=c, parameter='rv')
+                for rvg in rv_groups:
+
+                    # finalize the output
+                    oname = '_'.join([oname, c, str(wmin), str(wmax), str(rvg)])
+
+                    # get the parameters
+                    rvpar = self.sl.get_parameter(rv=rvg)[c]
+                    cpars = reg_pars[c]
+                    cpars.append(rvpar)
+
+                    # separate those that need to be computed
+                    computepars = [par for par in cpars if par['name'] in self._not_given_by_grid]
+
+                    # compute the synthetic spectra
+                    w,i = self.synthetics[r][c].get_spectrum()
+
+
+
+
 
 
 class List(object):
