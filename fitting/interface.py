@@ -306,6 +306,17 @@ class Interface(object):
 
         return string
 
+    def list_fitters(self):
+        """
+        Lists all available fitters.
+        :return:
+        """
+
+        if self.fitter is not None:
+            return self.fitter.list_fitters()
+        else:
+            raise AttributeError('No fitter has been attached yet.')
+
     def populate_comparisons(self, l=None, demand_errors=False):
         """
         Creates a synthetic spectrum for every record in

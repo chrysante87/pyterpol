@@ -9,13 +9,17 @@ fitters = dict(
     sp_nelder_mead=dict(par0type='value',
                         optional_kwargs=['xtol', 'ftol', 'maxiter', 'maxfun'],
                         object=fmin,
-                        uses_bounds=False
+                        uses_bounds=False,
+                        info='Nelder-Mead simplex algorithm, implementaion numpy. Ineffective for high dimensional' \
+                             'parameter space.'
                         ),
     nlopt_nelder_mead=dict(par0type='value',
                            optional_kwargs=['xtol', 'ftol', 'maxiter', 'maxfun'],
                            object = nlopt.opt,
                            environment = nlopt.LN_NELDERMEAD,
-                           uses_bounds=True
+                           uses_bounds=True,
+                           info='Nelder-Mead Simplex. Implementation NLOPT: Steven G. Johnson, '
+                                'The NLopt nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'
                            ),
 )
 
@@ -100,6 +104,19 @@ class Fitter(object):
 
         return string
 
+    def append_iteration(self, iter):
+        """
+        Appends each iteration.
+        :return:
+        """
+        self.iter_number += 1
+        self.iters.append(iter)
+
+        # if the number of iterations exceeds a certain number
+        # they are written to a file
+        if len(self.iters) > 1000:
+            self.flush_iters()
+            self.iters = []
 
     def choose_fitter(self, name, fitparams=None, **kwargs):
         """
@@ -158,22 +175,6 @@ class Fitter(object):
             self.nlopt_environment = fitters[name]['environment']
             self.setup_nlopt()
 
-
-    def append_iteration(self, iter):
-        """
-        Appends each iteration.
-        :return:
-        """
-        self.iter_number += 1
-        self.iters.append(iter)
-
-        # if the number of iterations exceeds a certain number
-        # they are written to a file
-        if len(self.iters) > 1000:
-            self.flush_iters()
-            self.iters = []
-
-
     def flush_iters(self, f=None):
         """
         Flushes all records within self.iters to a file
@@ -196,6 +197,20 @@ class Fitter(object):
         ofile = open(f, 'a')
         ofile.writelines(lines)
         ofile.close()
+
+    def list_fitters(self):
+        """
+        Lists all fitters.
+        :return: string : a list of all fitters.
+        """
+        string = '\n'.rjust(100, '=')
+        for key in fitters.keys():
+            string += "Name: %s\n" % key
+            string += "Optional parameters: %s\n" % str(fitters[key]['optional_kwargs'])
+            string += "Uses boundaries: %s\n" % str(fitters[key]['uses_bounds'])
+            string += "Description: %s" % fitters[key]['info']
+            string += '\n'.rjust(100, '=')
+        return string
 
     def setup_nlopt(self):
         """
