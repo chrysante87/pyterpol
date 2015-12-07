@@ -110,7 +110,7 @@ class Fitter(object):
 
         elif self.family == 'nlopt':
 
-            f = lambda x, grad: func(x)
+            f = lambda x, grad: func(x, *args)
 
             print self.par0
 

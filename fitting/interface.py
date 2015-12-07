@@ -330,7 +330,7 @@ class Interface(object):
             l = self.comparisonList
         # go over ech comparison in the list
         for rec in l:
-
+            # print "In populate comparisons:", rec, type(rec), len(l)
             # print rec
             # get the region
             region = rec['region']
@@ -523,6 +523,9 @@ class Interface(object):
 
         # populate the comparison
         self.populate_comparisons(l=l, demand_errors=True)
+
+        if self.debug:
+            print self.list_comparisons(l=l)
 
 
     def ready_synthetic_spectra(self, complist=[]):

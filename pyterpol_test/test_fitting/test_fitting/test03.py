@@ -12,7 +12,7 @@ rl.add_region(wmin=6540, wmax=6600, groups={'lr':0})
 
 sl = pyterpol.StarList()
 sl.add_component(component='primary', teff=17000., logg=4.0, rv=-100.0, z=1.0, vrot=40.0, lr=0.35)
-sl.add_component(component='secondary', teff=24000., logg=4.0, rv=100.0, z=1.0, vrot=140.0, lr=0.65)
+sl.add_component(component='secondary', teff=26000., logg=4.0, rv=100.0, z=1.0, vrot=140.0, lr=0.65)
 
 obs = [
     dict(filename='a', error=0.001, group=dict(rv=1)),
@@ -29,19 +29,19 @@ itf.setup()
 
 
 # setup fitted parameters
-# itf.set_parameter(parname='logg', component='secondary', fitted=True, vmin=3.5, vmax=4.5)
+itf.set_parameter(parname='logg', component='secondary', fitted=True, vmin=3.5, vmax=4.5)
 itf.set_parameter(parname='teff', component='secondary', fitted=True, vmin=20000., vmax=28000.)
-# itf.set_parameter(parname='vrot', component='secondary', fitted=True, vmin=100., vmax=170.)
+itf.set_parameter(parname='vrot', component='secondary', fitted=True, vmin=100., vmax=170.)
 itf.set_parameter(parname='lr', component='secondary', fitted=True, vmin=0.5, vmax=0.8)
-# itf.set_parameter(parname='logg', component='primary', fitted=True, vmin=3.5, vmax=4.5)
+itf.set_parameter(parname='logg', component='primary', fitted=True, vmin=3.5, vmax=4.5)
 itf.set_parameter(parname='teff', component='primary', fitted=True, vmin=15000., vmax=20000.)
-# itf.set_parameter(parname='vrot', component='primary', fitted=True, vmin=40., vmax=80.)
+itf.set_parameter(parname='vrot', component='primary', fitted=True, vmin=40., vmax=80.)
 itf.set_parameter(parname='lr', component='primary', fitted=True, vmin=0.2, vmax=0.5)
 
 fitpars = itf.get_fitted_parameters()
 
 # # choose a fitter
-itf.choose_fitter('nlopt_nelder_mead', fitparams=fitpars)
+itf.choose_fitter('nlopt_sbplx', fitparams=fitpars, xtol=1e-4)
 # print itf
 
 # first of all reduce the comparison list
@@ -49,14 +49,14 @@ l = itf.get_comparisons(rv=3)
 
 # have a look at the chi-2
 print itf
+print itf.list_comparisons(l=l)
 init_pars = pyterpol.parlist_to_list(fitpars)
 init_chi2 = itf.compute_chi2(init_pars, l=l)
 print "Initial settings:",  init_pars, init_chi2
 
 # plot initial comparison
 itf.plot_all_comparisons(l=l, figname='initial')
-print itf.list_comparisons(l=l)
-#
+
 # # do the fitting
 itf.run_fit(l=l)
 # #
