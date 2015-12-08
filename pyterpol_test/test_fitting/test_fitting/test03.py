@@ -41,7 +41,7 @@ itf.set_parameter(parname='lr', component='primary', fitted=True, vmin=0.2, vmax
 fitpars = itf.get_fitted_parameters()
 
 # # choose a fitter
-itf.choose_fitter('nlopt_sbplx', fitparams=fitpars, xtol=1e-4)
+itf.choose_fitter('nlopt_nelde_mead', fitparams=fitpars, xtol=1e-4)
 # print itf
 
 # first of all reduce the comparison list

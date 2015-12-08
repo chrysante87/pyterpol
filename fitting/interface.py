@@ -694,12 +694,114 @@ class Interface(object):
                                         groups = all_groups,
                                         observed=o,
                                         )
-                    # clear the last rv in allpars
-                    # if c is not 'all':
-                    #     del all_pars[c][-1]
-                    # else:
-                    #     for c in all_pars.keys():
-                    #         del all_pars[c][-1]
+
+    def ready_comparisons_new(self):
+        """
+        This function creates a dictionary, which is one of the
+        cornerstones of the class. It creates a list of all
+        combinations of the parameters.
+        :return:
+        """
+
+        # start a list of comparisons that will
+        # be carried out with the given dataset
+        self.comparisonList = []
+
+        # go region by region
+        for reg in self.rl.mainList.keys():
+        # reg = self.rl.mainList.keys()[0]
+            # fitted region
+            wmin = self.rl.mainList[reg]['wmin']
+            wmax = self.rl.mainList[reg]['wmax']
+
+            # region-dfined groups and parameters
+            reg_groups = copy.deepcopy(self.rl.mainList[reg]['groups'][0])
+            phys_pars = [x for x in self.sl.get_physical_parameters() if x not in ['rv']]
+            # print reg, phys_pars, reg_groups
+
+            # if the group is not defined, it is zero
+            for par in phys_pars:
+                if par not in reg_groups.keys():
+                    reg_groups[par] = 0
+
+            # generate a dictionary of unique groups
+            unique_groups = {par: self.sl.get_defined_groups(parameter=par)
+                             for par in self.sl.get_physical_parameters()}
+            print unique_groups
+            for key in unique_groups.keys():
+                temp = []
+                for c in unique_groups[key].keys():
+                    for row in unique_groups[key][c][key]:
+                        temp.extend(row)
+                unique_groups[key] = np.unique(temp)
+
+            # position in the row of each parameter
+            position = {key: 0 for key in unique_groups.keys()}
+            keys = unique_groups.keys()
+            print position
+            print unique_groups
+
+            # create every possible combination of groups
+            i = 0
+            all_groups_list = []
+            while position[key[-1]] > len(unique_groups[key]):
+                if position[key[i]] <= len(unique_groups):
+                    all_groups_list.append({par: unique_groups[par][position[par]] for par in keys})
+                    position[key[i]] += 1
+                else:
+                    i += 1
+                    position[key[i]] += 1
+                    for j in range(0, i-1):
+                        position[key[j]] = 0
+                    i = 0
+                print all_groups_list, position
+
+
+            for rv_group in rv_groups:
+
+                # append rv_group to groups
+                all_groups = copy.deepcopy(reg_groups)
+                all_groups['rv'] = rv_group
+
+                # get unique set of parameters for a given group
+                all_pars = self.sl.get_parameter(**all_groups)
+
+
+                if self.ol is not None:
+
+                    if rv_group not in self.rel_rvgroup_region[reg]:
+                        continue
+
+                    # the wmin wmax is used to check again that
+                    # we are in the correct region.
+                    obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_group)
+                    if len(obs) == 0:
+                        continue
+                else:
+                    obs = [None]
+
+                # add the comparison for each observed spectrum
+                # because in an unlikely event, when we fit the
+                # same RVs for several spectra
+                for o in obs:
+
+                    # What if we are only generating spectra???
+                    # If there are spectra attached we are
+                    # comparing and thats it!!
+                    if o is None:
+                        c = 'all'
+                    else:
+                        c = o.component
+                    if c != 'all':
+                        temp_all_pars = {c: all_pars[c]}
+                    else:
+                        temp_all_pars = all_pars
+
+                    self.add_comparison(region=reg,
+                                        parameters=temp_all_pars,
+                                        groups = all_groups,
+                                        observed=o,
+                                        )
 
     def remove_parameter(self, component, parameter, group):
         """
@@ -754,7 +856,8 @@ class Interface(object):
 
         # setup radial velocity groups
         if self.ol is not None:
-            self.setup_rv_groups()
+            self._setup_all_groups()
+            # self.setup_rv_groups()
         else:
             warnings.warn('There are no data attached, so all regions are set to '
                           'have the same radial velocity. Each component can have'
@@ -787,7 +890,7 @@ class Interface(object):
         self.ready_synthetic_spectra()
 
         # prepare list of comparisons
-        self.ready_comparisons()
+        self.ready_comparisons_new()
 
         # setup fitter
         self.fitter = Fitter(debug=self.debug)
@@ -859,8 +962,6 @@ class Interface(object):
             fitparams=self.get_fitted_parameters()
             self.choose_fitter(name=self.fitter.fittername, fitparams=fitparams, **self.fitter.fit_kwargs)
 
-
-
     def _setup_grids(self):
         """
         Initializes grid of synthetic spectra for each region -
@@ -915,7 +1016,6 @@ class Interface(object):
 
                 # readout groups that were already defined for all components
                 def_groups = self.sl.get_defined_groups(component='all', parameter='rv')['all']['rv']
-                # print spectrum, wmin, wmax, component, rv_group, def_groups
 
                 # We define group for our observation
                 if rv_group is None:
@@ -964,6 +1064,114 @@ class Interface(object):
 
         # finalize the list of rv_groups for each region
         self.rel_rvgroup_region = {x: np.unique(reg2rv[x]).tolist() for x in reg2rv.keys()}
+
+    def _setup_all_groups(self):
+        """
+        Setting up the rv_groups is a pain..
+        :return:
+        """
+        # TODO Can this be done better?????
+        # empty array for components where cloning
+        # was performed - to get rid of the first
+        # group
+
+        # dictionary for newly registered groups
+        # this is necessary in case we do not
+        # the newly registered groups have to
+        # be assigned back to the spectra
+        # otherwise we would not know which rv
+        # belongs to which spectrum
+        # new_groups = dict()
+
+        # get wavelength boundaries of defined regions
+        wmins, wmaxs, regs = self.rl.get_wavelengths(verbose=True)
+
+        # this dictionary is needed to have
+        # unambiguous relationship between
+        # rv_group, spectrum and region
+        reg2rv = {x: [] for x in regs}
+
+        #physical parameters
+        phys_pars = self.sl.get_physical_parameters()
+
+        # for every region we have a look if we have some datas
+        for p_par in phys_pars:
+            new_groups = dict()
+            cloned_comps = []
+            registered_groups = []
+
+            for wmin, wmax, reg in zip(wmins, wmaxs, regs):
+
+                # query spectra for each region
+                observed_spectra = self.ol.get_spectra(wmin=wmin, wmax=wmax)
+
+                for i, spectrum in enumerate(observed_spectra):
+
+                    # read out properties of spectra
+                    component = spectrum.component
+
+                    # if the group is not defined for the s
+                    if p_par in spectrum.group.keys():
+                        # there
+                        p_group = spectrum.group[p_par]
+                    else:
+                        p_group = None
+
+                    # readout groups that were already defined for all components
+                    def_groups = self.sl.get_defined_groups(component='all', parameter=p_par)['all'][p_par]
+                    # print p_par, def_groups
+
+                    # We define group for our observation
+                    if p_group is None:
+                        if p_par == 'rv':
+                            gn = generate_least_number(def_groups)
+                            reg2rv[reg].append(gn)
+                        # for other than rvs, the default group is 0
+                        else:
+                            continue
+
+                        # save the newly registered group
+                        if spectrum.filename not in new_groups.keys():
+                            new_groups[spectrum.filename] = []
+                        new_groups[spectrum.filename].append(gn)
+
+                    elif p_group not in def_groups:
+                        gn = p_group
+                        reg2rv[reg].append(p_group)
+
+                    # if the group is defined we only need to
+                    # add it among the user defined one, so it
+                    # so it is not deleted later
+                    elif p_group in def_groups:
+                        registered_groups.append(p_group)
+                        reg2rv[reg].append(p_group)
+                        continue
+
+                    # attachs new parameter to the StarList
+                    # print component, gn
+                    self.sl.clone_parameter(component, p_par, group=gn)
+
+                    if component not in cloned_comps:
+                        if component == 'all':
+                            cloned_comps.extend(self.sl.get_components())
+                        else:
+                            cloned_comps.append(component)
+                        registered_groups.append(gn)
+
+            # print registered_groups, cloned_comps
+            # remove the default groups
+            for c in cloned_comps:
+                gref = self.sl.componentList[c][p_par][0]['group']
+                if gref not in registered_groups:
+                    self.remove_parameter(c, p_par, gref)
+
+            # print new_groups
+            # back register the group numbers to the observed spectra
+            for filename in new_groups.keys():
+                self.ol.set_spectrum(filename=filename, group={'rv': new_groups[filename]})
+
+            # finalize the list of rv_groups for each region
+            self.rel_rvgroup_region = {x: np.unique(reg2rv[x]).tolist() for x in reg2rv.keys()}
 
     def verify(self):
         pass
