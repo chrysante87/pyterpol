@@ -808,6 +808,35 @@ class Interface(object):
 
         self.sl.remove_parameter(component, parameter, group)
 
+    def run_fit_spectrum_by_spectrum(self, niter, spectrum_by_spectrum=None):
+        """
+        Runs the fitting in an iterative way. One or more
+        parameters should be determined separately for
+        each spectrum. This means that they are independent.
+        Fitting all parameters together is very dangerous,
+        therefore the 'owned' parameters are fitted
+        separately from the common ones.
+        :param niter number of these superiterations
+        :return:
+        """
+
+        # if we want to use this mode even in case
+        # when the interface is not run in this mode.
+        if spectrum_by_spectrum is None:
+            spectrum_by_spectrum = self.spectrum_by_spectrum
+
+        # remember which common parameters should be fitted
+        common_pars = [par for par in self.sl.get_physical_parameters() if par not in spectrum_by_spectrum]
+        fit_common_pars = []
+        for c in self.sl.componentList.keys():
+            for key in common_pars:
+                fit_common_pars.append(dict(component=c,
+                                            parname=key,
+                                            group=self.sl.componentList[c][key]['group']))
+
+
+
+
     def run_fit(self, l=None, verbose=False):
         """
         Starts the fitting
