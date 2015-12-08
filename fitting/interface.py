@@ -26,7 +26,8 @@ warnings.simplefilter('always', UserWarning)
 class Interface(object):
     """
     """
-    def __init__(self, sl=None, rl=None, ol=None, fitter=None, debug=False, adaptive_resolution=True):
+    def __init__(self, sl=None, rl=None, ol=None, fitter=None, debug=False,
+                 adaptive_resolution=True, spectrum_by_spectrum=None):
         """
         :param sl: StarList type
         :param rl: RegionList type
@@ -68,6 +69,7 @@ class Interface(object):
         self.grid_properties_passed = False
         self.fit_is_running = False
         self.adaptive_resolution = adaptive_resolution
+        self.spectrum_by_spectrum = spectrum_by_spectrum
 
     def __str__(self):
         """
@@ -695,7 +697,7 @@ class Interface(object):
                                         observed=o,
                                         )
 
-    def ready_comparisons_new(self):
+    def ready_comparisons_spectrum_by_spectrum(self):
         """
         This function creates a dictionary, which is one of the
         cornerstones of the class. It creates a list of all
@@ -715,7 +717,8 @@ class Interface(object):
 
             # generate a dictionary of unique groups for each parameter
             unique_groups = {}
-            phys_pars = [par for par in self.sl.get_physical_parameters() if par not in ['lr']]
+            # phys_pars = [par for par in self.sl.get_physical_parameters() if par not in ['lr']]
+            phys_pars = self.sl.get_physical_parameters()
             for par in phys_pars:
                 groups = self.sl.get_defined_groups(parameter=par)
                 temp = []
@@ -854,8 +857,13 @@ class Interface(object):
 
         # setup radial velocity groups
         if self.ol is not None:
-            self._setup_all_groups()
-            # self.setup_rv_groups()
+            # we will fit some parameters separately at some spectra
+            # therefore all groups are assihgne dfrom the data, not only
+            # the radial velocities
+            if self.spectrum_by_spectrum is not None:
+                self._setup_all_groups()
+            else:
+                self._setup_rv_groups()
         else:
             warnings.warn('There are no data attached, so all regions are set to '
                           'have the same radial velocity. Each component can have'
@@ -885,11 +893,13 @@ class Interface(object):
         self._setup_grids()
 
         # create the basic interpolated spectra
-        # self.ready_synthetic_spectra()
+        self.ready_synthetic_spectra()
 
-        print self
-        # prepare list of comparisons
-        self.ready_comparisons_new()
+        # setup all comparisons
+        if self.spectrum_by_spectrum is not None:
+            self.ready_comparisons_spectrum_by_spectrum()
+        else:
+            self.ready_comparisons()
 
         # setup fitter
         self.fitter = Fitter(debug=self.debug)
@@ -973,7 +983,7 @@ class Interface(object):
         for reg in self.rl.mainList.keys():
             self.grids[reg] = SyntheticGrid(**self._grid_kwargs)
 
-    def setup_rv_groups(self):
+    def _setup_rv_groups(self):
         """
         Setting up the rv_groups is a pain..
         :return:
