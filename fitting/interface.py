@@ -702,79 +702,77 @@ class Interface(object):
         combinations of the parameters.
         :return:
         """
-
+        # print self
         # start a list of comparisons that will
         # be carried out with the given dataset
         self.comparisonList = []
 
         # go region by region
         for reg in self.rl.mainList.keys():
-        # reg = self.rl.mainList.keys()[0]
             # fitted region
             wmin = self.rl.mainList[reg]['wmin']
             wmax = self.rl.mainList[reg]['wmax']
 
-            # region-dfined groups and parameters
-            reg_groups = copy.deepcopy(self.rl.mainList[reg]['groups'][0])
-            phys_pars = [x for x in self.sl.get_physical_parameters() if x not in ['rv']]
-            # print reg, phys_pars, reg_groups
-
-            # if the group is not defined, it is zero
+            # generate a dictionary of unique groups for each parameter
+            unique_groups = {}
+            phys_pars = [par for par in self.sl.get_physical_parameters() if par not in ['lr']]
             for par in phys_pars:
-                if par not in reg_groups.keys():
-                    reg_groups[par] = 0
-
-            # generate a dictionary of unique groups
-            unique_groups = {par: self.sl.get_defined_groups(parameter=par)
-                             for par in self.sl.get_physical_parameters()}
-            print unique_groups
-            for key in unique_groups.keys():
+                groups = self.sl.get_defined_groups(parameter=par)
                 temp = []
-                for c in unique_groups[key].keys():
-                    for row in unique_groups[key][c][key]:
-                        temp.extend(row)
-                unique_groups[key] = np.unique(temp)
+                for c in groups.keys():
+                    print groups[c][par]
+                    temp.extend(groups[c][par])
+                unique_groups[par] = np.unique(temp).tolist()
+
+            # print unique_groups
 
             # position in the row of each parameter
             position = {key: 0 for key in unique_groups.keys()}
             keys = unique_groups.keys()
-            print position
-            print unique_groups
+            # print position
+            # print unique_groups
 
-            # create every possible combination of groups
+            # THIS IS PROBABLY THE MOST IDIOTIC WAY HOW TO GET
+            # ALL COMBINATIONS BETWEEN RECORDS IN N DIFFERENT LISTS
+            # SURPRISINGLY IT DOES NOT GENERATE REDUNDANT COMPARISONS
+            # It iterates over the positions list until for each
+            # record in the list position[i] == len(unique_groups[i])
+            # both are dictionaries of course
             i = 0
             all_groups_list = []
-            while position[key[-1]] > len(unique_groups[key]):
-                if position[key[i]] <= len(unique_groups):
-                    all_groups_list.append({par: unique_groups[par][position[par]] for par in keys})
-                    position[key[i]] += 1
-                else:
+            # while position[keys[-1]] >= len(unique_groups[keys[-1]])-1:
+            while True:
+                # append the current groups
+                temp = {key: unique_groups[key][position[key]] for key in keys}
+                all_groups_list.append(temp)
+
+                # search until you find a list of lenght > 1 or till the end
+                while  i < len(keys) and (position[keys[i]] == len(unique_groups[keys[i]])-1):
                     i += 1
-                    position[key[i]] += 1
-                    for j in range(0, i-1):
-                        position[key[j]] = 0
-                    i = 0
-                print all_groups_list, position
+                # if end was reached - end
+                if not i < len(keys):
+                    break
+                else:
+                    # else increment the record and start over
+                    position[keys[i]] += 1
+                    for j in range(0, i):
+                        position[keys[j]] = 0
+                        i = 0
 
+            # for rec in all_groups_list:
+                # print rec
 
-            for rv_group in rv_groups:
-
-                # append rv_group to groups
-                all_groups = copy.deepcopy(reg_groups)
-                all_groups['rv'] = rv_group
-
+            for rec in all_groups_list:
                 # get unique set of parameters for a given group
-                all_pars = self.sl.get_parameter(**all_groups)
-
+                all_pars = self.sl.get_parameter(**rec)
 
                 if self.ol is not None:
-
-                    if rv_group not in self.rel_rvgroup_region[reg]:
-                        continue
+                    # if rv_group not in self.rel_rvgroup_region[reg]:
+                    #     continue
 
                     # the wmin wmax is used to check again that
                     # we are in the correct region.
-                    obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_group)
+                    obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, permissive=True, **rec)
                     if len(obs) == 0:
                         continue
                 else:
@@ -799,7 +797,7 @@ class Interface(object):
 
                     self.add_comparison(region=reg,
                                         parameters=temp_all_pars,
-                                        groups = all_groups,
+                                        groups = rec,
                                         observed=o,
                                         )
 
@@ -887,8 +885,9 @@ class Interface(object):
         self._setup_grids()
 
         # create the basic interpolated spectra
-        self.ready_synthetic_spectra()
+        # self.ready_synthetic_spectra()
 
+        print self
         # prepare list of comparisons
         self.ready_comparisons_new()
 
@@ -1067,7 +1066,7 @@ class Interface(object):
 
     def _setup_all_groups(self):
         """
-        Setting up the rv_groups is a pain..
+        Setting up all groups from observations is even a bigger pain.
         :return:
         """
         # TODO Can this be done better?????
@@ -1093,6 +1092,7 @@ class Interface(object):
 
         #physical parameters
         phys_pars = self.sl.get_physical_parameters()
+        phys_pars = [par for par in phys_pars if par not in ['lr']]
 
         # for every region we have a look if we have some datas
         for p_par in phys_pars:
@@ -1105,6 +1105,7 @@ class Interface(object):
                 # query spectra for each region
                 observed_spectra = self.ol.get_spectra(wmin=wmin, wmax=wmax)
 
+                # go over each observed spectrum
                 for i, spectrum in enumerate(observed_spectra):
 
                     # read out properties of spectra
@@ -1112,9 +1113,10 @@ class Interface(object):
 
                     # if the group is not defined for the s
                     if p_par in spectrum.group.keys():
-                        # there
-                        p_group = spectrum.group[p_par]
+
+                        p_group = copy.deepcopy(spectrum.group[p_par])
                     else:
+                        # self.ol.set_spectrum(spectrum.filename, group={p_par:0})
                         p_group = None
 
                     # readout groups that were already defined for all components
@@ -1128,6 +1130,8 @@ class Interface(object):
                             reg2rv[reg].append(gn)
                         # for other than rvs, the default group is 0
                         else:
+                            # self.ol.set_spectrum(filename=spectrum.filename, group={p_par: 0})
+                            # spectrum.group[p_par]=0
                             continue
 
                         # save the newly registered group
@@ -1168,6 +1172,7 @@ class Interface(object):
             # print new_groups
             # back register the group numbers to the observed spectra
             for filename in new_groups.keys():
+                # print p_par, new_groups
                 self.ol.set_spectrum(filename=filename, group={'rv': new_groups[filename]})
 
             # finalize the list of rv_groups for each region
@@ -1467,7 +1472,7 @@ class ObservedList(object):
         else:
             return np.max(resolutions)
 
-    def get_spectra(self, verbose=False, **kwargs):
+    def get_spectra(self, verbose=False, permissive=False,  **kwargs):
         """
         :param kwargs.. properties of ObservedSpectrum,
           that we want to return. This function does not
@@ -1475,6 +1480,7 @@ class ObservedList(object):
           observedSpectraList.
         :param verbose return the whole bserved spectra list
           stub
+        :param permissive
 
           In general this could be - wmin, wmax, group,
           component etc..
@@ -1484,10 +1490,14 @@ class ObservedList(object):
 
         # First of all check that all passed arguments are
         # either defined among queriables or is in groups
+        to_pass = []
         for key in kwargs.keys():
             # print key, self._queriables
             if (key not in self._queriables) & (key not in self._queriable_floats):
                 if key not in self.groupValues.keys():
+                    if permissive:
+                        to_pass.append(key)
+                        continue
                     raise KeyError('Keyword %s is not defined. This either means, that it was not set up for '
                                    'the observed spectra, or is an attribute of Observed spectrum, but is not '
                                    'defined among queriables, or is wrong.' % key)
@@ -1500,6 +1510,9 @@ class ObservedList(object):
 
         # reduce the list
         for key in kwargs.keys():
+            #
+            if key in to_pass:
+                continue
 
             # find all matching for a given key-word
             keytest = key.lower()
@@ -1671,6 +1684,8 @@ class ObservedList(object):
             if self.observedSpectraList['spectrum'][i].filename == filename:
                 for key in kwargs.keys():
                     setattr(self.observedSpectraList['spectrum'][i], key, kwargs[key])
+                if key is 'group':
+                    self.observedSpectraList['spectrum'][i].set_group(kwargs[key])
         self.read_groups()
         self.groupValues = self.get_defined_groups()
 

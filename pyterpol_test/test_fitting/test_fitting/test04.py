@@ -7,8 +7,8 @@ to get over big obstacles.
 import pyterpol
 
 rl = pyterpol.RegionList()
-rl.add_region(wmin=6325, wmax=6375, groups={'lr':0})
-rl.add_region(wmin=6540, wmax=6600, groups={'lr':0})
+rl.add_region(wmin=6325, wmax=6375)
+rl.add_region(wmin=6540, wmax=6600)
 
 sl = pyterpol.StarList()
 sl.add_component(component='primary', teff=17000., logg=4.0, rv=-100.0, z=1.0, vrot=40.0, lr=0.35)
