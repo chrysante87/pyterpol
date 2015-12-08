@@ -80,10 +80,6 @@ class Interface(object):
         for attr, name in zip(['sl', 'rl', 'ol', 'fitter'], ['StarList', 'RegionList', 'ObservedList', 'Fitter']):
             string += '%s%s\n' % (name[:len(name)/2].rjust(50, '='), name[len(name)/2:].ljust(50, '='))
             string += str(getattr(self, attr))
-        # too much information
-        # for key in self.grids.keys():
-        #     string += 'Grid for region: %s.\n' % key
-        #     string += str(self.grids[key])
         string += ''.ljust(100,'=')
 
         return string
@@ -95,7 +91,6 @@ class Interface(object):
         """
 
         # this should be done more carefully
-        # print self.fitter.result
         final_pars = self.fitter.result
 
         # list fitted parameters
@@ -861,6 +856,16 @@ class Interface(object):
             # therefore all groups are assihgne dfrom the data, not only
             # the radial velocities
             if self.spectrum_by_spectrum is not None:
+                # setup groups for each spectrum
+                # relative luminosity is given by spectra region, not the spectrum itself
+                phys_pars = [par for par in self.sl.get_physical_parameters() if par not in 'lr']
+
+                # parameters that will be owned by each spectrum
+                varparams = self.spectrum_by_spectrum
+
+                # common parameters
+                fixparams = [par for par in phys_pars if par not in self.spectrum_by_spectrum]
+                self._set_groups_to_observed(varparams, fixparams)
                 self._setup_all_groups()
             else:
                 self._setup_rv_groups()
@@ -924,6 +929,32 @@ class Interface(object):
                                                    step=kwargs.get('step', 0.01))
 
         self.grid_properties_passed = True
+
+    def _set_groups_to_observed(self, varparams, fixparams):
+        """
+        :param varparams parameters whose group number should vary from spectrum to spectrum
+        :param fixparams parameters whose group should be the same for all spectra
+        :return:
+        """
+        if self.ol is None:
+            raise AttributeError('No data are attached.')
+        else:
+            for i in range(0, len(self.ol)):
+                # setup varying parameters
+                for vpar in varparams:
+                    if vpar not in self.ol.observedSpectraList['group'].keys():
+                        self.ol.observedSpectraList['group'][vpar] = np.zeros(len(self.ol))
+                    self.ol.observedSpectraList['group'][vpar][i] = i+1
+
+                # setup fixed parameters
+                for fpar in fixparams:
+                    if fpar not in self.ol.observedSpectraList['group'].keys():
+                        self.ol.observedSpectraList['group'][fpar] = np.zeros(len(self.ol))
+                    self.ol.observedSpectraList['group'][fpar][i] = 0
+
+        # set the groups from table to spectra
+        self.ol._set_groups_to_spectra()
+
 
     def set_parameter(self, component='all', parname=None, group='all', **kwargs):
         """

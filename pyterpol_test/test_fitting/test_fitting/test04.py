@@ -15,9 +15,9 @@ sl.add_component(component='primary', teff=17000., logg=4.0, rv=-100.0, z=1.0, v
 sl.add_component(component='secondary', teff=26000., logg=4.0, rv=100.0, z=1.0, vrot=140.0, lr=0.65)
 
 obs = [
-    dict(filename='a', error=0.001, group=dict(rv=1, vrot=1), component='primary'),
-    dict(filename='b', error=0.001, group=dict(rv=2, vrot=2)),
-    dict(filename='c', error=0.001, group=dict(rv=3, vrot=3))
+    dict(filename='a', error=0.001),
+    dict(filename='b', error=0.001),
+    dict(filename='c', error=0.001)
 ]
 ol = pyterpol.ObservedList()
 ol.add_observations(obs)
