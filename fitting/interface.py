@@ -46,6 +46,7 @@ class Interface(object):
         self.synthetics = {}
         self.grids = {}
         self.fitter = fitter
+        self.spectrum_by_spectrum = spectrum_by_spectrum
 
         # debug mode
         self.debug = debug
@@ -69,7 +70,7 @@ class Interface(object):
         self.grid_properties_passed = False
         self.fit_is_running = False
         self.adaptive_resolution = adaptive_resolution
-        self.spectrum_by_spectrum = spectrum_by_spectrum
+        # self.fitting_loop = False
 
     def __str__(self):
         """
@@ -143,6 +144,11 @@ class Interface(object):
         """
         if l is None:
             l = self.comparisonList
+
+        # optimizing spectrum - owned  parameter is too long
+        # if self.spectrum_by_spectrum is not None and not self.fitting_loop:
+        #     self.optimize_spectrum_by_spectrum(l)
+        #     self.fitting_loop = False
 
         # propagate the parameters to the
         # parameterlist and update it
@@ -318,7 +324,7 @@ class Interface(object):
         else:
             raise AttributeError('No fitter has been attached yet.')
 
-    def optimize_spectrum_by_spectrum(self, spectrum_by_spectrum=None):
+    def optimize_spectrum_by_spectrum(self, l=None, spectrum_by_spectrum=None):
         """
         Runs the fitting in an iterative way. One or more
         parameters should be determined separately for
@@ -329,7 +335,12 @@ class Interface(object):
         :param spectrum_by_spectrum
         :return:
         """
+        # this prevents us from getting into infinite loop
+        # by calling compute chi2 from computechi2
+        # self.fitting_loop = True
 
+        if l is None:
+            l = self.comparisonList
 
         # if we want to use this mode even in case
         # when the interface is not run in this mode.
@@ -342,9 +353,10 @@ class Interface(object):
         for c in self.sl.componentList.keys():
             for key in common_pars:
                 for i in range(0, len(self.sl.componentList[c][key])):
-                    fit_common_pars.append(dict(component=c,
-                                            parname=key,
-                                            group=self.sl.componentList[c][key][i]['group']))
+                    if self.sl.componentList[c][key][i]['fitted'] is True:
+                        fit_common_pars.append(dict(component=c,
+                                                    parname=key,
+                                                    group=self.sl.componentList[c][key][i]['group']))
 
         # get list of unique groups for a given parameter
         # it is assumed that they are set the same
@@ -373,7 +385,7 @@ class Interface(object):
             # turn on parameters for a given group
             for key in spectrum_by_spectrum:
                 self.set_parameter(fitted=True, parname=key, group=group)
-            print group, i
+            # print group, i
 
             # narroe down the comparisons
             temp_par = {key: group for key in spectrum_by_spectrum}
@@ -381,8 +393,6 @@ class Interface(object):
 
             # get fitted parameters
             fitpars = self.get_fitted_parameters()
-            for par in fitpars:
-                print par
 
             # choose a temporary fitter
             self.choose_fitter(name='nlopt_nelder_mead', fitparams=fitpars)
@@ -577,7 +587,8 @@ class Interface(object):
         # this should also change the starlist
         # and corresponding
         fitpars = self.sl.get_fitted_parameters()
-
+        # for par in fitpars:
+        #     print par
         if len(pars) != len(fitpars):
             raise ValueError('Length of the vector passed with the fitting environment does '
                              'mot match length of the parameters marked as fitted.')
@@ -668,7 +679,6 @@ class Interface(object):
         if l is None:
             l = self.comparisonList
 
-        #
         chi2 = 0.0
         if verbose:
             chi2_detailed = []
@@ -891,6 +901,26 @@ class Interface(object):
         """
 
         self.sl.remove_parameter(component, parameter, group)
+
+    def run_iterative_fit(self, niter, l=None, verbose=False):
+        """
+        Does niter successive of spectrum owned and common parameters.
+        :return:
+        """
+        self.fit_is_running = True
+        iter = 0
+        while iter < niter:
+            print self.list_comparisons(l)
+            # always optimize spectrum owned parameters first
+            self.optimize_spectrum_by_spectrum(l=l)
+
+            # then optimize the remaining parameters
+            self.result = self.run_fit(l=l, verbose=False)
+            iter += 1
+
+        self.fitter.flush_iters()
+        self.fit_is_running = False
+
 
     def run_fit(self, l=None, verbose=False):
         """
@@ -2314,39 +2344,6 @@ class StarList(object):
         """
         self.componentList = {}
         self._registered_components = []
-
-    # def clone_parameter(self, component, parameter, index=0, all=False, **kwargs):
-    #     """
-    #     Clones a parameter and stores it for a given component.
-    #     This function will be primarily used to clone parameters
-    #     to acount for different groups.
-    #
-    #     :param component: component for which we want to clone the parameter
-    #     :param parameter: the cloned parameter
-    #     :param index : the specific cloned parameter
-    #     :param kwargs: values we want to change for the parameter
-    #     :return: clone type_Parameter - the cloned parameter
-    #     """
-    #     # in case we pass
-    #     if component.lower() == 'all':
-    #         all = True
-    #         component = self._registered_components[0]
-    #
-    #     # copy the parameter
-    #     clone = copy.deepcopy(self.componentList[component][parameter][index])
-    #
-    #     # adjust its values
-    #     for key in kwargs.keys():
-    #         keytest = key.lower()
-    #         clone[keytest] = kwargs[key]
-    #
-    #     # append the new component to the componentlist
-    #     if all:
-    #         self.add_parameter_to_all(p=clone)
-    #     else:
-    #         self.add_parameter_to_component(component, p=clone)
-    #
-    #     return clone
 
     def clone_parameter(self, component, parameter, index=0, all=False, **kwargs):
         """
