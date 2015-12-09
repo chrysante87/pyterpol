@@ -39,7 +39,7 @@ itf.set_parameter(parname='rv', component='secondary', fitted=True, vmin=-100., 
 # itf.set_parameter(parname='logg', component='primary', fitted=True, vmin=3.5, vmax=4.5)
 # itf.set_parameter(parname='teff', component='primary', fitted=True, vmin=15000., vmax=20000.)
 itf.set_parameter(parname='vrot', component='primary', fitted=True, vmin=40., vmax=80.)
-itf.set_parameter(parname='rv', component='primary', fitted=True, vmin=-100., vmax=100.)
+itf.set_parameter(parname='rv', component='primary', fitted=True, vmin=-120., vmax=120.)
 # itf.set_parameter(parname='lr', component='primary', fitted=True, vmin=0.2, vmax=0.5)
 #
 fitpars = itf.get_fitted_parameters()
@@ -60,7 +60,8 @@ print "Initial settings:",  init_pars, init_chi2
 itf.plot_all_comparisons(l=l, figname='initial')
 #
 # # # do the fitting
-itf.run_fit_spectrum_by_spectrum()
+itf.run_fit(l=l)
+# itf.optimize_spectrum_by_spectrum()
 # #
 # # # evaluate final parameters
 final_pars = pyterpol.parlist_to_list(itf.get_fitted_parameters())
