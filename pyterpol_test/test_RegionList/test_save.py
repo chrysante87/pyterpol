@@ -12,6 +12,11 @@ rl.add_region(component='secondary', identification='r5', wmin=4500., wmax=4800.
 print rl
 
 rl.save('region_list.txt')
+rl.clear_all()
+print rl
+
+rl.load('region_list.txt')
+print rl
 
 
 

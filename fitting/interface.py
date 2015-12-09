@@ -2154,6 +2154,78 @@ class RegionList(List):
                 return True
         return False
 
+    def load(self, f):
+        """
+        Loads the text representation of the class from
+        a file f.
+        :param f
+        :return:
+        """
+
+        # read the file
+        lines = read_text_file(f)
+        data_start = len(lines)
+        for i, l in enumerate(lines):
+            if l.find('REGIONLIST') > -1:
+                data_start = i
+                break
+
+        # check that there are actually some data in the file
+        assert data_start < len(lines)
+
+        # create a regionlist
+        rl = RegionList()
+
+        # from here the file is actually being read
+        for i,l in enumerate(lines[data_start+1:]):
+
+            # once we reach regionlist, we end
+            if l.find('REGIONLIST') > -1:
+                break
+            d = l.split()
+            if d[0].find('component') > -1:
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+
+                # cast the paramneters to teh correct types
+                parnames = ['wmin', 'wmax', 'identification', 'component']
+                cast_types = [float, float, str, str]
+                for k in cdict.keys():
+                    if k in parnames:
+                        i = parnames.index(k)
+                        cdict[k] = cast_types[i](cdict[k])
+                    else:
+                        # the remaining must be groups
+                        cdict[k] = int(cdict[k])
+
+                # add the parameter if it does not exist
+                groups = {cdict[key] for key in cdict.keys() if key not in parnames}
+                kwargs = {cdict[key] for key in cdict.keys() if key  in parnames}
+                rl.add_region(groups=groups, **kwargs)
+
+            # do the same for enviromental keys
+            if d[0].find('env_keys') > -1:
+                # the first string is just identification
+                d = d[1:]
+
+                # secure corrct types
+                recs = ['debug']
+                cast_types = [bool]
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                for k in cdict.keys():
+                    if k in recs:
+                        i = recs.index(k)
+                        ctype = cast_types[i]
+                        cdict[k] = ctype(cdict[k])
+
+                    # assign the vlues
+                    setattr(rl, k, cdict[k])
+
+        # finally assign everything to self
+        attrs = ['_registered_records', '_registered_regions', '_user_defined_groups',
+                 'mainList', 'debug']
+        for attr in attrs:
+            setattr(self, attr, getattr(rl, attr))
+
     def read_user_defined_groups(self, groups):
         """
         When adding new region, all user defined groups
@@ -2206,8 +2278,6 @@ class RegionList(List):
         string += ' REGIONLIST '.rjust(105, '#').ljust(200, '#') + '\n'
         # write the remaining parameters
         ofile.writelines(string)
-
-
 
     def setup_undefined_groups(self):
         """
