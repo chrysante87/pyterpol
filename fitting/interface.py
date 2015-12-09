@@ -2183,7 +2183,7 @@ class RegionList(List):
             if l.find('REGIONLIST') > -1:
                 break
             d = l.split()
-            if d[0].find('component') > -1:
+            if d[0].find('identification') > -1:
                 cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
 
                 # cast the paramneters to teh correct types
@@ -2200,6 +2200,8 @@ class RegionList(List):
                 # add the parameter if it does not exist
                 groups = {cdict[key] for key in cdict.keys() if key not in parnames}
                 kwargs = {cdict[key] for key in cdict.keys() if key  in parnames}
+                print groups
+                print kwargs
                 rl.add_region(groups=groups, **kwargs)
 
             # do the same for enviromental keys
@@ -2219,7 +2221,7 @@ class RegionList(List):
 
                     # assign the vlues
                     setattr(rl, k, cdict[k])
-
+        print rl
         # finally assign everything to self
         attrs = ['_registered_records', '_registered_regions', '_user_defined_groups',
                  'mainList', 'debug']
