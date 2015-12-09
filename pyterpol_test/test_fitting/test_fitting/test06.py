@@ -24,7 +24,7 @@ ol.add_observations(obs)
 
 # setup the class
 itf = pyterpol.Interface(sl=sl, ol=ol, rl=rl, debug=False, spectrum_by_spectrum=['rv', 'vrot'])
-itf.set_grid_properties(order=2)
+itf.set_grid_properties(order=3)
 itf.setup()
 print itf
 print itf.list_comparisons()

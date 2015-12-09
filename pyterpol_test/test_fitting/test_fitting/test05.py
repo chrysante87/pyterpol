@@ -15,9 +15,9 @@ sl.add_component(component='primary', teff=17000., logg=4.0, rv=-100.0, z=1.0, v
 sl.add_component(component='secondary', teff=26000., logg=4.0, rv=100.0, z=1.0, vrot=140.0, lr=0.65)
 
 obs = [
-    dict(filename='a', error=0.001),
-    dict(filename='b', error=0.001),
-    dict(filename='c', error=0.001)
+    dict(filename='a', error=0.001, group=dict(rv=1)),
+    dict(filename='b', error=0.001, group=dict(rv=2)),
+    dict(filename='c', error=0.001, group=dict(rv=3))
 ]
 ol = pyterpol.ObservedList()
 ol.add_observations(obs)
@@ -32,17 +32,17 @@ print itf.list_comparisons()
 
 # setup fitted parameters
 
-# itf.set_parameter(parname='logg', component='secondary', fitted=True, vmin=3.5, vmax=4.5)
-# itf.set_parameter(parname='teff', component='secondary', fitted=True, vmin=20000., vmax=28000.)
+itf.set_parameter(parname='logg', component='secondary', fitted=True, vmin=3.5, vmax=4.5)
+itf.set_parameter(parname='teff', component='secondary', fitted=True, vmin=20000., vmax=28000.)
 itf.set_parameter(parname='vrot', component='secondary', fitted=True, vmin=100., vmax=170.)
 itf.set_parameter(parname='rv', component='secondary', fitted=True, vmin=-100., vmax=100.)
-# itf.set_parameter(parname='lr', component='secondary', fitted=True, vmin=0.5, vmax=0.8)
-# itf.set_parameter(parname='logg', component='primary', fitted=True, vmin=3.5, vmax=4.5)
-# itf.set_parameter(parname='teff', component='primary', fitted=True, vmin=15000., vmax=20000.)
+itf.set_parameter(parname='lr', component='secondary', fitted=True, vmin=0.5, vmax=0.8)
+itf.set_parameter(parname='logg', component='primary', fitted=True, vmin=3.5, vmax=4.5)
+itf.set_parameter(parname='teff', component='primary', fitted=True, vmin=15000., vmax=20000.)
 itf.set_parameter(parname='vrot', component='primary', fitted=True, vmin=40., vmax=80.)
 itf.set_parameter(parname='rv', component='primary', fitted=True, vmin=-120., vmax=120.)
-# itf.set_parameter(parname='lr', component='primary', fitted=True, vmin=0.2, vmax=0.5)
-#
+itf.set_parameter(parname='lr', component='primary', fitted=True, vmin=0.2, vmax=0.5)
+
 fitpars = itf.get_fitted_parameters()
 #
 # # # choose a fitter
@@ -61,8 +61,7 @@ print "Initial settings:",  init_pars, init_chi2
 itf.plot_all_comparisons(l=l, figname='initial')
 #
 # # # do the fitting
-itf.optimize_spectrum_by_spectrum()
-# itf.optimize_spectrum_by_spectrum()
+itf.run_fit(l=l)
 # #
 # # # evaluate final parameters
 final_pars = pyterpol.parlist_to_list(itf.get_fitted_parameters())

@@ -12,6 +12,7 @@ from pyterpol.fitting.fitter import Fitter
 from pyterpol.synthetic.auxiliary import generate_least_number
 from pyterpol.synthetic.auxiliary import keys_to_lowercase
 from pyterpol.synthetic.auxiliary import parlist_to_list
+from pyterpol.synthetic.auxiliary import read_text_file
 from pyterpol.synthetic.auxiliary import sum_dict_keys
 from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
 
@@ -2584,8 +2585,6 @@ class StarList(object):
 
         return pars
 
-
-
     def get_physical_parameters(self):
         """
         Reads physical parameters from the starlist.
@@ -2593,6 +2592,88 @@ class StarList(object):
         """
         component = self._registered_components[0]
         return self.componentList[component].keys()
+
+    def load(self, f):
+        """
+        Loads the text representation of the class from
+        a file f.
+        :param f
+        :return:
+        """
+
+        # read the file
+        lines = read_text_file(f)
+        data_start = len(lines)
+        for i, l in enumerate(lines):
+            if l.find('STARLIST') > -1:
+                data_start = i
+                break
+
+        # check that there are actually some data in the file
+        assert data_start < len(lines)
+
+        # create a StarList
+        sl = StarList()
+
+        # from here the file is actually being read
+        for i,l in enumerate(lines[data_start+1:]):
+
+            # once we reach starlist again, we end
+            if l.find('STARLIST') > -1:
+                break
+            d = l.split()
+            if d[0].find('component') > -1:
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+
+                # cast the paramneters to teh correct types
+                for k in cdict.keys():
+                    if k in ['value', 'vmin', 'vmax']:
+                        cdict[k] = float(cdict[k])
+                    elif k in ['group']:
+                        cdict[k] = int(cdict[k])
+                    elif k in ['fitted']:
+                        cdict[k] = bool(cdict[k])
+
+                # add the parameter if it does not exist
+                c = cdict['component']
+                p = cdict['parameter']
+                if c not in sl.componentList.keys():
+                    sl.componentList[c] = {}
+                    sl._registered_components.append(c)
+                if cdict['parameter'] not in sl.componentList[c].keys():
+                    sl.componentList[c][p] = []
+
+                # transform the array to Parameter classs
+                pdict = {key: cdict[key] for key in cdict.keys() if key not in ['parameter', 'component']}
+                pdict['name'] = p
+
+                # add the parameter to teh class
+                par = Parameter(**pdict)
+                sl.add_parameter_to_component(component=c, p=par)
+
+            # do the same for enviromental keys
+            if d[0].find('env_keys') > -1:
+                # the first string is just identification
+                d = d[1:]
+
+                # secure corrct types
+                recs = ['debug']
+                cast_types = [bool]
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                for k in cdict.keys():
+                    if k in recs:
+                        i = recs.index(k)
+                        ctype = cast_types[i]
+                        cdict[k] = ctype(cdict[k])
+
+                    # assign the vlues
+                    setattr(sl, k, cdict[k])
+
+        # finally assign everything to self
+        attrs = ['_registered_components', 'componentList', 'debug',
+                 'fitted_types', 'groups']
+        for attr in attrs:
+            setattr(self, attr, getattr(sl, attr))
 
     def read_groups(self):
         """
@@ -2618,6 +2699,39 @@ class StarList(object):
         index = self.get_index(component, parameter, group)
         del self.componentList[component][parameter][index]
 
+    def save(self, ofile):
+        """
+        Saves the class. It should be retrievable from the file.
+        :param f:
+        :return:
+        """
+        # Open the file
+        if isinstance(ofile, str):
+            ofile = open(ofile, 'w+')
+
+        # parameters listed for each record in the starlist
+        listed_keys = ['value', 'unit', 'fitted', 'vmin', 'vmax', 'group']
+        enviromental_keys = ['debug']
+        string = ' STARLIST '.rjust(105, '#').ljust(200, '#') + '\n'
+
+        for c in self.componentList.keys():
+            for key in self.componentList[c].keys():
+                for par in self.componentList[c][key]:
+                    string += 'component: %s ' % c
+                    string += 'parameter: %s ' % key
+                    for lkey in listed_keys:
+                        string += '%s: %s ' % (lkey, str(par[lkey]))
+                    string += '\n'
+
+        # setup additional parameters
+        enviromental_keys = ['debug']
+        string += 'env_keys: '
+        for ekey in enviromental_keys:
+            string += '%s: %s ' % (ekey, str(getattr(self, ekey)))
+        string += '\n'
+        string += ' STARLIST '.rjust(105, '#').ljust(200, '#') + '\n'
+        # write the remaining parameters
+        ofile.writelines(string)
 
     def set_groups(self, groups, overwrite=False):
         """
