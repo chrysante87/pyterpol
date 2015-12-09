@@ -1427,7 +1427,7 @@ class List(object):
     """
     Future parent class for all the lists, which are dictionaries... :-)
     """
-    def __init__(self, l=None, debug=None):
+    def __init__(self, l=None, debug=False):
         """
         :param l: the list stored within the class
         :param debug: debugmode on/off
@@ -2167,6 +2167,47 @@ class RegionList(List):
             else:
                 if groups[key] not in self._user_defined_groups[key]:
                     self._user_defined_groups[key].append(groups[key])
+
+    def save(self, ofile):
+        """
+        Saves the class. It should be retrievable from the file.
+        :param f:
+        :return:
+        """
+        # Open the file
+        if isinstance(ofile, str):
+            ofile = open(ofile, 'w+')
+
+        # parameters listed for each record in the RegionList
+        enviromental_keys = ['debug']
+        string = ' REGIONLIST '.rjust(105, '#').ljust(200, '#') + '\n'
+        for ident in self.mainList.keys():
+            for i, c in enumerate(self.mainList[ident]['components']):
+                string += 'identification: %s ' % ident
+
+                # write the wavelengths
+                for lkey in ['wmin', 'wmax']:
+                    string += '%s: %s ' % (lkey, str(self.mainList[ident][lkey]))
+
+                # write components
+                string += "component: %s " % c
+
+                # and groups
+                for gkey in self.mainList[ident]['groups'][i].keys():
+                    string += "%s: %s " % (gkey, str(self.mainList[ident]['groups'][i][gkey]))
+            string += '\n'
+
+
+        # setup additional parameters
+        string += 'env_keys: '
+        for ekey in enviromental_keys:
+            string += '%s: %s ' % (ekey, str(getattr(self, ekey)))
+        string += '\n'
+        string += ' REGIONLIST '.rjust(105, '#').ljust(200, '#') + '\n'
+        # write the remaining parameters
+        ofile.writelines(string)
+
+
 
     def setup_undefined_groups(self):
         """
