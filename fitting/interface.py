@@ -2182,10 +2182,12 @@ class RegionList(List):
             # once we reach regionlist, we end
             if l.find('REGIONLIST') > -1:
                 break
+            # split the linbe
             d = l.split()
+            # print d
             if d[0].find('identification') > -1:
                 cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
-
+                # print cdict
                 # cast the paramneters to teh correct types
                 parnames = ['wmin', 'wmax', 'identification', 'component']
                 cast_types = [float, float, str, str]
@@ -2198,10 +2200,10 @@ class RegionList(List):
                         cdict[k] = int(cdict[k])
 
                 # add the parameter if it does not exist
-                groups = {cdict[key] for key in cdict.keys() if key not in parnames}
-                kwargs = {cdict[key] for key in cdict.keys() if key  in parnames}
-                print groups
-                print kwargs
+                groups = {key: cdict[key] for key in cdict.keys() if key not in parnames}
+                kwargs = {key: cdict[key] for key in cdict.keys() if key  in parnames}
+                # print groups
+                # # print kwargs
                 rl.add_region(groups=groups, **kwargs)
 
             # do the same for enviromental keys
