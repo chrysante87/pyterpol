@@ -14,41 +14,37 @@ fitters = dict(
                         object=fmin,
                         uses_bounds=False,
                         info='Nelder-Mead simplex algorithm. '
-                             'Implemetation: http://docs.scipy.org/doc/scipy-0.16.1/reference/generated/' \
-                             'scipy.optimize.fmin.html#scipy.optimize.fmin Ineffective for high dimensional' \
-                             ' parameter space.'
-                        ),
+                             'Implemetation: http://docs.scipy.org/doc/scipy-0.16.1/reference/generated/'
+                             'scipy.optimize.fmin.html#scipy.optimize.fmin Ineffective for high dimensional'
+                             ' parameter space.'),
     sp_diff_evol=dict(par0type='limit',
-                        optional_kwargs=['popsize', 'tol', 'strategy', 'maxiter'],
-                        object=differential_evolution,
-                        uses_bounds=False,
-                        info='Differential evolution algorithm.'
-                             'Implemetation: http://docs.scipy.org/doc/scipy-0.16.1/reference/generated/' \
-                             'scipy.optimize.fmin.html#scipy.optimize.fmin.'
-                        ),
+                      optional_kwargs=['popsize', 'tol', 'strategy', 'maxiter'],
+                      object=differential_evolution,
+                      uses_bounds=False,
+                      info='Differential evolution algorithm.'
+                           'Implemetation: http://docs.scipy.org/doc/scipy-0.16.1/reference/generated/'
+                           'scipy.optimize.fmin.html#scipy.optimize.fmin.'),
     nlopt_nelder_mead=dict(par0type='value',
                            optional_kwargs=['xtol', 'ftol', 'maxfun'],
-                           object = None,
-                           environment = nlopt.LN_NELDERMEAD,
+                           object=None,
+                           environment=nlopt.LN_NELDERMEAD,
                            uses_bounds=True,
                            info='Nelder-Mead Simplex. Implementation NLOPT: Steven G. Johnson, '
-                                'The NLopt nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'
-                           ),
+                                'The NLopt nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'),
     nlopt_sbplx=dict(par0type='value',
-                           optional_kwargs=['xtol', 'ftol', 'maxfun'],
-                           object = None,
-                           environment = nlopt.LN_SBPLX,
-                           uses_bounds=True,
-                           info='Sbplx - a variation of the Tom Rowans Subplex. '
-                                'Implementation NLOPT: Steven G. Johnson, The NLopt '
-                                'nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'
-                           ),
-)
+                     optional_kwargs=['xtol', 'ftol', 'maxfun'],
+                     object=None,
+                     environment=nlopt.LN_SBPLX,
+                     uses_bounds=True,
+                    info='Sbplx - a variation of the Tom Rowans Subplex. '
+                         'Implementation NLOPT: Steven G. Johnson, The NLopt '
+                         'nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'),)
+
 
 class Fitter(object):
     """
     """
-    def __init__(self, fitparams=[], verbose=False, debug=False, fitlog='fit.log'):
+    def __init__(self, fitparams=None, verbose=False, debug=False, fitlog='fit.log'):
         """
         :param fitparams a list of Parameter types
         :param verbose whether to save detailed chi_square information
@@ -57,7 +53,10 @@ class Fitter(object):
         """
 
         # pass the parameters
-        self.fitparams = fitparams
+        if fitparams is None:
+            self.fitparams = []
+        else:
+            self.fitparams = fitparams
         self.verbose = verbose
         self.fitlog = fitlog
         self.debug = debug
@@ -81,12 +80,10 @@ class Fitter(object):
             warnings.warn('A fitlog from previous fitting was found and overwritten..muhahahaha!')
             open(fitlog, 'w')
 
-
-    def __call__(self, func, *args, **kwargs):
+    def __call__(self, func, *args):
         """
         :param func:
         :param args:
-        :param kwargs:
         :return:
         """
         # reset the counter and clear the fitting
@@ -112,9 +109,9 @@ class Fitter(object):
 
         elif self.family == 'nlopt':
 
-            f = lambda x, grad: func(x, *args)
-
-            # print self.par0
+            # define function for the nlopt fitter
+            def f(x, grad):
+                return func(x, *args)
 
             # check that we are searching minimum
             self.fitter.set_min_objective(f)
@@ -139,8 +136,10 @@ class Fitter(object):
     def append_iteration(self, iter):
         """
         Appends each iteration.
+        :param iter the iteration
         :return:
         """
+        # TODO this function  has to be improved.
         self.iter_number += 1
         self.iters.append(iter)
 
@@ -158,12 +157,13 @@ class Fitter(object):
 
     def choose_fitter(self, name, fitparams=None, **kwargs):
         """
-        Prepares the variables for the fitting
-        :param name:
-        :param kwargs:
+        Selects a fitter from the list of available ones and
+        prepares the fitting variables.
+        :param name: name of the fitting environment
+        :param fitparams: list of fitted parameters ech wrapped within Parameter class
+        :param kwargs: keyword arguments controlling the respective fitting environement
         :return:
         """
-        # print fitparams
 
         # check the input
         if name.lower() not in fitters.keys():
@@ -175,7 +175,7 @@ class Fitter(object):
             if key not in fitters[name]['optional_kwargs']:
                 raise KeyError('The parameter: %s is not listed among '
                                'optional_kwargs for fitter: %s. The eligible'
-                               'optional_kwargs are: %s'  % (key, name, str(fitters[name]['optional_kwargs'])))
+                               'optional_kwargs are: %s' % (key, name, str(fitters[name]['optional_kwargs'])))
             else:
                 self.fit_kwargs[key] = kwargs[key]
 
@@ -236,7 +236,8 @@ class Fitter(object):
         ofile.writelines(lines)
         ofile.close()
 
-    def list_fitters(self):
+    @staticmethod
+    def list_fitters():
         """
         Lists all fitters.
         :return: string : a list of all fitters.
@@ -272,8 +273,10 @@ class Fitter(object):
         # create the class
         fitter = Fitter()
 
+        name = None
+        fit_kwargs = {}
         # from here the file is actually being read
-        for i,l in enumerate(lines[data_start+1:]):
+        for i, l in enumerate(lines[data_start+1:]):
 
             # once we reach FITTER again we end
             if l.find('FITTER') > -1:
@@ -298,7 +301,7 @@ class Fitter(object):
                 # secure corrct types
                 recs = ['debug', 'verbose', 'fitlog']
                 cast_types = [string2bool, string2bool, str]
-                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0, len(d), 2)}
                 for k in cdict.keys():
                     if k in recs:
                         i = recs.index(k)
@@ -332,7 +335,7 @@ class Fitter(object):
         # row announcing the fitter
         string = ' FITTER '.rjust(105, '#').ljust(200, '#') + '\n'
         # name of the fitter
-        string += 'fitter: %s\n' % (self.fittername)
+        string += 'fitter: %s\n' % self.fittername
         string += 'fit_parameters: '
         # writes the fitting kwargs
         for fkey in self.fit_kwargs:
@@ -380,10 +383,8 @@ class Fitter(object):
 
         # setup initial step
         # TODO Maybe this deserves its attribute variable in Parameter class
-        stepsize = ((np.array(self.vmaxs) - np.array(self.vmins))/2.).tolist()
-        # print stepsize
-        # print self.fitter.get_lower_bounds(), self.fitter.get_upper_bounds()
-
+        stepsize = (np.array(self.vmaxs) - np.array(self.vmins))/2.
+        stepsize = stepsize.tolist()
         self.fitter.set_initial_step(stepsize)
 
 
