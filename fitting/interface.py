@@ -331,7 +331,79 @@ class Interface(object):
         :param f: the loaded file
         :return:
         """
-        pass
+        # first load the interface
+
+        # read the file
+        lines = read_text_file(f)
+        data_start = len(lines)
+        for i, l in enumerate(lines):
+            if l.find('INTERFACE') > -1:
+                data_start = i
+                break
+
+        # check that there are actually some data in the file
+        # the algorithm failed to load the class
+        if data_start >= len(lines):
+            return False
+
+        for l in lines[1:]:
+            d = l.split()
+            # once we reach arain the Interface, we end
+            if l.find('INTERFACE') > -1:
+                break
+
+            ddicts = {}
+            # define record names and types
+            dnames = dict(
+                grid_parameters=['mode'],
+                synthetic_spectra_parameters=['order', 'step', 'padding'],
+                env_keys=['debug', 'adaptive_resolution']
+            )
+
+            dtypes = dict(
+                grid_parameters=[str, string2bool],
+                synthetic_spectra_parameters=[int, float, float],
+                env_keys=[str, str, str]
+            )
+            # load all keys - env_vars, grid and synthetic spectra parameters
+            for dname in dnames.keys():
+                if d[0].find(dname) > -1:
+                    p = dnames[dname]
+                    pt = dtypes[dname]
+                    ddict = {d[i].strip(':'): d[i+1] for i in range(1, len(d), 2)}
+                    # cast the variables to correct type
+                    for k in ddict.keys():
+                        i = p.index(k)
+                        ddict[k] = pt[i](ddict[k])
+                    ddicts[dname] = ddict
+
+        # load the remaining data
+        rl = RegionList()
+        if not rl.load(f):
+            raise ValueError('No records on the RegionList were found in %s.' % f)
+        sl = StarList()
+        if not sl.load(f):
+            raise ValueError('No records on the StarList were found in %s.' % f)
+        fitter = Fitter()
+        if not fitter.load(f):
+            warnings.warn('No fitter was found in file %s', f)
+            fitter = None
+        ol = ObservedList()
+        if not ol.load(f):
+            warnings.warn('No ObservedList was found in file %s', f)
+            ol = None
+
+        # setup the interface
+        itf = Interface(sl=sl, ol=ol, rl=rl, fitter=fitter, **ddicts['env_keys'])
+        gpars = {}
+
+        # merge grid ans synthetic spectra parameters
+        for d in [ddicts['synthetic_spectra_parameters'], ddicts['grid_parameters']]:
+            for k in d.keys():
+                gpars[k] = d[k]
+        itf.set_grid_properties(**gpars)
+
+
 
     def optimize_spectrum_by_spectrum(self, l=None, spectrum_by_spectrum=None):
         """

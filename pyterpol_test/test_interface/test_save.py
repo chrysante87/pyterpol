@@ -24,10 +24,15 @@ sl.add_component(component='primary', teff=20000., logg=4.5, rv=-30., vrot=150.,
 sl.add_component(component='secondary', teff=20000., logg=4.5, rv=30., vrot=10., lr=0.5, z=1.0)
 
 # 4) define interface
-itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=True)
+itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=False)
 itf.setup()
+print itf
 
 # 5) save the interface
 itf.save('itf_save.txt')
+itf.clear_all()
+print itf
 
+# 6) load the interface
+itf.load('itf_save.txt')
 
