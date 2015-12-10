@@ -1810,22 +1810,20 @@ class ObservedList(object):
             d = l.split()
             # print d
             if d[0].find('filename') > -1:
-                # cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
-                # cdict['error'] = cdict['global_error']
-                # del cdict['global_error']
                 i = 0
                 cdict = {}
+                # print d
                 while i < len(d):
-                    if ':'.find(d[i]) > -1:
+                    if d[i].find(':') > -1:
                         j = i + 1
-                        while ':'.find(d[j]) == -1 and j < len(d):
-                            j = j + 1
-                    stub = d[i:j]
-                    if len(stub) < 2:
-                        cdict[d[i].strip(':')] = stub[0].strip(':[]{}\'\"')
-                    else:
-                        cdict[d[i].strip(':')] = map(int, [stub[j].strip(':[]{}\'\"') for j in range(0, len(stub))])
-                    print cdict
+                        while j < len(d) and d[j].find(':') == -1 :
+                            j += 1
+                        stub = d[i:j]
+                        if len(stub) < 3:
+                            cdict[d[i].strip(':')] = stub[1].strip(':[]{}\'\"')
+                        else:
+                            cdict[d[i].strip(':')] = map(int, [stub[k].strip(':[]{}\'\"') for k in range(1, len(stub))])
+                        i = j
 
                 # cast the paramneters to teh correct types
                 parnames = ['filename', 'component', 'error', 'korel']
