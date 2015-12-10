@@ -948,16 +948,37 @@ class Interface(object):
         :param ofile: file or filehandler
         :return:
         """
+
+        # open the file
+        if isinstance(ofile, str):
+            ofile = open(ofile, 'w')
+
         # Setup the interface variables first.
         string = ' INTERFACE '.rjust(105, '#').ljust(200, '#') + '\n'
+
+        # set the grid properities
+        string += 'grid_parameters: '
+        for key in self._grid_kwargs.keys():
+            if key not in ['debug']:
+                string += '%s: %s ' % (key, str(self._grid_kwargs[key]))
+        string += '\n'
+
+        # set the synthetic spectra parameters
+        string += 'synthetic_spectra_parameters: '
+        for key in self._synthetic_spectrum_kwargs.keys():
+            string += '%s: %s ' % (key, str(self._synthetic_spectrum_kwargs[key]))
+        string += '\n'
+
+        # Set the environmental keys
         enviromental_keys = ['adaptive_resolution', 'debug']
-        string = ' INTERFACE '.rjust(105, '#').ljust(200, '#') + '\n'
-        # correctly opent the file
-        if isinstance(ofile, str):
-            # in this case we open for
-            # appending, since we are
-            # saving more objects
-            ofile = open(ofile, 'a+')
+        string += 'env_keys: '
+        for ekey in enviromental_keys:
+            string += "%s: %s " % (ekey, str(getattr(self, ekey)))
+        string += '\n'
+
+        # finalize the string
+        string += ' INTERFACE '.rjust(105, '#').ljust(200, '#') + '\n'
+        ofile.writelines(string)
 
         # save the starlist
         self.sl.save(ofile)
@@ -1058,7 +1079,7 @@ class Interface(object):
                 self._grid_kwargs[k] = kwargs[k]
             # setup synthetic spectra parameters
             elif k in self._synthetic_spectrum_kwargs.keys():
-                self._synthetic_spectrum_kwargs = kwargs[k]
+                self._synthetic_spectrum_kwargs[k] = kwargs[k]
             else:
                 raise KeyError('Key: %s is not a property of either the grid or synthetic spectra. '
                                'The only parameters adjustable with this function are: '
@@ -1789,9 +1810,22 @@ class ObservedList(object):
             d = l.split()
             # print d
             if d[0].find('filename') > -1:
-                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
-                cdict['error'] = cdict['global_error']
-                del cdict['global_error']
+                # cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                # cdict['error'] = cdict['global_error']
+                # del cdict['global_error']
+                i = 0
+                cdict = {}
+                while i < len(d):
+                    if ':'.find(d[i]) > -1:
+                        j = i + 1
+                        while ':'.find(d[j]) == -1 and j < len(d):
+                            j = j + 1
+                    stub = d[i:j]
+                    if len(stub) < 2:
+                        cdict[d[i].strip(':')] = stub[0].strip(':[]{}\'\"')
+                    else:
+                        cdict[d[i].strip(':')] = map(int, [stub[j].strip(':[]{}\'\"') for j in range(0, len(stub))])
+                    print cdict
 
                 # cast the paramneters to teh correct types
                 parnames = ['filename', 'component', 'error', 'korel']
@@ -1805,7 +1839,8 @@ class ObservedList(object):
                             cdict[k] = None
                     else:
                         # the remaining must be groups
-                        cdict[k] = int(cdict[k])
+                        if len(cdict[k]) == 1:
+                            cdict[k] = int(cdict[k])
 
                 # add the parameter if it does not exist
                 groups = {key: cdict[key] for key in cdict.keys() if key not in parnames}
@@ -1943,17 +1978,18 @@ class ObservedList(object):
         enviromental_keys = ['debug']
         string = ' OBSERVEDLIST '.rjust(105, '#').ljust(200, '#') + '\n'
         for s in self.observedSpectraList['spectrum']:
-
-            # actually all that we need are strings representing the
-            # the individual spectra
-            # strip all unnecessary info
-            l = str(s).split()[:-4]
-            l = [rec.strip('\'\":,{}') for rec in l]
-            # print l
-            l.remove('group')
-            for i in range(0, len(l), 2):
-                if l[i] not in ['hasErrors', 'loaded']:
-                    string += "%s: %s " % (l[i], l[i+1])
+            keys = ['filename', 'component', 'korel', 'global_error', 'groups']
+            for k in keys:
+                if k not in ['groups']:
+                    string += '%s: %s ' % (k, str(getattr(s, k)))
+                else:
+                    for gk in s.group.keys():
+                        if isinstance(s.group[gk], (list, tuple)):
+                            string += '%s: ' % gk
+                            for gn in s.group[gk]:
+                                string += '%s ' % str(gn)
+                        else:
+                            string += '%s: %s ' % (gk, str(s.group[gk]))
             string += '\n'
         # attach enviromental keys
         for ekey in enviromental_keys:
