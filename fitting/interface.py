@@ -64,10 +64,10 @@ class Interface(object):
         self.rel_rvgroup_region = {}
 
         # properties of synthetic spectra
-        self._synthetic_spectrum_kwargs = {}
+        self._synthetic_spectrum_kwargs = dict(step=0.01, order=4, padding=20.)
 
         # properties of grids
-        self._grid_kwargs = {}
+        self._grid_kwargs = dict(mode='default', debug=debug)
 
         # initialization of various boolean variables
         self.grid_properties_passed = False
@@ -942,6 +942,36 @@ class Interface(object):
         # turn of the fitting
         self.fit_is_running = False
 
+    def save(self, ofile):
+        """
+        Saves the interface as a text file.
+        :param ofile: file or filehandler
+        :return:
+        """
+        # Setup the interface variables first.
+        string = ' INTERFACE '.rjust(105, '#').ljust(200, '#') + '\n'
+        enviromental_keys = ['adaptive_resolution', 'debug']
+        string = ' INTERFACE '.rjust(105, '#').ljust(200, '#') + '\n'
+        # correctly opent the file
+        if isinstance(ofile, str):
+            # in this case we open for
+            # appending, since we are
+            # saving more objects
+            ofile = open(ofile, 'a+')
+
+        # save the starlist
+        self.sl.save(ofile)
+
+        # save the fitter
+        self.fitter.save(ofile)
+
+        # save the regions
+        self.rl.save(ofile)
+
+        # save the observed list - if any was given
+        if self.ol is not None:
+            self.ol.save(ofile)
+
     def setup(self):
         """
         This function probes the observed and
@@ -984,30 +1014,20 @@ class Interface(object):
                 self._setup_all_groups()
             else:
                 self._setup_rv_groups()
+
+            # setup the wavelength step of synthetic spectra
+            # from observed psectra
+            if self.adaptive_resolution:
+                step = self.ol.get_resolution()
+
+                if self.debug:
+                    print "The step size of the grid is: %s Angstrom." % str(step)
+                self.set_grid_properties(step=step/2.)
+
         else:
             warnings.warn('There are no data attached, so all regions are set to '
                           'have the same radial velocity. Each component can have'
                           'different velocity of course.')
-
-        # setup grids
-        if not self.grid_properties_passed:
-            # if the settings of the grids were not passed,
-            # we go for default ones
-            warnings.warn('Using default grid and synthetic spectra settings.')
-
-            # choose the resolution of the grid to 2*R_best_observed
-            if self.ol is not None:
-                if self.adaptive_resolution:
-                    step = self.ol.get_resolution()
-
-                    if self.debug:
-                        print "The step size of the grid is: %s Angstrom." % str(step)
-
-                    self.set_grid_properties(step=step/2.)
-                else:
-                    self.set_grid_properties()
-            else:
-                self.set_grid_properties()
 
         # attach grids to the interface
         self._setup_grids()
@@ -1026,24 +1046,26 @@ class Interface(object):
 
     def set_grid_properties(self, **kwargs):
         """
-        :param kwargs: parameters for the SyntheticGrid.__init__
         :param kwargs: padding - number of spectra to use for
                 padding of synthetic spectra
-        :param kwargs: nspectra - maximal number of spectra
+        :param kwargs: order - maximal number of spectra
                 for interpolation
         :return:
         """
-        if kwargs is not None:
-            # setup how the grids are cretaed
-            self._grid_kwargs = dict(mode=kwargs.get('mode', 'default'),
-                                    debug=kwargs.get('debug', self.debug))
-
-            # setup keyword for individual spectra
-            self._synthetic_spectrum_kwargs = dict(padding=kwargs.get('padding', 20),
-                                                   order=kwargs.get('order', 4),
-                                                   step=kwargs.get('step', 0.01))
-
-        self.grid_properties_passed = True
+        for k in kwargs.keys():
+            # setup grid parameters
+            if k in self._grid_kwargs.keys():
+                self._grid_kwargs[k] = kwargs[k]
+            # setup synthetic spectra parameters
+            elif k in self._synthetic_spectrum_kwargs.keys():
+                self._synthetic_spectrum_kwargs = kwargs[k]
+            else:
+                raise KeyError('Key: %s is not a property of either the grid or synthetic spectra. '
+                               'The only parameters adjustable with this function are: '
+                               ' %s for grid and % for synthetic spectra.'
+                               % (k,
+                                  str(self._grid_kwargs.keys()),
+                                  str(self._synthetic_spectrum_kwargs.keys())))
 
     def _set_groups_to_observed(self, varparams, fixparams):
         """

@@ -36,7 +36,7 @@ fitters = dict(
                      object=None,
                      environment=nlopt.LN_SBPLX,
                      uses_bounds=True,
-                    info='Sbplx - a variation of the Tom Rowans Subplex. '
+                     info='Sbplx - a variation of the Tom Rowans Subplex. '
                          'Implementation NLOPT: Steven G. Johnson, The NLopt '
                          'nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'),)
 
