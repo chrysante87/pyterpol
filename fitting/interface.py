@@ -1828,6 +1828,44 @@ class ObservedList(object):
             for key in self._property_list:
                 self.observedSpectraList['properties'][key][i] = getattr(spectrum, key)
 
+    def save(self, ofile):
+        """
+        Saves the class. It should be retrievable from the file.
+        :param f:
+        :return:
+        """
+        # Open the file
+        if isinstance(ofile, str):
+            ofile = open(ofile, 'w+')
+
+        # parameters listed for each record in the RegionList
+        enviromental_keys = ['debug']
+        string = ' OBSERVEDLIST '.rjust(105, '#').ljust(200, '#') + '\n'
+        for s in self.observedSpectraList['spectrum']:
+
+            # actually all that we need are strings representing the
+            # the individual spectra
+            l = str(s).split()[:-4]
+            l = [rec.rstrip('}') for rec in l]
+            l = [rec.lstrip('{') for rec in l]
+            for i in range(0, len(l), 2):
+                if l[i] not in ['hasErrors']:
+
+            # for i, c in enumerate(self.mainList[ident]['components']):
+            #     string += 'identification: %s ' % ident
+            #
+            #     # write the wavelengths
+            #     for lkey in ['wmin', 'wmax']:
+            #         string += '%s: %s ' % (lkey, str(self.mainList[ident][lkey]))
+            #
+            #     # write components
+            #     string += "component: %s " % c
+            #
+            #     # and groups
+            #     for gkey in self.mainList[ident]['groups'][i].keys():
+            #         string += "%s: %s " % (gkey, str(self.mainList[ident]['groups'][i][gkey]))
+            string += '\n'
+
     def set_spectrum(self, filename=None, **kwargs):
         """
         Sets spectrum to a given value.

@@ -36,6 +36,7 @@ class ObservedSpectrum:
             warnings.warn("I found no array with errorbars of observed intensities. "
                           "Do not forget to assign them later!")
             self.error = None
+            self.global_error = None
             self.hasErrors = False
 
         # sets that the spectrum is loaded
@@ -50,9 +51,11 @@ class ObservedSpectrum:
             if isinstance(error, (float, int)) and error is not None:
                 self.error = np.ones(len(wave)) * error
                 self.hasErrors = True
+                self.global_error = error
             elif error is not None:
                 self.error = error
                 self.hasErrors = True
+                self.global_error = None
         else:
             self.loaded = False
 
@@ -326,11 +329,13 @@ class ObservedSpectrum:
                 warnings.warn("I found no errorbars of the observed intensities in file: %s! "
                               "I assume they will be provided later. I remember!!" % (filename))
                 self.hasErrors = False
+                self.global_error = None
 
             # error was set up
             else:
                 self.error = global_error * np.ones(len(self.wave))
                 self.hasErrors = True
+                self.global_error = global_error
 
         # the spectrum is marked as loaded
         self.loaded = True
@@ -349,9 +354,11 @@ class ObservedSpectrum:
         if vec_error is not None:
             self.error = vec_error
             self.hasErrors = True
+            self.global_error = None
         if global_error is not None:
             self.error = global_error * np.ones(len(self.wave))
             self.hasErrors = True
+            self.global_error = global_error
 
     def set_group(self, group):
         """
