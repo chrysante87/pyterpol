@@ -325,6 +325,14 @@ class Interface(object):
         else:
             raise AttributeError('No fitter has been attached yet.')
 
+    def load(self,f):
+        """
+        Loads the type from a file created with the save method.
+        :param f: the loaded file
+        :return:
+        """
+        pass
+
     def optimize_spectrum_by_spectrum(self, l=None, spectrum_by_spectrum=None):
         """
         Runs the fitting in an iterative way. One or more
@@ -1795,7 +1803,9 @@ class ObservedList(object):
                 break
 
         # check that there are actually some data in the file
-        assert data_start < len(lines)
+        # the algorithm failed to load the class
+        if data_start >= len(lines):
+            return False
 
         # create a regionlist
         ol = ObservedList()
@@ -2342,7 +2352,9 @@ class RegionList(List):
                 break
 
         # check that there are actually some data in the file
-        assert data_start < len(lines)
+        # if not we failed
+        if data_start >= len(lines):
+            return False
 
         # create a regionlist
         rl = RegionList()
@@ -2894,7 +2906,8 @@ class StarList(object):
                 break
 
         # check that there are actually some data in the file
-        assert data_start < len(lines)
+        if data_start >= len(lines):
+            return False
 
         # create a StarList
         sl = StarList()

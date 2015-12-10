@@ -268,7 +268,8 @@ class Fitter(object):
                 break
 
         # check that there are actually some data in the file
-        assert data_start < len(lines)
+        if data_start >= len(lines):
+            return False
 
         # create the class
         fitter = Fitter()
