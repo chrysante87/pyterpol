@@ -5,6 +5,8 @@ import numpy as np
 from scipy.optimize import fmin
 from scipy.optimize import differential_evolution
 from pyterpol.synthetic.auxiliary import parlist_to_list
+from pyterpol.synthetic.auxiliary import string2bool
+from pyterpol.synthetic.auxiliary import read_text_file
 
 fitters = dict(
     sp_nelder_mead=dict(par0type='value',
@@ -125,8 +127,9 @@ class Fitter(object):
         String representation of the class.
         :return:
         """
-        string = 'Initial parameters:'
+        string = ''
         string += 'Fitter: %s optional_arguments: %s\n' % (self.fittername, str(self.fit_kwargs))
+        string += 'Initial parameters:'
         for i, par in enumerate(self.fitparams):
             string += "(%s, group): (%s, %s); " % (par['name'], str(self.par0[i]), str(par['group']))
         string += '\n'
@@ -146,6 +149,12 @@ class Fitter(object):
         if len(self.iters) > 1000:
             self.flush_iters()
             self.iters = []
+
+    def clear_all(self):
+        """
+        :return:
+        """
+        self.__init__()
 
     def choose_fitter(self, name, fitparams=None, **kwargs):
         """
@@ -241,6 +250,72 @@ class Fitter(object):
             string += '\n'.rjust(100, '=')
         return string
 
+    def load(self, f):
+        """
+        Loads the text representation of the class from
+        a file f.
+        :param f
+        :return:
+        """
+
+        # read the file
+        lines = read_text_file(f)
+        data_start = len(lines)
+        for i, l in enumerate(lines):
+            if l.find('FITTER') > -1:
+                data_start = i
+                break
+
+        # check that there are actually some data in the file
+        assert data_start < len(lines)
+
+        # create the class
+        fitter = Fitter()
+
+        # from here the file is actually being read
+        for i,l in enumerate(lines[data_start+1:]):
+
+            # once we reach FITTER again we end
+            if l.find('FITTER') > -1:
+                break
+            # split the line
+            d = l.split()
+            # print d
+            # save the name
+            if d[0].find('fitter:') > -1:
+                name = d[1]
+
+            # save the kwargs
+            elif d[0].find('fit_parameters') > -1:
+                d = d[1:]
+                fit_kwargs = {d[i].strip(':'): float(d[i+1]) for i in range(0, len(d), 2)}
+
+            # do the same for enviromental keys
+            if d[0].find('env_keys') > -1:
+                # the first string is just identification
+                d = d[1:]
+
+                # secure corrct types
+                recs = ['debug', 'verbose', 'fitlog']
+                cast_types = [string2bool, string2bool, str]
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                for k in cdict.keys():
+                    if k in recs:
+                        i = recs.index(k)
+                        ctype = cast_types[i]
+                        cdict[k] = ctype(cdict[k])
+
+                    # assign the vlues
+                    setattr(fitter, k, cdict[k])
+
+        # choose the fitter
+        fitter.choose_fitter(name, **fit_kwargs)
+
+        # finally assign everything to self
+        attrs = ['debug', 'fittername', 'verbose', 'fitlog', 'fit_kwargs']
+        for attr in attrs:
+            setattr(self, attr, getattr(fitter, attr))
+
     def save(self, ofile):
         """
         Saves the class. It should be retrievable from the file.
@@ -258,7 +333,7 @@ class Fitter(object):
         string = ' FITTER '.rjust(105, '#').ljust(200, '#') + '\n'
         # name of the fitter
         string += 'fitter: %s\n' % (self.fittername)
-        string += 'fit_kwargs:'
+        string += 'fit_parameters: '
         # writes the fitting kwargs
         for fkey in self.fit_kwargs:
             string += '%s: %s ' % (fkey, str(self.fit_kwargs[fkey]))
