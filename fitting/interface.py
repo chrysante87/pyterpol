@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 import copy
 import warnings
 import numpy as np
@@ -1845,26 +1846,24 @@ class ObservedList(object):
 
             # actually all that we need are strings representing the
             # the individual spectra
+            # strip all unnecessary info
             l = str(s).split()[:-4]
-            l = [rec.rstrip('}') for rec in l]
-            l = [rec.lstrip('{') for rec in l]
+            l = [rec.strip('\'\":,{}') for rec in l]
+            # print l
+            l.remove('group')
             for i in range(0, len(l), 2):
-                if l[i] not in ['hasErrors']:
-
-            # for i, c in enumerate(self.mainList[ident]['components']):
-            #     string += 'identification: %s ' % ident
-            #
-            #     # write the wavelengths
-            #     for lkey in ['wmin', 'wmax']:
-            #         string += '%s: %s ' % (lkey, str(self.mainList[ident][lkey]))
-            #
-            #     # write components
-            #     string += "component: %s " % c
-            #
-            #     # and groups
-            #     for gkey in self.mainList[ident]['groups'][i].keys():
-            #         string += "%s: %s " % (gkey, str(self.mainList[ident]['groups'][i][gkey]))
+                if l[i] not in ['hasErrors', 'loaded']:
+                    string += "%s: %s " % (l[i], l[i+1])
             string += '\n'
+        # attach enviromental keys
+        for ekey in enviromental_keys:
+            string += "%s: %s " % (ekey, str(getattr(self, ekey)))
+        string += '\n'
+        # finalize the string
+        string += ' OBSERVEDLIST '.rjust(105, '#').ljust(200, '#') + '\n'
+
+        # write the result
+        ofile.writelines(string)
 
     def set_spectrum(self, filename=None, **kwargs):
         """

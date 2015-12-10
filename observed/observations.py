@@ -95,7 +95,7 @@ class ObservedSpectrum:
         String representation of the class.
         """
         string = ''
-        for var in ['filename', 'component', 'korel', 'loaded', 'hasErrors', 'group']:
+        for var in ['filename', 'component', 'korel', 'loaded', 'hasErrors', 'global_error', 'group']:
             string = string + "%s: %s " % (var, str(getattr(self, var)))
         if self.loaded:
             string = string + "%s: %s " % ('(min, max)', str(self.get_boundaries()))
