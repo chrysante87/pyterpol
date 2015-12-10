@@ -2223,7 +2223,6 @@ class RegionList(List):
 
                     # assign the vlues
                     setattr(rl, k, cdict[k])
-        print rl
         # finally assign everything to self
         attrs = ['_registered_records', '_registered_regions', '_user_defined_groups',
                  'mainList', 'debug']
@@ -2272,7 +2271,6 @@ class RegionList(List):
                 for gkey in self.mainList[ident]['groups'][i].keys():
                     string += "%s: %s " % (gkey, str(self.mainList[ident]['groups'][i][gkey]))
             string += '\n'
-
 
         # setup additional parameters
         string += 'env_keys: '
