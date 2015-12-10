@@ -107,8 +107,6 @@ class Interface(object):
         # update the fitter with new initial parameters
         self.fitter.par0 = copy.deepcopy(final_pars)
 
-
-
     def add_comparison(self, region=None, parameters={}, observed=None, synthetic={}, groups={}):
         """
         :param region the name of the corresponding region
@@ -1767,7 +1765,7 @@ class ObservedList(object):
                 break
             # split the linbe
             d = l.split()
-            print d
+            # print d
             if d[0].find('filename') > -1:
                 cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
                 cdict['error'] = cdict['global_error']
@@ -1790,8 +1788,8 @@ class ObservedList(object):
                 # add the parameter if it does not exist
                 groups = {key: cdict[key] for key in cdict.keys() if key not in parnames}
                 kwargs = {key: cdict[key] for key in cdict.keys() if key  in parnames}
-                print groups
-                print kwargs
+                # print groups
+                # print kwargs
                 ol.add_one_observation(group=groups, **kwargs)
 
             # do the same for enviromental keys
@@ -2862,7 +2860,7 @@ class StarList(object):
                     elif k in ['group']:
                         cdict[k] = int(cdict[k])
                     elif k in ['fitted']:
-                        cdict[k] = bool(cdict[k])
+                        cdict[k] = string2bool(cdict[k])
 
                 # add the parameter if it does not exist
                 c = cdict['component']

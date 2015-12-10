@@ -9,7 +9,7 @@ ol = ObservedList()
 
 # build a list of observations
 obs = [
-    dict(filename='o.asc', group=dict(rv=0, teff=0)),
+    dict(filename='o.asc', group=dict(rv=0, teff=0), error=0.01),
     dict(filename='o.asc', group=dict(rv=0, teff=1)),
     dict(filename='o.asc'),
     dict(filename='o.asc', component='primary', korel=True, group=dict(logg=2))
