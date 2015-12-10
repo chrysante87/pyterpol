@@ -12,7 +12,8 @@ class ObservedSpectrum:
     """
     A wrapper class for the observed spectra.
     """
-    def __init__(self, wave=None, intens=None, error=None, filename=None, component='all', korel=False, group=None, debug=False):
+    def __init__(self, wave=None, intens=None, error=None, filename=None,
+                 component='all', korel=False, group=None, debug=False):
         """
         Setups the class.
         INPUT:

@@ -1,6 +1,5 @@
 """
-Test of the submodule ObservedList in fitting.
-Testing querying of spectra.
+Test of the observedlist save/load
 """
 import numpy as np
 from pyterpol.fitting.interface import ObservedList
@@ -21,3 +20,11 @@ ol.add_observations(obs)
 
 # save the class
 ol.save('save_ol.txt')
+print ol
+# clear it
+ol.clear_all()
+print ol
+
+# an
+ol.load('save_ol.txt')
+print ol

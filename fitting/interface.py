@@ -14,6 +14,7 @@ from pyterpol.synthetic.auxiliary import generate_least_number
 from pyterpol.synthetic.auxiliary import keys_to_lowercase
 from pyterpol.synthetic.auxiliary import parlist_to_list
 from pyterpol.synthetic.auxiliary import read_text_file
+from pyterpol.synthetic.auxiliary import string2bool
 from pyterpol.synthetic.auxiliary import sum_dict_keys
 from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
 
@@ -1735,6 +1736,85 @@ class ObservedList(object):
         # observed spectra list is returned
         else:
             return osl
+
+    def load(self, f):
+        """
+        Loads the text representation of the class from
+        a file f.
+        :param f
+        :return:
+        """
+
+        # read the file
+        lines = read_text_file(f)
+        data_start = len(lines)
+        for i, l in enumerate(lines):
+            if l.find('OBSERVEDLIST') > -1:
+                data_start = i
+                break
+
+        # check that there are actually some data in the file
+        assert data_start < len(lines)
+
+        # create a regionlist
+        ol = ObservedList()
+
+        # from here the file is actually being read
+        for i,l in enumerate(lines[data_start+1:]):
+
+            # once we reach regionlist, we end
+            if l.find('OBSERVEDLIST') > -1:
+                break
+            # split the linbe
+            d = l.split()
+            print d
+            if d[0].find('filename') > -1:
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                cdict['error'] = cdict['global_error']
+                del cdict['global_error']
+
+                # cast the paramneters to teh correct types
+                parnames = ['filename', 'component', 'error', 'korel']
+                cast_types = [str, str, float, string2bool]
+                for k in cdict.keys():
+                    if k in parnames:
+                        i = parnames.index(k)
+                        if cdict[k] != 'None':
+                            cdict[k] = cast_types[i](cdict[k])
+                        else:
+                            cdict[k] = None
+                    else:
+                        # the remaining must be groups
+                        cdict[k] = int(cdict[k])
+
+                # add the parameter if it does not exist
+                groups = {key: cdict[key] for key in cdict.keys() if key not in parnames}
+                kwargs = {key: cdict[key] for key in cdict.keys() if key  in parnames}
+                print groups
+                print kwargs
+                ol.add_one_observation(group=groups, **kwargs)
+
+            # do the same for enviromental keys
+            if d[0].find('env_keys') > -1:
+                # the first string is just identification
+                d = d[1:]
+
+                # secure corrct types
+                recs = ['debug']
+                cast_types = [bool]
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                for k in cdict.keys():
+                    if k in recs:
+                        i = recs.index(k)
+                        ctype = cast_types[i]
+                        cdict[k] = ctype(cdict[k])
+
+                    # assign the vlues
+                    setattr(ol, k, cdict[k])
+        # finally assign everything to self
+        attrs = ['debug', 'groupValues', 'observedSpectraList']
+        for attr in attrs:
+            setattr(self, attr, getattr(ol, attr))
 
     def read_groups(self):
         """

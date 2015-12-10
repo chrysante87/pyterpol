@@ -234,6 +234,17 @@ def shift_spectrum(wave, RV):
 
     return new_wave
 
+def string2bool(s):
+    """
+    Converts string to boolean
+    :param s:
+    :return:
+    """
+    if s.lower() in ['true', '1']:
+        return True
+    else:
+        return False
+
 def write_numpy(f, cols, fmt):
     """
     :param f: outputfile or handler
