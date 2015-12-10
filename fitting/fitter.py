@@ -112,7 +112,7 @@ class Fitter(object):
 
             f = lambda x, grad: func(x, *args)
 
-            print self.par0
+            # print self.par0
 
             # check that we are searching minimum
             self.fitter.set_min_objective(f)
@@ -240,6 +240,39 @@ class Fitter(object):
             string += "Description: %s\n" % fitters[key]['info']
             string += '\n'.rjust(100, '=')
         return string
+
+    def save(self, ofile):
+        """
+        Saves the class. It should be retrievable from the file.
+        Since this class really cannot exist without the
+        interface, it really saves only the selected fitting
+        environment and fitted kwargs.
+        :param ofile:
+        :return:
+        """
+        # Open the file
+        if isinstance(ofile, str):
+            ofile = open(ofile, 'w+')
+
+        # row announcing the fitter
+        string = ' FITTER '.rjust(105, '#').ljust(200, '#') + '\n'
+        # name of the fitter
+        string += 'fitter: %s\n' % (self.fittername)
+        string += 'fit_kwargs:'
+        # writes the fitting kwargs
+        for fkey in self.fit_kwargs:
+            string += '%s: %s ' % (fkey, str(self.fit_kwargs[fkey]))
+        string += '\n'
+
+        # writes enfiromental keys
+        enviromental_keys = ['debug', 'verbose', 'fitlog']
+        string += 'env_keys: '
+        for fkey in enviromental_keys:
+            string += "%s: %s " % (fkey, str(getattr(self, fkey)))
+        string += '\n'
+        string += ' FITTER '.rjust(105,    '#').ljust(200, '#') + '\n'
+        # write the remaining parameters
+        ofile.writelines(string)
 
     def setup_nlopt(self):
         """
