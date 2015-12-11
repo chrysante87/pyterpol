@@ -225,6 +225,7 @@ class ObservedSpectrum:
           self.intens..	intensities
           self.error..	errors
         """
+        # print wmin, wmax
         if not self.loaded:
             raise Exception('The spectrum %s has not been loaded yet!' % str(self))
         else:
@@ -232,7 +233,6 @@ class ObservedSpectrum:
             if wmin is None and wmax is None:
                 if self.error is not None:
                     return self.wave.copy(), self.intens.copy(), self.error.copy()
-
                 else:
                     return self.wave.copy(), self.intens.copy()
             else:

@@ -531,8 +531,6 @@ class Interface(object):
             l = self.comparisonList
         # go over ech comparison in the list
         for rec in l:
-            # print "In populate comparisons:", rec, type(rec), len(l)
-            # print rec
             # get the region
             region = rec['region']
             wmin = self.rl.mainList[region]['wmin']
@@ -559,9 +557,10 @@ class Interface(object):
                         else:
                             wave = rec['observed'].get_spectrum(wmin, wmax)[0]
                             error = None
-
+                    #define korelmode
                     korelmode = rec['observed'].korel
-
+                    # generate the synthetic spectrum
+                    print wave.min(), wave.max()
                     rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
                                                                               only_intensity=True,
                                                                               korel=korelmode,

@@ -234,6 +234,7 @@ class SyntheticSpectrum:
         if wave is None:
             # for some reason we want to work with the
             # whole spectrum
+            # print wmin, wmax
             if wmin is not None and wmax is not None:
                 wave, intens = self.select_interval(wmin, wmax)
             else:
@@ -264,8 +265,6 @@ class SyntheticSpectrum:
             if np.any([x != None for x in [rv, vrot]]):
                 # interpolates back
                 intens = interpolate_spec(syn_wave, intens, wave)
-
-
         else:
             # we are interpolating, so
             # we check boundaries and we
@@ -293,7 +292,7 @@ class SyntheticSpectrum:
 
             wmin = w0min - WAVE_BUMP
             wmax = w0max + WAVE_BUMP
-            print wmin, wmax, self.wmin, self.wmax
+            # print wmin, wmax, self.wmin, self.wmax
             if not self.check_boundaries(wmin, wmax):
                 warnings.warn('Synthetic spectra do not cover the whole wavelength region' \
                               ' extrapolation has to be employed and THAT IS DANGEROUS! Note that' \
@@ -302,7 +301,7 @@ class SyntheticSpectrum:
             # the part of the spectrum is selected
             # there is no point in working with the
             # whole dataset
-            # print self.wave
+            # print wmin, wmax
             syn_wave, intens = self.select_interval(wmin, wmax)
 
             # rotates the spectrum
