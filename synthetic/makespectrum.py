@@ -123,8 +123,12 @@ class SyntheticSpectrum:
         if wmax is None:
             wmax = self.wmax
 
+        # print wmin, self.wmin
+        # print wmax, self.wmax
+        # print (wmin - (self.wmin - self.step))
+        # print wmax - (self.wmax + self.step)
         if (wmin - (self.wmin - self.step) < ZERO_TOLERANCE) | \
-                (wmax - (self.wmax + self.step) > ZERO_TOLERANCE):
+           (wmax - (self.wmax + self.step) > ZERO_TOLERANCE):
             return False
         else:
             return True
@@ -289,7 +293,7 @@ class SyntheticSpectrum:
 
             wmin = w0min - WAVE_BUMP
             wmax = w0max + WAVE_BUMP
-            # print wmin, wmax, self.wmin, self.wmax
+            print wmin, wmax, self.wmin, self.wmax
             if not self.check_boundaries(wmin, wmax):
                 warnings.warn('Synthetic spectra do not cover the whole wavelength region' \
                               ' extrapolation has to be employed and THAT IS DANGEROUS! Note that' \
@@ -301,9 +305,11 @@ class SyntheticSpectrum:
             # print self.wave
             syn_wave, intens = self.select_interval(wmin, wmax)
 
+            # rotates the spectrum
             if vrot is not None and vrot > ZERO_TOLERANCE:
                 intens = rotate_spectrum(syn_wave, intens, vrot)
-            # adjusts the spectrum
+
+            # adjusts the spectrum for the radial velocity
             if rv is not None and abs(rv) > ZERO_TOLERANCE:
                 syn_wave = shift_spectrum(syn_wave, rv)
 
@@ -528,7 +534,6 @@ class SyntheticGrid:
         # sets up the equidistant wavelength vector
         wmin = wave.min() - padding
         wmax = wave.max() + padding
-        step = step
 
         # print wmin, wmax, step, order, padding
 
@@ -959,8 +964,8 @@ class SyntheticGrid:
         """
         # if we did not set up the order -> error
         if self.gridOrder is None:
-            raise KeyError('There are same spectra for the same parameters.' \
-                           ' I think it is because we have more grids, that overlap.' \
+            raise KeyError('There are same spectra for the same parameters.'
+                           ' I think it is because we have more grids, that overlap.'
                            ' You can overcome this by setting gridOrder variable.')
 
         indices = []
@@ -970,7 +975,7 @@ class SyntheticGrid:
 
         # justr in case there was something peculiar
         if np.any(indices < -1):
-            warnings.warn('At least one grid was not found in the gridOrder variable.' \
+            warnings.warn('At least one grid was not found in the gridOrder variable.'
                           ' Verify that the names set in gridOrder agree with family names of spectra.')
 
         # return spectrum with the smallest index
@@ -1186,4 +1191,5 @@ class SyntheticGrid:
             wmax.. maximal wavelength
             step.. step size in the wavelength
         """
-        self.wave = np.arange(wmin, wmax + step / 2., step)
+        nstep = int((wmax - wmin)/step)
+        self.wave = np.linspace(wmin, wmax, nstep)

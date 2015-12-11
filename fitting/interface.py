@@ -774,6 +774,7 @@ class Interface(object):
 
                 # padding has to be relatively large, since
                 # we do not know what the rvs will be
+                # print wmin, wmax
                 self.synthetics[reg][c] = self.grids[reg].get_synthetic_spectrum(params,
                                                                                  np.array([wmin, wmax]),
                                                                                  **self._synthetic_spectrum_kwargs)
@@ -1492,6 +1493,19 @@ class Interface(object):
 
             # finalize the list of rv_groups for each region
             self.rel_rvgroup_region = {x: np.unique(reg2rv[x]).tolist() for x in reg2rv.keys()}
+
+    def update_fitter(self):
+        """
+        Pass the fitted parameters to the fitter.
+        :return:
+        """
+        # get the fitted parameters
+        fitpars = self.get_fitted_parameters()
+        name = self.fitter.fittername
+        kwargs = self.fitter.fit_kwargs
+
+        # update the fitted parameters
+        self.choose_fitter(name, fitparams=fitpars, **kwargs)
 
     def verify(self):
         pass

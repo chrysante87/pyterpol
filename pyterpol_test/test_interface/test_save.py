@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 debug=False
 # 1) define some observations
 ol = pyterpol.ObservedList(debug=debug)
-obs = [dict(filename='o.asc', error=0.01, component='primary'),
-       dict(filename='o2.asc', error=0.01, component='secondary')]
+obs = [dict(filename='o.asc', error=0.01, component='primary', korel=True),
+       dict(filename='o2.asc', error=0.01, component='secondary', korel=True)]
 ol.add_observations(obs)
 
 # 2) define fitted regions
@@ -36,5 +36,6 @@ itf.clear_all()
 
 # 6) load the interface
 itf.load('itf_save.txt')
-print itf
+itf.populate_comparisons()
+itf.plot_all_comparisons()
 
