@@ -557,10 +557,9 @@ class Interface(object):
                         else:
                             wave = rec['observed'].get_spectrum(wmin, wmax)[0]
                             error = None
-                    #define korelmode
+                    # define korelmode
                     korelmode = rec['observed'].korel
                     # generate the synthetic spectrum
-                    print wave.min(), wave.max()
                     rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
                                                                               only_intensity=True,
                                                                               korel=korelmode,

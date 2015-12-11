@@ -194,7 +194,6 @@ class SyntheticSpectrum:
         # continuum - just ones
         l_cont = 1.0 - np.linspace(0, bumpsize, len(l_bump_wave)) * (1.0 - intens[0]) / bumpsize
         r_cont = intens[-1] + np.linspace(0, bumpsize, len(r_bump_wave)) * (1.0 - intens[-1]) / bumpsize
-        # print intens[-1], r_cont
 
         # cretes empty arrays
         total_length = len(l_bump_wave) + len(wave) + len(r_bump_wave)

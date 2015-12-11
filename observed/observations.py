@@ -3,10 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import splrep
 from scipy.interpolate import splev
-from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
+# from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
 
 # repeat userwarnings
 warnings.simplefilter('always', UserWarning)
+
 
 class ObservedSpectrum:
     """
@@ -27,6 +28,12 @@ class ObservedSpectrum:
                           all parameters within one group have the same value of a
                           a given parameter. Type = dictionary(param=groupnumber)
         """
+        # empty arrays, taht will be filled
+        # with read_size
+        self.wmin = None
+        self.wmax = None
+        self.step = None
+        self.npixel = None
 
         # pass all arguments
         self.wave = wave
@@ -66,7 +73,7 @@ class ObservedSpectrum:
             self.read_spectrum_from_file(filename, global_error=error)
         elif (not self.loaded) and (self.filename is None):
             warnings.warn('No spectrum was loaded. This class is kinda useless without a spectrum. '
-                        'I hope you know what you are doing.')
+                          'I hope you know what you are doing.')
 
         # setup korel and check that it is proper
         self.component = component
@@ -75,21 +82,11 @@ class ObservedSpectrum:
 
         # setup the group
         self.group = dict()
-        #print group
         if group is not None:
             self.set_group(group)
 
-        #setup debug mode
+        # setup debug mode
         self.debug = debug
-
-    # TODO For some reason causes the code to freeze
-    # def __getattr__(self, item):
-    #     """
-    #     :param item: queried attribute
-    #     :return: attribute value
-    #     """
-    #     if hasattr(self, item):
-    #         return getattr(self, item)
 
     def __str__(self):
         """
@@ -97,9 +94,9 @@ class ObservedSpectrum:
         """
         string = ''
         for var in ['filename', 'component', 'korel', 'loaded', 'hasErrors', 'global_error', 'group']:
-            string = string + "%s: %s " % (var, str(getattr(self, var)))
+            string += "%s: %s " % (var, str(getattr(self, var)))
         if self.loaded:
-            string = string + "%s: %s " % ('(min, max)', str(self.get_boundaries()))
+            string += "%s: %s " % ('(min, max)', str(self.get_boundaries()))
         string += '\n'
         return string
 
@@ -107,7 +104,7 @@ class ObservedSpectrum:
         """
         If korel is set, component must be set too.
         """
-        if (self.korel) and (str(self.component).lower() == 'all'):
+        if self.korel and str(self.component).lower() == 'all':
             raise ValueError('In the korel regime, each spectrum must be assigned component! '
                              'Currently it is set to %s.' % str(self.component))
 
@@ -148,9 +145,8 @@ class ObservedSpectrum:
         Checks that group is assigned for a given
         parameter. If not - zero is automatically
         assigned.
-        INPUT:
-            param    string represention of the parameter
-                     for which we want to assign group
+        :param: param string representing the queried parameter
+        :return the group for the given parameter
         """
         if param.lower() in self.group:
             return self.group[param]
@@ -161,12 +157,10 @@ class ObservedSpectrum:
         """
         Estimates the error of the flux from the scatter in
         continuum.
-        INPUT:
-          cmin..	minimal continuum wavelength
-          cmax..	maximal continuum wavelength
-          store..	save the error as an error bar
-        OUTPUT:
-          stddev	estimated error bar
+        :param cmin the minimal continuum value
+        :param cmax the maximal continuum value
+        :param store save the found error as an error
+        :return stddev the standard deviation
         """
         # is the spectrum loaded ?
         self.check_loaded()
@@ -186,8 +180,10 @@ class ObservedSpectrum:
     def get_sigma_from_fft(self, nlast=20, store=True):
         """
         Estimates the noise using the FFT.
+        :param nlast length opf the FFT spectrum tail used to estimate the scatter
+        :param store should we save the standard deviation
         """
-
+        # TODO The function is probably not correct in its current state
         # check that everything is loaded
         self.check_loaded()
         self.read_size()
@@ -219,13 +215,12 @@ class ObservedSpectrum:
 
     def get_spectrum(self, wmin=None, wmax=None):
         """
-        Returns the spectrum.
-        OUPUT:
-          self.wave..	wavelengths
-          self.intens..	intensities
-          self.error..	errors
+        Returns the spectrum with wavelengths wmin -> wmax
+        :param wmin minimal wavelength
+        :param wmax maximal wavelength
+        :return wave, intens. error (optional) - the observed spectrum,
+        wavelength, intensity and error (if it is given)
         """
-        # print wmin, wmax
         if not self.loaded:
             raise Exception('The spectrum %s has not been loaded yet!' % str(self))
         else:
@@ -311,24 +306,22 @@ class ObservedSpectrum:
         is assumed: %f %f %f (wavelength, intensity, error).
         If user does not provide errors, we still attempt
         to load teh spectrum.
-        Comments are denoted with '#'.
-        INPUT:
-             filename..    the file, from which the spectra are loaded.
-             global_error..global error applies to every single observation
+        :param filename spectrum source file
+        :param global_error the error applicable to the spectrum
+        :return None
         """
         try:
             # first we try to load 3 columns, i.e with errors
             self.wave, self.intens, self.error = np.loadtxt(filename, unpack=True, usecols=[0, 1, 2])
             self.hasErrors = True
         except:
-
             # we failed, so we attempt to load two columns
             self.wave, self.intens = np.loadtxt(filename, unpack=True, usecols=[0, 1])
 
             # error was not set up
             if global_error is None:
                 warnings.warn("I found no errorbars of the observed intensities in file: %s! "
-                              "I assume they will be provided later. I remember!!" % (filename))
+                              "I assume they will be provided later. I remember!!" % filename)
                 self.hasErrors = False
                 self.global_error = None
 
@@ -347,13 +340,15 @@ class ObservedSpectrum:
 
     def set_error(self, vec_error=None, global_error=None):
         """
-        A tool to set the error.
-        INPUT:
-            vec_error..  vector of errors, one for each intensity point
-            glob_error.. one global errror for each point
+        Sets error to the spectrum..either local or global.
+        :param vec_error vector error len(vec_error) = len(spectrum)
+        :param global_error int float error applied to the whole spectrum
         """
         if vec_error is not None:
             self.error = vec_error
+            if len(vec_error) != len(self.npixel):
+                raise ValueError('The lenght of the error vector and the length of the spectrum do not match (%s, %s)'
+                                 % (len(vec_error), str(self.npixel)))
             self.hasErrors = True
             self.global_error = None
         if global_error is not None:
@@ -363,25 +358,19 @@ class ObservedSpectrum:
 
     def set_group(self, group):
         """
-        Sets the group of the spectrum for given parameters.
-        INPUT:
-                group.. dictionary containing param=group
-                        for parameter for whose we want to
-                        assign groups
+        Sets a group to the spectrum
+        :param group a dictionary of pairs parameter + group
         """
-        #print group
         for key in group.keys():
-            #print key
             self.group[key.lower()] = group[key]
 
     def set_spectrum_from_arrays(self, wave, intens, error):
         """
         Stores the spectrum from arrays. It is assumed
         that user also provides error vector.
-        INPUT:
-            wave..	wavelength array
-            intens..	intensity array
-            error..	error array
+        :param wave wavelength vector
+        :param intens intensity vector
+        :param error eror vector
         """
         self.wave = wave
         self.intens = intens
