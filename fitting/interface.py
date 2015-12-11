@@ -10,6 +10,7 @@ from pyterpol.observed.observations import ObservedSpectrum
 from pyterpol.fitting.parameter import Parameter
 from pyterpol.fitting.parameter import parameter_definitions
 from pyterpol.fitting.fitter import Fitter
+from pyterpol.synthetic.auxiliary import flatten_2d
 from pyterpol.synthetic.auxiliary import generate_least_number
 from pyterpol.synthetic.auxiliary import keys_to_lowercase
 from pyterpol.synthetic.auxiliary import parlist_to_list
@@ -411,6 +412,7 @@ class Interface(object):
             warnings.warn('No ObservedList was found in file %s', f)
             ol = None
 
+        print ddicts
         # setup the interface
         itf = Interface(sl=sl, ol=ol, rl=rl, fitter=fitter, **ddicts['env_keys'])
         gpars = {}
@@ -424,7 +426,9 @@ class Interface(object):
 
         # copy the class
         self.__eq__(itf)
+        print sl
         self.setup()
+        # self.choose_fitter(self.fitter.fittername)
 
         # if we got here, we loaded the data
         return True
@@ -1305,6 +1309,8 @@ class Interface(object):
         # rv_group, spectrum and region
         reg2rv = {x: [] for x in regs}
 
+        print self.sl
+
         # for every region we have a look if we have some datas
         for wmin, wmax, reg in zip(wmins, wmaxs, regs):
 
@@ -1315,43 +1321,49 @@ class Interface(object):
 
                 # read out properties of spectra
                 component = spectrum.component
-                rv_group = spectrum.group['rv']
 
-                # readout groups that were already defined for all components
-                def_groups = self.sl.get_defined_groups(component='all', parameter='rv')['all']['rv']
+                # there can be more spectral groups
+                rv_groups = spectrum.group['rv']
 
-                # We define group for our observation
-                if rv_group is None:
-                    gn = generate_least_number(def_groups)
-                    reg2rv[reg].append(gn)
+                if not isinstance(rv_groups, (list, tuple)):
+                    rv_groups = [rv_groups]
 
-                    # save the newly registered group
-                    if spectrum.filename not in new_groups.keys():
-                        new_groups[spectrum.filename] = []
-                    new_groups[spectrum.filename].append(gn)
+                for rv_group in rv_groups:
+                    # readout groups that were already defined for all components
+                    def_groups = self.sl.get_defined_groups(component='all', parameter='rv')['all']['rv']
 
-                elif rv_group not in def_groups:
-                    gn = rv_group
-                    reg2rv[reg].append(rv_group)
+                    # We define group for our observation
+                    if rv_group is None:
+                        gn = generate_least_number(def_groups)
+                        reg2rv[reg].append(gn)
 
-                # if the group is defined we only need to
-                # add it among the user defined one, so it
-                # so it is not deleted later
-                elif rv_group in def_groups:
-                    registered_groups.append(rv_group)
-                    reg2rv[reg].append(rv_group)
-                    continue
+                        # save the newly registered group
+                        if spectrum.filename not in new_groups.keys():
+                            new_groups[spectrum.filename] = []
+                        new_groups[spectrum.filename].append(gn)
 
-                # attachs new parameter to the StarList
-                # print component, gn
-                self.sl.clone_parameter(component, 'rv', group=gn)
+                    elif rv_group not in def_groups:
+                        gn = rv_group
+                        reg2rv[reg].append(rv_group)
 
-                if component not in cloned_comps:
-                    if component == 'all':
-                        cloned_comps.extend(self.sl.get_components())
-                    else:
-                        cloned_comps.append(component)
-                    registered_groups.append(gn)
+                    # if the group is defined we only need to
+                    # add it among the user defined one, so it
+                    # so it is not deleted later
+                    elif rv_group in def_groups:
+                        registered_groups.append(rv_group)
+                        reg2rv[reg].append(rv_group)
+                        continue
+
+                    # attachs new parameter to the StarList
+                    # print component, gn
+                    self.sl.clone_parameter(component, 'rv', group=gn)
+
+                    if component not in cloned_comps:
+                        if component == 'all':
+                            cloned_comps.extend(self.sl.get_components())
+                        else:
+                            cloned_comps.append(component)
+                        registered_groups.append(gn)
 
         # print registered_groups, cloned_comps
         # remove the default groups
@@ -2898,9 +2910,10 @@ class StarList(object):
         # merge groups if component was 'all'
         if component == 'all':
             for p in parameters:
-                groups[component]={}
+                groups[component] = {}
                 temp = []
                 for c in components:
+                    # print flatten_2d(groups[c][p])
                     temp.extend(groups[c][p])
                 groups[component][p] =  np.unique(temp).tolist()
 

@@ -36,4 +36,5 @@ print itf
 
 # 6) load the interface
 itf.load('itf_save.txt')
+print itf
 

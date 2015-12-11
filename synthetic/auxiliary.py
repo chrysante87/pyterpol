@@ -11,6 +11,23 @@ from scipy.signal import fftconvolve
 
 ZERO_TOLERANCE = 1e-6
 
+def flatten_2d(arr):
+    """
+    Flattens 2-dim array
+    :param arr: 2d array
+    :return:
+    """
+    newarr = []
+    if any([isinstance(subarr, (list, tuple)) for subarr in arr]):
+        for subarr in arr:
+            if isinstance(subarr, (tuple, list)):
+                newarr.extend(subarr)
+            else:
+                newarr.append(subarr)
+        return newarr
+    else:
+        return arr
+
 
 def interpolate_block(x, block, xnew):
     """
