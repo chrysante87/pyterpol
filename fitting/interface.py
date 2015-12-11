@@ -83,8 +83,8 @@ class Interface(object):
         """
 
         for attr in ['ol', 'sl', 'rl', 'fitter', 'spectrum_by_spectrum',
-                     'adaptive_grid', 'debug', '_grid_kwargs',
-                     'synthetic_spectrum_kwargs']:
+                     'adaptive_resolution', 'debug', '_grid_kwargs',
+                     '_synthetic_spectrum_kwargs']:
             setattr(self, attr, copy.deepcopy(getattr(other, attr)))
 
     def __str__(self):
@@ -359,13 +359,14 @@ class Interface(object):
             warnings.warn('No interface was found was found.')
             return False
 
+        # dictionary for the Interface attributes
+        ddicts = {}
         for l in lines[1:]:
             d = l.split()
             # once we reach arain the Interface, we end
             if l.find('INTERFACE') > -1:
                 break
 
-            ddicts = {}
             # define record names and types
             dnames = dict(
                 grid_parameters=['mode'],
@@ -381,6 +382,7 @@ class Interface(object):
             # load all keys - env_vars, grid and synthetic spectra parameters
             for dname in dnames.keys():
                 if d[0].find(dname) > -1:
+                    print d[0]
                     p = dnames[dname]
                     pt = dtypes[dname]
                     ddict = {d[i].strip(':'): d[i+1] for i in range(1, len(d), 2)}
@@ -388,11 +390,13 @@ class Interface(object):
                     for k in ddict.keys():
                         i = p.index(k)
                         ddict[k] = pt[i](ddict[k])
+                    # print ddict
                     ddicts[dname] = ddict
+                    print ddicts
 
         # load the remaining data
         rl = RegionList()
-        print rl.load(f)
+        # print rl.load(f)
         if not rl.load(f):
             raise ValueError('No records on the RegionList were found in %s.' % f)
         sl = StarList()
@@ -411,6 +415,7 @@ class Interface(object):
         itf = Interface(sl=sl, ol=ol, rl=rl, fitter=fitter, **ddicts['env_keys'])
         gpars = {}
 
+        print ddicts
         # merge grid ans synthetic spectra parameters
         for d in [ddicts['synthetic_spectra_parameters'], ddicts['grid_parameters']]:
             for k in d.keys():
@@ -420,6 +425,9 @@ class Interface(object):
         # copy the class
         self.__eq__(itf)
         self.setup()
+
+        # if we got here, we loaded the data
+        return True
 
 
     def optimize_spectrum_by_spectrum(self, l=None, spectrum_by_spectrum=None):
