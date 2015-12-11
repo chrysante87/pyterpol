@@ -77,7 +77,6 @@ class Fitter(object):
 
         # empty list of all trial fits
         self.iters = []
-        self.fitted_pars_identification = None
 
         # clear the fitting log
         if os.path.isfile(fitlog):

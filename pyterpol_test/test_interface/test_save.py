@@ -39,5 +39,4 @@ itf.clear_all()
 itf.load('itf_save.txt')
 itf.populate_comparisons()
 itf.plot_all_comparisons()
-print itf.fitter.fitted_pars_identification
 

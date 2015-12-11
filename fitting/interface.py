@@ -287,8 +287,13 @@ class Interface(object):
         lists all fitted parameters
         :return:
         """
+        fitpars, par_info =  self.sl.get_fitted_parameters(verbose=True)
 
-        return self.sl.get_fitted_parameters()
+        # save the info on the fitted parameters
+        self.ident_fitted_pars = par_info
+
+        # return the list of Parameters
+        return fitpars
 
     def get_observed_spectrum(self, filename=None):
         """
@@ -2957,7 +2962,10 @@ class StarList(object):
                         fit_pars.append(par)
                         if verbose:
                             for k in fit_pars_info.keys():
-                                fit_pars_info[k].append(par[k])
+                                if k != 'component':
+                                    fit_pars_info[k].append(par[k])
+                                else:
+                                    fit_pars_info[k].append(c)
         if not verbose:
             return fit_pars
         else:
@@ -2979,10 +2987,9 @@ class StarList(object):
 
             # go over each parameter type
             for parname in self.componentList[c]:
-                # print c, parname
+
                 # and finaly over each parameter
                 for par in self.componentList[c][parname]:
-                    # print par['fitted'], parname
                     if parname not in fitted_types[c]:
                         if par['fitted']:
                             fitted_types[c].append(parname)
