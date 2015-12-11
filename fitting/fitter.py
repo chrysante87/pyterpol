@@ -37,18 +37,21 @@ fitters = dict(
                      environment=nlopt.LN_SBPLX,
                      uses_bounds=True,
                      info='Sbplx - a variation of the Tom Rowans Subplex. '
-                         'Implementation NLOPT: Steven G. Johnson, The NLopt '
-                         'nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'),)
+                          'Implementation NLOPT: Steven G. Johnson, The NLopt '
+                          'nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'),)
 
 
 class Fitter(object):
     """
     """
-    def __init__(self, fitparams=None, verbose=False, debug=False, fitlog='fit.log'):
+    def __init__(self, name=None, fitparams=None, verbose=False, debug=False, fitlog='fit.log', **kwargs):
         """
+        :param name: name of the fitting environment
         :param fitparams a list of Parameter types
         :param verbose whether to save detailed chi_square information
-        :param debug
+        :param debug: debugmode
+        :param fitlog: file in which the fitting is logged
+        :param kwargs: fitting environment control keywords
         :return:
         """
 
@@ -60,10 +63,10 @@ class Fitter(object):
         self.verbose = verbose
         self.fitlog = fitlog
         self.debug = debug
+        self.fittername = name
 
         # empty parameters
         self.fitter = None
-        self.fittername = None
         self.fit_kwargs = {}
         self.par0 = []
         self.uses_bounds = False
@@ -79,6 +82,11 @@ class Fitter(object):
         if os.path.isfile(fitlog):
             warnings.warn('A fitlog from previous fitting was found and overwritten..muhahahaha!')
             open(fitlog, 'w')
+
+        # choose a fitter if one
+        # was given
+        if name is not None:
+            self.choose_fitter(name, **kwargs)
 
     def __call__(self, func, *args):
         """

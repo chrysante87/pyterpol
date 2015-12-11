@@ -133,7 +133,6 @@ class Interface(object):
         :return: None
 
         """
-
         if self.debug:
             print 'Settting comparison for region: %s \n groups: %s. \n parameters: %s' % \
                   (str(region), str(groups), str(parameters))
@@ -376,14 +375,14 @@ class Interface(object):
             )
 
             dtypes = dict(
-                grid_parameters=[str, string2bool],
+                grid_parameters=[str],
                 synthetic_spectra_parameters=[int, float, float],
-                env_keys=[str, str, str]
+                env_keys=[string2bool, string2bool]
             )
             # load all keys - env_vars, grid and synthetic spectra parameters
             for dname in dnames.keys():
                 if d[0].find(dname) > -1:
-                    print d[0]
+                    # print d[0]
                     p = dnames[dname]
                     pt = dtypes[dname]
                     ddict = {d[i].strip(':'): d[i+1] for i in range(1, len(d), 2)}
@@ -393,7 +392,7 @@ class Interface(object):
                         ddict[k] = pt[i](ddict[k])
                     # print ddict
                     ddicts[dname] = ddict
-                    print ddicts
+                    # print ddicts
 
         # load the remaining data
         rl = RegionList()
@@ -412,12 +411,13 @@ class Interface(object):
             warnings.warn('No ObservedList was found in file %s', f)
             ol = None
 
-        print ddicts
+        # print ddicts
+        print fitter
         # setup the interface
         itf = Interface(sl=sl, ol=ol, rl=rl, fitter=fitter, **ddicts['env_keys'])
         gpars = {}
 
-        print ddicts
+        # print ddicts
         # merge grid ans synthetic spectra parameters
         for d in [ddicts['synthetic_spectra_parameters'], ddicts['grid_parameters']]:
             for k in d.keys():
@@ -426,8 +426,8 @@ class Interface(object):
 
         # copy the class
         self.__eq__(itf)
-        print sl
         self.setup()
+        print self.fitter.fittername
         # self.choose_fitter(self.fitter.fittername)
 
         # if we got here, we loaded the data
@@ -1172,7 +1172,8 @@ class Interface(object):
             self.ready_comparisons()
 
         # setup fitter
-        self.fitter = Fitter(debug=self.debug)
+        if self.fitter is None:
+            self.fitter = Fitter(debug=self.debug)
 
     def set_grid_properties(self, **kwargs):
         """
@@ -1308,8 +1309,6 @@ class Interface(object):
         # unambiguous relationship between
         # rv_group, spectrum and region
         reg2rv = {x: [] for x in regs}
-
-        print self.sl
 
         # for every region we have a look if we have some datas
         for wmin, wmax, reg in zip(wmins, wmaxs, regs):
@@ -1973,7 +1972,7 @@ class ObservedList(object):
 
                 # secure corrct types
                 recs = ['debug']
-                cast_types = [bool]
+                cast_types = [string2bool]
                 cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
                 for k in cdict.keys():
                     if k in recs:
@@ -2508,7 +2507,7 @@ class RegionList(List):
 
                 # secure corrct types
                 recs = ['debug']
-                cast_types = [bool]
+                cast_types = [string2bool]
                 cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
                 for k in cdict.keys():
                     if k in recs:
@@ -3071,7 +3070,7 @@ class StarList(object):
 
                 # secure corrct types
                 recs = ['debug']
-                cast_types = [bool]
+                cast_types = [string2bool]
                 cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
                 for k in cdict.keys():
                     if k in recs:

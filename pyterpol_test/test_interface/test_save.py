@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 debug=False
 # 1) define some observations
 ol = pyterpol.ObservedList(debug=debug)
-obs = [dict(filename='o.asc', error=0.01),
-       dict(filename='o2.asc', error=0.01)]
+obs = [dict(filename='o.asc', error=0.01, component='primary'),
+       dict(filename='o2.asc', error=0.01, component='secondary')]
 ol.add_observations(obs)
 
 # 2) define fitted regions
@@ -32,7 +32,7 @@ print itf
 # 5) save the interface
 itf.save('itf_save.txt')
 itf.clear_all()
-print itf
+# print itf
 
 # 6) load the interface
 itf.load('itf_save.txt')
