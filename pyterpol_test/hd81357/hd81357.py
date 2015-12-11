@@ -36,6 +36,8 @@ itf.write_synthetic_spectra(korel=True, outputname='lower_limit')
 itf.populate_comparisons()
 itf.plot_all_comparisons(figname='lower_limit')
 
+itf.save('hd81357.final.txt')
+
 
 
 

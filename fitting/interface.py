@@ -165,7 +165,7 @@ class Interface(object):
         self.propagate_and_update_parameters(l, pars)
 
         # reads out the chi_2 from individual spectra
-        chi2 = self.read_chi2_from_comparisons(l, verbose)[0]
+        chi2 = self.read_chi2_from_comparisons(l, verbose)
 
         # if we are fitting we store the info on the parameters
         if self.fit_is_running:

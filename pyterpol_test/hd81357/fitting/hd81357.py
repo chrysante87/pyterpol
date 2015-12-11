@@ -35,20 +35,17 @@ itf.set_parameter(component='secondary', parname='rv', fitted=True, vmin=-20.0, 
 
 # 6) choose a fitting environment
 fitparams = itf.get_fitted_parameters()
-itf.choose_fitter('nlopt_nelder_mead', fitparams=fitparams, xtol=1e-4)
-itf.populate_comparisons()
-print itf
-print itf.list_comparisons()
-print itf.rel_rvgroup_region
+itf.choose_fitter('nlopt_nelder_mead', fitparams=fitparams, ftol=1e-2)
 
 # 7) run fitting
 itf.run_fit()
-#
+
 # 8) plot result
-# print itf
-print itf.list_comparisons()
-itf.plot_all_comparisons()
+itf.plot_all_comparisons(figname='final')
 itf.write_synthetic_spectra()
+
+# 9) save the fit
+itf.save('hd81357.sav')
 
 
 

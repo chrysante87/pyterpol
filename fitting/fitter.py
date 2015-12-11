@@ -150,11 +150,12 @@ class Fitter(object):
         """
         # TODO this function  has to be improved.
         self.iter_number += 1
+        # print iter
         self.iters.append(iter)
 
         # if the number of iterations exceeds a certain number
         # they are written to a file
-        if len(self.iters) > 1000:
+        if self.iter_number % 1000 < 1:
             self.flush_iters()
             self.iters = []
 
@@ -234,7 +235,8 @@ class Fitter(object):
         # create a block of lines
         lines = []
 
-        # if the file is empty add headet
+        # if the file is empty add header
+        # print os.path.getsize(self.fitlog)
         if os.path.getsize(self.fitlog) == 0:
             #construct the header
             header = ''
@@ -244,19 +246,24 @@ class Fitter(object):
                     for rec in self.parameter_identification[key]:
                         header += '%s ' % str(rec)
                 header += '\n'
+            # append the header
+            lines.append(header)
 
         for row in self.iters:
             line = ''
 
             # create a row of parameters + chi2
             p = row['parameters']
-            chi2 = row['chi2']
-            p.append(chi2)
-            for i in range(0, len(p)):
-                line += '%s ' % str(p[i])
+            d = np.zeros(len(p)+1)
+            d[:-1] = p
+            d[-1] = row['chi2']
+
+            for i in range(0, len(d)):
+                line += '%s ' % str(d[i])
             line += '\n'
             # append the row
             lines.append(line)
+            # print line
 
         # write the to a file
         ofile = open(f, 'a')
