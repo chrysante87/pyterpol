@@ -77,6 +77,7 @@ class Fitter(object):
 
         # empty list of all trial fits
         self.iters = []
+        self.parameter_identification = None
 
         # clear the fitting log
         if os.path.isfile(fitlog):
@@ -224,7 +225,7 @@ class Fitter(object):
     def flush_iters(self, f=None):
         """
         Flushes all records within self.iters to a file
-        :param f:
+        :param f: filename
         :return:
         """
         if f is None:
@@ -232,11 +233,29 @@ class Fitter(object):
 
         # create a block of lines
         lines = []
+
+        # if the file is empty add headet
+        if os.path.getsize(self.fitlog) == 0:
+            #construct the header
+            header = ''
+            for key in self.parameter_identification.keys():
+                if key != 'value':
+                    header += '# %s: ' % key
+                    for rec in self.parameter_identification[key]:
+                        header += '%s ' % str(rec)
+                header += '\n'
+
         for row in self.iters:
             line = ''
-            for key in row.keys():
-                line += "%s: %s " % (key, str(row[key]))
+
+            # create a row of parameters + chi2
+            p = row['parameters']
+            chi2 = row['chi2']
+            p.append(chi2)
+            for i in range(0, len(p)):
+                line += '%s ' % str(p[i])
             line += '\n'
+            # append the row
             lines.append(line)
 
         # write the to a file
@@ -398,6 +417,15 @@ class Fitter(object):
         stepsize = (np.array(self.vmaxs) - np.array(self.vmins))/2.
         stepsize = stepsize.tolist()
         self.fitter.set_initial_step(stepsize)
+
+    def set_fit_properties(self, pi):
+        """
+        Sets identification of parameters i.e. names, groups and components
+        :param pi: dictionary with the records for each parameter
+                the order have to be the same as for the fitted parameter
+        :return:
+        """
+        self.parameter_identification = pi
 
 
 

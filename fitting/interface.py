@@ -75,7 +75,7 @@ class Interface(object):
         self.fit_is_running = False
         self.adaptive_resolution = adaptive_resolution
 
-        # empty array for identification of fitted parameters
+        # temporary variable for info on the fitted parameters
         self.ident_fitted_pars = None
 
     def __eq__(self, other):
@@ -160,32 +160,18 @@ class Interface(object):
         if l is None:
             l = self.comparisonList
 
-        # optimizing spectrum - owned  parameter is too long
-        # if self.spectrum_by_spectrum is not None and not self.fitting_loop:
-        #     self.optimize_spectrum_by_spectrum(l)
-        #     self.fitting_loop = False
-
         # propagate the parameters to the
         # parameterlist and update it
         self.propagate_and_update_parameters(l, pars)
 
         # reads out the chi_2 from individual spectra
-        chi2 = self.read_chi2_from_comparisons(l, verbose)
-
-        # store chi_square within the fitter
-        if verbose:
-            chi2 = chi2[0]
-            chi2_detailed = chi2[1]
-        else:
-            chi2_detailed = []
+        chi2 = self.read_chi2_from_comparisons(l, verbose)[0]
 
         # if we are fitting we store the info on the parameters
         if self.fit_is_running:
             # print dict(parameters=pars, chi2=chi2, detailed=chi2_detailed)
-            self.fitter.append_iteration(dict(parameters=pars, chi2=chi2, detailed=chi2_detailed))
+            self.fitter.append_iteration(dict(parameters=pars, chi2=chi2))
 
-        # if self.debug:
-            # print 'Computed model: %s chi2: %s' % (str(pars), str(chi2))
         print 'Computed model: %s chi2: %s' % (str(pars), str(chi2))
 
         return chi2
@@ -287,13 +273,9 @@ class Interface(object):
         lists all fitted parameters
         :return:
         """
-        fitpars, par_info =  self.sl.get_fitted_parameters(verbose=True)
-
-        # save the info on the fitted parameters
-        self.ident_fitted_pars = par_info
 
         # return the list of Parameters
-        return fitpars
+        return self.sl.get_fitted_parameters()
 
     def get_observed_spectrum(self, filename=None):
         """
@@ -1051,6 +1033,9 @@ class Interface(object):
         :param verbose:
         :return:
         """
+        # set the identification of fitted parameters
+        self.fitter.set_fit_properties(self.sl.get_fitted_parameters(True)[1])
+
         # this starts recording of each iteration chi2
         self.fit_is_running = True
 
