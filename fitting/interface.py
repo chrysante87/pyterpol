@@ -75,6 +75,18 @@ class Interface(object):
         self.adaptive_resolution = adaptive_resolution
         # self.fitting_loop = False
 
+    def __eq__(self, other):
+        """
+        Copies the other class to self.
+        :param other: the other interface
+        :return:
+        """
+
+        for attr in ['ol', 'sl', 'rl', 'fitter', 'spectrum_by_spectrum',
+                     'adaptive_grid', 'debug', '_grid_kwargs',
+                     'synthetic_spectrum_kwargs']:
+            setattr(self, attr, copy.deepcopy(getattr(other, attr)))
+
     def __str__(self):
         """
         String representation of the class
@@ -402,7 +414,6 @@ class Interface(object):
             for k in d.keys():
                 gpars[k] = d[k]
         itf.set_grid_properties(**gpars)
-
 
 
     def optimize_spectrum_by_spectrum(self, l=None, spectrum_by_spectrum=None):
