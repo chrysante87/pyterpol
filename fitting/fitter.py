@@ -320,6 +320,9 @@ class Fitter(object):
         for attr in attrs:
             setattr(self, attr, getattr(fitter, attr))
 
+        # if we got here, we loaded the data
+        return True
+
     def save(self, ofile):
         """
         Saves the class. It should be retrievable from the file.

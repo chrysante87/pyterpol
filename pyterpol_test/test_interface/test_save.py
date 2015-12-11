@@ -26,6 +26,7 @@ sl.add_component(component='secondary', teff=20000., logg=4.5, rv=30., vrot=10.,
 # 4) define interface
 itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=False)
 itf.setup()
+itf.choose_fitter('nlopt_nelder_mead', ftol=1e-5)
 print itf
 
 # 5) save the interface

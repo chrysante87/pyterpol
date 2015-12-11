@@ -356,6 +356,7 @@ class Interface(object):
         # check that there are actually some data in the file
         # the algorithm failed to load the class
         if data_start >= len(lines):
+            warnings.warn('No interface was found was found.')
             return False
 
         for l in lines[1:]:
@@ -391,6 +392,7 @@ class Interface(object):
 
         # load the remaining data
         rl = RegionList()
+        print rl.load(f)
         if not rl.load(f):
             raise ValueError('No records on the RegionList were found in %s.' % f)
         sl = StarList()
@@ -414,6 +416,10 @@ class Interface(object):
             for k in d.keys():
                 gpars[k] = d[k]
         itf.set_grid_properties(**gpars)
+
+        # copy the class
+        self.__eq__(itf)
+        self.setup()
 
 
     def optimize_spectrum_by_spectrum(self, l=None, spectrum_by_spectrum=None):
@@ -1962,6 +1968,9 @@ class ObservedList(object):
         for attr in attrs:
             setattr(self, attr, getattr(ol, attr))
 
+        # if we got here, we loaded the data
+        return True
+
     def read_groups(self):
         """
         Updates the dictionary observedSpectraList with group
@@ -2494,6 +2503,9 @@ class RegionList(List):
                  'mainList', 'debug']
         for attr in attrs:
             setattr(self, attr, getattr(rl, attr))
+
+        # if we got here, we loaded the data
+        return True
 
     def read_user_defined_groups(self, groups):
         """
@@ -3054,6 +3066,9 @@ class StarList(object):
                  'fitted_types', 'groups']
         for attr in attrs:
             setattr(self, attr, getattr(sl, attr))
+
+        # if we got here, we loaded the data
+        return True
 
     def read_groups(self):
         """
