@@ -26,6 +26,7 @@ sl.add_component(component='secondary', teff=20000., logg=4.5, rv=30., vrot=10.,
 # 4) define interface
 itf = pyterpol.Interface(ol=ol, rl=rl, sl=sl, debug=False)
 itf.setup()
+itf.set_parameter(parname='rv', fitted=True)
 itf.choose_fitter('nlopt_nelder_mead', ftol=1e-5)
 print itf
 
@@ -38,4 +39,5 @@ itf.clear_all()
 itf.load('itf_save.txt')
 itf.populate_comparisons()
 itf.plot_all_comparisons()
+print itf.fitter.fitted_pars_identification
 

@@ -74,7 +74,9 @@ class Interface(object):
         self.grid_properties_passed = False
         self.fit_is_running = False
         self.adaptive_resolution = adaptive_resolution
-        # self.fitting_loop = False
+
+        # empty array for identification of fitted parameters
+        self.ident_fitted_pars = None
 
     def __eq__(self, other):
         """
@@ -204,6 +206,7 @@ class Interface(object):
         self._synthetic_spectrum_kwargs = {}
         self.rel_rvgroup_region = {}
         self.grid_properties_passed = False
+        self.ident_fitted_pars = None
 
     def choose_fitter(self, *args, **kwargs):
         """
@@ -215,9 +218,14 @@ class Interface(object):
         """
         # fitter is rather simple, so if there is none set, we set an empty
         # one
-        # print kwargs
         if self.fitter is None:
             self.fitter = Fitter(debug=self.debug)
+
+        # select fitted parameters
+        if 'fitparams' not in kwargs.keys():
+            fitparams = self.get_fitted_parameters()
+            kwargs['fitparams'] = fitparams
+
         self.fitter.choose_fitter(*args, **kwargs)
 
     def extract_parameters(self, l, attr='value'):
@@ -2930,20 +2938,30 @@ class StarList(object):
 
         return groups
 
-    def get_fitted_parameters(self):
+    def get_fitted_parameters(self, verbose=False):
         """
         Returns a list of fitted parameters wrapped within the Parameter class ofc.
         :return:
         """
         fit_pars = []
+        # info on the fitted parameters
+        # is stored in a list and passed  if
+        # necessary
+        if verbose:
+            fit_pars_info = {'component':[], 'group':[], 'name':[], 'value':[]}
         # go over all parameters and components
         for c in self._registered_components:
             for parname in self.get_physical_parameters():
                 for par in self.componentList[c][parname]:
                     if par['fitted']:
                         fit_pars.append(par)
-
-        return fit_pars
+                        if verbose:
+                            for k in fit_pars_info.keys():
+                                fit_pars_info[k].append(par[k])
+        if not verbose:
+            return fit_pars
+        else:
+            return fit_pars, fit_pars_info
 
     def get_fitted_types(self):
         """
