@@ -15,7 +15,8 @@ from pyterpol.synthetic.auxiliary import generate_least_number
 from pyterpol.synthetic.auxiliary import keys_to_lowercase
 from pyterpol.synthetic.auxiliary import parlist_to_list
 from pyterpol.synthetic.auxiliary import read_text_file
-from pyterpol.synthetic.auxiliary import renew_file
+# from pyterpol.synthetic.auxiliary import renew_file
+from pyterpol.synthetic.auxiliary import select_index_for_multiple_keywords
 from pyterpol.synthetic.auxiliary import string2bool
 from pyterpol.synthetic.auxiliary import sum_dict_keys
 from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE

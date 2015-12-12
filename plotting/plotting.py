@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from pyterpol.synthetic.auxiliary import read_text_file
 
 def plot_convergence(block, labels=None, relative=True, savefig=True, figname=None):
     """
@@ -43,6 +44,42 @@ def read_fitlog(f):
     :param f:
     :return:
     """
+    # read the file
+    lines = read_text_file(f)
+
+    # key counter and ouput dictionary
+    fitlog = {}
+    hkcounter = 0
+
+    # define header keys
+    head_keys = ['name', 'component', 'group']
+    for l in lines:
+        d = l.split()
+        for hk in head_keys:
+            if l.find(hk) > -1:
+                hkcounter += 1
+                # groups are integers of course
+                if hk == 'group':
+                    d = map(int, d[2:])
+                else:
+                    d = d[2:]
+                break
+
+        # append the header info
+        fitlog[hk] = d
+        # once we read all data, we end
+        if hkcounter == 3:
+            break
+    # append data
+    fitlog['data'] = np.loadtxt(f)
+
+    return fitlog
+
+
+
+
+
+
 
 
 

@@ -259,6 +259,23 @@ def shift_spectrum(wave, RV):
 
     return new_wave
 
+def select_index_for_multiple_keywords(d, **kwargs):
+    """
+    From a dictionary of lists selects
+    one index meeting all requirements.
+    :param kwargs:
+    :return:
+    """
+    keys = d.keys()
+    length = len(d[keys[0]])
+
+    for i in range(0, length):
+        for k in keys:
+            if d[k] == kwargs[k] and k == keys[-1]:
+                return i
+    return -1
+
+
 def string2bool(s):
     """
     Converts string to boolean
