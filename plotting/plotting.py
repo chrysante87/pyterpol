@@ -27,6 +27,15 @@ def plot_convergence(block, labels=None, relative=True, savefig=True, figname=No
     for i in range(0, ncol):
         if labels is not None:
             ax.plot(block[:,i], '-', color=color, label=labels[i])
+        else:
+            ax.plot(block[:,i], '-', color=color)
+
+    # save the plot
+    if savefig == True:
+        if figname is None:
+            figname = 'convergence.png'
+
+    plt.savefig(figname)
 
 
 

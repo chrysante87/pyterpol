@@ -428,7 +428,6 @@ class Interface(object):
         # if we got here, we loaded the data
         return True
 
-
     def optimize_spectrum_by_spectrum(self, l=None, spectrum_by_spectrum=None):
         """
         Runs the fitting in an iterative way. One or more
