@@ -37,6 +37,13 @@ def plot_convergence(block, labels=None, relative=True, savefig=True, figname=No
 
     plt.savefig(figname)
 
+def read_fitlog(f):
+    """
+    Reads the fitting log and stores it within a dictionary.
+    :param f:
+    :return:
+    """
+
 
 
 

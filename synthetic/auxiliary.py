@@ -183,6 +183,14 @@ def read_text_file(f):
 
     return lines
 
+def renew_file(f):
+    """
+    Deletes an existing file.
+    :param f:
+    :return:
+    """
+    ofile = open(f, 'w')
+    ofile.close()
 
 def rotate_spectrum(wave, intens, vrot, fwhm=0.0, epsilon=0.6):
     """

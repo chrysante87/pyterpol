@@ -7,6 +7,7 @@ from scipy.optimize import differential_evolution
 from pyterpol.synthetic.auxiliary import parlist_to_list
 from pyterpol.synthetic.auxiliary import string2bool
 from pyterpol.synthetic.auxiliary import read_text_file
+from pyterpol.synthetic.auxiliary import renew_file
 
 fitters = dict(
     sp_nelder_mead=dict(par0type='value',
@@ -79,11 +80,6 @@ class Fitter(object):
         self.iters = []
         self.parameter_identification = None
 
-        # clear the fitting log
-        if os.path.isfile(fitlog):
-            warnings.warn('A fitlog from previous fitting was found and overwritten..muhahahaha!')
-            open(fitlog, 'w')
-
         # choose a fitter if one
         # was given
         if name is not None:
@@ -95,6 +91,9 @@ class Fitter(object):
         :param args:
         :return:
         """
+        # emtpy the fitlog
+        renew_file(self.fitlog)
+
         # reset the counter and clear the fitting
         self.iter_number = 0
         self.iters = []
