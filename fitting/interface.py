@@ -21,6 +21,7 @@ from pyterpol.synthetic.auxiliary import select_index_for_multiple_keywords
 from pyterpol.synthetic.auxiliary import string2bool
 from pyterpol.synthetic.auxiliary import sum_dict_keys
 from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
+from pyterpol.plotting.plotting import *
 
 
 # TODO Go through similarities in the classes and write a parent class
@@ -728,6 +729,70 @@ class Interface(object):
         # save the figure
         if savefig:
             plt.savefig(figname)
+
+    def plot_convergence(self, f=None, parameter='chi2', component='all', group='all', savefig=True, figname=None):
+        """
+        Plots convergence of the chi2 and parameters.
+        :param f
+        :param parameter
+        :param component
+        :param group
+        :param savefig
+        :param figname
+        :return:
+        """
+        if f is None:
+            f = self.fitter.fitlog
+
+        # read the log
+        log = read_fitlog(f)
+
+        block = []
+        labels = []
+        # set the plotted parameters
+        if parameter.lower() == 'all':
+            parameters = np.unique(log['name'])
+        else:
+            parameters = [parameter]
+
+        if component.lower() == 'all':
+            components = np.unique(log['component'])
+        else:
+            components = [component]
+
+        if group.lower() == 'all':
+            groups = np.unique(log['group'])
+        else:
+            groups = [group]
+
+        # print parameters, components, groups
+
+        # select those mathcing the choice
+        i = 0
+        for p, c, g in zip(log['name'], log['component'], log['group']):
+
+            if p not in parameters:
+                continue
+                i += 1
+            elif c not in components:
+                continue
+                i += 1
+            elif g not in groups:
+                continue
+                i += 1
+            else:
+                label = '_'.join(['p', p, 'c', c, 'g', str(g)])
+                labels.append(label)
+                block.append(log['data'][:,i])
+                i += 1
+
+        # append chi_square
+        if parameter.lower() in ['chi2']:
+            block.append(log['data'][:,-1])
+            labels.append('chi2')
+
+        # print labels
+        plot_convergence(np.column_stack(block), labels, figname=figname, savefig=savefig)
 
     def propagate_and_update_parameters(self, l, pars):
         """

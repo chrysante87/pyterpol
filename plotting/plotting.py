@@ -13,8 +13,6 @@ def plot_convergence(block, labels=None, relative=True, savefig=True, figname=No
     :param figname
     :return:
     """
-    # define the color
-    color = 0.1 +0.9*np.random.random(3)
 
     nrow, ncol = np.shape(block)
     # normalize with the best value
@@ -29,10 +27,16 @@ def plot_convergence(block, labels=None, relative=True, savefig=True, figname=No
 
     # plot convergence
     for i in range(0, ncol):
+        # define the color
+        color = 0.1 +0.9*np.random.random(3)
+
         if labels is not None:
             ax.plot(block[:,i], '-', color=color, label=labels[i])
         else:
             ax.plot(block[:,i], '-', color=color)
+        ax.set_xlabel('Iteration number')
+        ax.set_ylabel('Relative value.')
+        ax.legend(loc=1, fontsize=10)
 
     # save the plot
     if savefig == True:
@@ -40,44 +44,6 @@ def plot_convergence(block, labels=None, relative=True, savefig=True, figname=No
             figname = 'convergence.png'
 
     plt.savefig(figname)
-
-def read_fitlog(f):
-    """
-    Reads the fitting log and stores it within a dictionary.
-    :param f:
-    :return:
-    """
-    # read the file
-    lines = read_text_file(f)
-
-    # key counter and ouput dictionary
-    fitlog = {}
-    hkcounter = 0
-
-    # define header keys
-    head_keys = ['name', 'component', 'group']
-    for l in lines:
-        d = l.split()
-        for hk in head_keys:
-            if l.find(hk) > -1:
-                hkcounter += 1
-                # groups are integers of course
-                if hk == 'group':
-                    d = map(int, d[2:])
-                else:
-                    d = d[2:]
-                break
-
-            # append the header info
-            fitlog[hk] = d
-        # once we read all data, we end
-        if hkcounter == 3:
-            break
-    # append data
-    fitlog['data'] = np.loadtxt(f)
-
-    return fitlog
-
 
 def plot_chi2_map(x, y, nbin=10, labels=None, savefig=True, figname=None):
     """
@@ -137,6 +103,47 @@ def plot_chi2_map(x, y, nbin=10, labels=None, savefig=True, figname=None):
             figname = 'covariance' + '_'.join(labels) + 'png'
 
         plt.savefig(figname)
+
+def read_fitlog(f):
+    """
+    Reads the fitting log and stores it within a dictionary.
+    :param f:
+    :return:
+    """
+    # read the file
+    lines = read_text_file(f)
+
+    # key counter and ouput dictionary
+    fitlog = {}
+    hkcounter = 0
+
+    # define header keys
+    head_keys = ['name', 'component', 'group']
+    for l in lines:
+        d = l.split()
+        # print d
+        for hk in head_keys:
+            if l.find(hk) > -1:
+                # groups are integers of course
+                if hk == 'group':
+                    d[2:] = map(int, d[2:])
+                else:
+                    d[2:] = d[2:]
+
+                # append the header info
+                fitlog[hk] = d[2:]
+                hkcounter += 1
+                break
+
+        # once we read all data, we end
+        if hkcounter == 3:
+            break
+
+    # print fitlog
+    # append data
+    fitlog['data'] = np.loadtxt(f)
+
+    return fitlog
 
 
 

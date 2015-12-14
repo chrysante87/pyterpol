@@ -10,4 +10,5 @@ from .fitting.parameter import Parameter
 from .fitting.fitter import Fitter
 
 from .synthetic.auxiliary import parlist_to_list
+from .plotting.plotting import *
 # setup default directories of the grid
