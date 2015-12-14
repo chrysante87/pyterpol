@@ -15,7 +15,7 @@ data = pyterpol.read_fitlog('fit.log')
 itf.plot_convergence(parameter='all')
 
 # try to plot covariances
-itf.plot_covariances(nbin=10)
+itf.plot_covariances(nbin=10, parameters=['teff', 'vrot', 'lr'])
 
 
 

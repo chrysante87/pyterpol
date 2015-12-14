@@ -35,7 +35,7 @@ itf.set_parameter(component='secondary', parname='rv', fitted=True, vmin=-20.0, 
 
 # 6) choose a fitting environment
 fitparams = itf.get_fitted_parameters()
-itf.choose_fitter('nlopt_nelder_mead', fitparams=fitparams, ftol=1e-2)
+itf.choose_fitter('nlopt_nelder_mead', fitparams=fitparams, ftol=1e-3)
 
 # 7) run fitting
 itf.run_fit()
@@ -46,6 +46,8 @@ itf.write_synthetic_spectra()
 
 # 9) save the fit
 itf.save('hd81357.sav')
+
+print itf.fitter.iters
 
 
 

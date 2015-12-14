@@ -191,9 +191,9 @@ class Interface(object):
         chi2 = self.read_chi2_from_comparisons(l, verbose)
 
         # if we are fitting we store the info on the parameters
+        # print pars
         if self.fit_is_running:
-            # print dict(parameters=pars, chi2=chi2, detailed=chi2_detailed)
-            self.fitter.append_iteration(dict(parameters=pars, chi2=chi2))
+            self.fitter.append_iteration(dict(parameters=copy.deepcopy(pars), chi2=chi2))
 
         print 'Computed model: %s chi2: %s' % (str(pars), str(chi2))
 
@@ -852,9 +852,9 @@ class Interface(object):
 
                 # end if there are no components matching our
                 # choice of components, groups and parameters
-                if any([p not in parameters for p in [p1, p2]]):
+                if any([p.lower() not in parameters for p in [p1, p2]]):
                     continue
-                if any([c not in components for c in [c1, c2]]):
+                if any([c.lower() not in components for c in [c1, c2]]):
                     continue
                 if any([g not in groups for g in [g1, g2]]):
                     continue
