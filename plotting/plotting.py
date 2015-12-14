@@ -9,6 +9,8 @@ def plot_convergence(block, labels=None, relative=True, savefig=True, figname=No
     :param block:
     :param labels:
     :param relative:
+    :param savefig
+    :param figname
     :return:
     """
     # define the color

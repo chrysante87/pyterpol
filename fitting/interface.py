@@ -4,6 +4,7 @@ import copy
 import warnings
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import stats
 from pyterpol.synthetic.makespectrum import SyntheticGrid
 from pyterpol.synthetic.makespectrum import SyntheticSpectrum
 from pyterpol.observed.observations import ObservedSpectrum
@@ -197,14 +198,31 @@ class Interface(object):
 
         return chi2
 
-    def compute_chi2_treshold(self, chi2, ddof):
+    def compute_chi2_treshold(self, l=None, alpha=0.67):
         """
         Computes confidence level from normallized chi^2.
         It is of course not correct, but what can be done,
         when the model is evidently incorrect??
+        :param chi2
         :param ddof:
         :return:
         """
+
+        if l is None:
+            l = self.comparisonList
+
+        ddof = self.get_degrees_of_freedom(l)
+
+        # estimate confidence limits
+        chi2 = stats.chi2(ddof)
+        vmin, vmax =  chi2.interval(alpha)
+
+        # now get vthe maximal value relative
+        # to the minimal - minimal value is
+        # what we get with the minimization
+        ratio = vmax/vmin
+
+        return ratio
 
     def choose_fitter(self, *args, **kwargs):
         """
@@ -280,7 +298,7 @@ class Interface(object):
         else:
             return clist
 
-    def get_degrees_of_freedom(self, l):
+    def get_degrees_of_freedom(self, l=None):
         """
         Computes degrees of freadom for a given comparison list
         :param l:
@@ -300,8 +318,6 @@ class Interface(object):
                 n += len(rec['synthetic'][c])
 
         return n-m
-
-
 
     def get_fitted_parameters(self):
         """
