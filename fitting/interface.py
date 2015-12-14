@@ -474,6 +474,7 @@ class Interface(object):
         # copy the class
         self.__eq__(itf)
         self.setup()
+        self.populate_comparisons()
         print self.fitter.fittername
         # self.choose_fitter(self.fitter.fittername)
 
