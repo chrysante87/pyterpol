@@ -794,6 +794,84 @@ class Interface(object):
         # print labels
         plot_convergence(np.column_stack(block), labels, figname=figname, savefig=savefig)
 
+    def plot_covariances(self,f=None, l=None, parameters=None, components=None, groups=None, nbin=20,
+                         savefig=True, figname=None):
+        """
+        Plots covariances between selected parameters
+        :param f
+        :param l
+        :param parameter
+        :param component
+        :param group
+        :param savefig
+        :param figname
+        :return:
+        """
+        if any([isinstance(x, (float, int, str)) for x in [components, parameters, groups]]):
+            raise TypeError('Parameters (parameter, component, group) have to be either type list'
+                            ' or string == \'all\'.')
+
+        # load data
+        if f is None:
+            f = self.fitter.fitlog
+        log = read_fitlog(f)
+
+        # set the plotted parameters
+        if parameters == None:
+            parameters = np.unique(log['name'])
+        if components == None:
+            components = np.unique(log['component'])
+        if groups == None:
+            groups = np.unique(log['group'])
+
+        # compute the chi2 treshold == 1 sigma
+        tres = self.compute_chi2_treshold(l=l, alpha=0.993)
+
+        # narrow down the chi^2
+        ind = np.where(log['data'][:,-1] <= tres*log['data'][:,-1].min())[0]
+        log['data'] = log['data'][ind]
+
+        if len(ind) < len(self.get_fitted_parameters()):
+            warnings.warn('Number of points for which chi^2 lies within three sigma'
+                          ' of the chi^2 distribution is very low. It is actually less'
+                          ' than number of fitted points. This suggests that your '
+                          ' fit did not converge properly.')
+
+        # select those mathcing the choice
+        npar = len(log['name'])
+        for i in range(1, npar):
+            for j in range(0, i):
+
+                # extract individual values
+                p1 = log['name'][i]
+                p2 = log['name'][j]
+                c1 = log['component'][i]
+                c2 = log['component'][j]
+                g1 = log['group'][i]
+                g2 = log['group'][j]
+
+                # end if there are no components matching our
+                # choice of components, groups and parameters
+                if any([p not in parameters for p in [p1, p2]]):
+                    continue
+                if any([c not in components for c in [c1, c2]]):
+                    continue
+                if any([g not in groups for g in [g1, g2]]):
+                    continue
+
+                # setup labels
+                label1 = '_'.join(['p', p1, 'c', c1, 'g', str(g1)])
+                label2 = '_'.join(['p', p2, 'c', c2, 'g', str(g2)])
+                labels = [label1, label2]
+
+                # setup plotted data
+                x = log['data'][:,i]
+                y = log['data'][:,j]
+
+                # do the oplot
+                plot_chi2_map(x, y, nbin=nbin, labels=labels, savefig=savefig, figname=figname)
+
+
     def propagate_and_update_parameters(self, l, pars):
         """
         :param l

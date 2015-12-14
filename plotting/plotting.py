@@ -56,18 +56,19 @@ def plot_chi2_map(x, y, nbin=10, labels=None, savefig=True, figname=None):
     :param figname
     :return:
     """
+    fs=8
     # if user did not pass the labels
     if labels == None:
         labels = ['x', 'y']
 
     # set up the figure
     fig = plt.figure(figsize=(10,10), dpi=100)
-    var_axes = [(2, 2, 1), (2, 2, 4)]
+    var_axes = [221, 224]
     var_data = [x, y]
 
     # firs the plot of the variance
     for i in range(0, 2):
-        ax = fig.add_subplot(var_axes[i], aspect=1.0)
+        ax = fig.add_subplot(var_axes[i])
 
         # plot the histogram
         n, bins, patches = ax.hist(var_data[i], normed=True, label=labels[0])
@@ -80,12 +81,12 @@ def plot_chi2_map(x, y, nbin=10, labels=None, savefig=True, figname=None):
         ax.plot(x_g, g.pdf(x_g), 'r-')
 
         # labeling
-        ax.set_xlabel(labels[0])
-        ax.set_ylabel('$n_i/N$')
-        ax.title('$\sigma_%s$ = %.3f' % (labels[0], var))
+        ax.set_xlabel(labels[i], fontsize=8)
+        ax.set_ylabel('$n_i/N$', fontsize=8)
+        ax.set_title(r'$\sigma$_%s=%.3f' % (labels[i], var), fontsize=8)
 
     # plot the 2d chi2 map
-    ax = fig.add_subplot(223, aspect=1.0)
+    ax = fig.add_subplot(223)
     ax.hist2d(x, y, nbin, normed=True)
 
     # compute the correlation
@@ -93,14 +94,14 @@ def plot_chi2_map(x, y, nbin=10, labels=None, savefig=True, figname=None):
     cor = cov/(x.std(ddof=1)*y.std(ddof=1))
 
     # labelling
-    ax.set_xlabel(labels[0])
-    ax.set_ylabel(labels[1])
-    ax.set_title(r'$\rho(%s, %s) = %.3f$' % (labels[0], labels[1], cor))
+    ax.set_xlabel(labels[0], fontsize=8)
+    ax.set_ylabel(labels[1], fontsize=8)
+    ax.set_title(r'$\rho$(%s, %s) = %.3f' % (labels[0], labels[1], cor), fontsize=8)
 
     # save the figure
     if savefig:
         if figname is None:
-            figname = 'covariance' + '_'.join(labels) + 'png'
+            figname = '_'.join(labels) + '.png'
 
         plt.savefig(figname)
 
