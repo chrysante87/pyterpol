@@ -871,7 +871,6 @@ class Interface(object):
                 # do the oplot
                 plot_chi2_map(x, y, nbin=nbin, labels=labels, savefig=savefig, figname=figname)
 
-
     def propagate_and_update_parameters(self, l, pars):
         """
         :param l
@@ -1226,6 +1225,9 @@ class Interface(object):
         :param verbose:
         :return:
         """
+        # update fitted parameters
+        self.update_fitter()
+
         # set the identification of fitted parameters
         self.fitter.set_fit_properties(self.sl.get_fitted_parameters(True)[1])
 
