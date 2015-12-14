@@ -152,6 +152,25 @@ class Interface(object):
                                         synthetic = {x: None for x in parameters.keys()},
                                         chi2 = 0.0
                                      ))
+
+    def clear_all(self):
+        """
+        Clears the class.
+        :return:
+        """
+        self.comparisonList = None
+        self.grids = {}
+        self.ol = None
+        self.rl = None
+        self.sl = None
+        self.fitter = None
+        self.synthetics = {}
+        self._grid_kwargs = {}
+        self._synthetic_spectrum_kwargs = {}
+        self.rel_rvgroup_region = {}
+        self.grid_properties_passed = False
+        self.ident_fitted_pars = None
+
     def compute_chi2(self, pars, l=None, verbose=False):
         """
         :param pars:
@@ -178,23 +197,14 @@ class Interface(object):
 
         return chi2
 
-    def clear_all(self):
+    def compute_chi2_treshold(self, chi2, ddof):
         """
-        Clears the class.
+        Computes confidence level from normallized chi^2.
+        It is of course not correct, but what can be done,
+        when the model is evidently incorrect??
+        :param ddof:
         :return:
         """
-        self.comparisonList = None
-        self.grids = {}
-        self.ol = None
-        self.rl = None
-        self.sl = None
-        self.fitter = None
-        self.synthetics = {}
-        self._grid_kwargs = {}
-        self._synthetic_spectrum_kwargs = {}
-        self.rel_rvgroup_region = {}
-        self.grid_properties_passed = False
-        self.ident_fitted_pars = None
 
     def choose_fitter(self, *args, **kwargs):
         """
@@ -269,6 +279,29 @@ class Interface(object):
             return clist, indices
         else:
             return clist
+
+    def get_degrees_of_freedom(self, l):
+        """
+        Computes degrees of freadom for a given comparison list
+        :param l:
+        :return: number of degrees of freedom
+        """
+
+        if l is None:
+            l = self.comparisonList
+
+        # number of fitted parameters
+        m = len(self.get_fitted_parameters())
+
+        n = 0
+        # number of fitted spectra points
+        for rec in l:
+            for c in rec['synthetic'].keys():
+                n += len(rec['synthetic'][c])
+
+        return n-m
+
+
 
     def get_fitted_parameters(self):
         """

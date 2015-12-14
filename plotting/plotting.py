@@ -66,8 +66,8 @@ def read_fitlog(f):
                     d = d[2:]
                 break
 
-        # append the header info
-        fitlog[hk] = d
+            # append the header info
+            fitlog[hk] = d
         # once we read all data, we end
         if hkcounter == 3:
             break
