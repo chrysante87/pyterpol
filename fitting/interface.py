@@ -2857,7 +2857,7 @@ class StarList(object):
 
         return string
 
-    def add_component(self, component=None, groups={}, **kwargs):
+    def add_component(self, component=None, groups={}, use_defaults=True, **kwargs):
         """
         Setups a component - if no kwargs are given,
         all parameters from the parameter_definitions
@@ -2917,10 +2917,11 @@ class StarList(object):
                               'attention to ist settings.')
 
         # pass all unset parameters in definitions
-        for key in pd.keys():
-            if key not in self.componentList[component].keys():
-                self.componentList[component][key] = []
-                self.componentList[component][key].append(Parameter(**pd[key]))
+        if use_defaults:
+            for key in pd.keys():
+                if key not in self.componentList[component].keys():
+                    self.componentList[component][key] = []
+                    self.componentList[component][key].append(Parameter(**pd[key]))
 
         # readout the groups
         self.read_groups()
