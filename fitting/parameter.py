@@ -22,14 +22,14 @@ parameter_definitions=dict(
 class Parameter(object):
     """
     """
-    def __init__(self, name=None, value=None, vmin=None, vmax=None, unit=None, fitted=None, group=None, typedef=None, debug=False):
+    def __init__(self, name=None, value=None, vmin=None, vmax=None, unit=None, fitted=None,
+                 group=None, typedef=None, debug=False):
         """
         :param name: name of the parameter
         :param value: of the parameter
         :param vmin: minimal value
         :param vmax: maximal value
         :param fitted: is optimized
-        :param component: component to which it belongs
         :param group: group for which the parameter applies
         :return: None
         """

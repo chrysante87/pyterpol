@@ -809,14 +809,23 @@ class SyntheticGrid:
 
         return syns[0]
 
-    def make_parameter_list(self, grid=None):
+    @staticmethod
+    def list_modes(self):
         """
-        Creates a simple list with properties of
-        individual spectra.
-        input:
-          grid.. list of SyntheticSpectrum types
+        This method lists available modes for the SyntheticGrid.
+        :return:
         """
-        a = None
+        # go over differents modes
+        string = 'List of registered modes and their properties follows:\n'
+        for mode in grid_files.keys():
+            string += ''.ljust(100,'=') + '\n'
+            string += 'mode: %s\n:' % mode
+            string += 'directories: %s \n' % str(grid_files[mode]['directories'])
+            string += 'columns: %s\n' % str(grid_files[mode]['columns'])
+            string += 'families: %s\n' % str(grid_files[mode]['families'])
+        string += ''.ljust(100,'=') + '\n'
+
+        return string
 
     def narrow_down_grid(self, **kwargs):
         """
@@ -1171,6 +1180,16 @@ class SyntheticGrid:
 
         # also sets the default grid order
         self.set_grid_order(default_grid_order)
+
+    def set_mode(self, mode='default'):
+        """
+        Set different mode.
+        :param mode:
+        :return:
+        """
+
+        debug = self.debug
+        self.__init__(mode=mode, debug=debug)
 
     def set_grid_order(self, arr):
         """
