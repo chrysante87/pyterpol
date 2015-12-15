@@ -109,6 +109,7 @@ class Fitter(object):
 
         # run fitting
         if self.family == 'sp':
+            print self.uses_bounds
             if self.uses_bounds:
                 bounds = [[vmin, vmax] for vmin, vmax in zip(self.vmins, self.vmaxs)]
                 self.result = self.fitter(func, self.par0, args=args, bounds=bounds, **self.fit_kwargs)
@@ -214,6 +215,8 @@ class Fitter(object):
             self.uses_bounds = True
             self.vmins = parlist_to_list(fitparams, property='vmin')
             self.vmaxs = parlist_to_list(fitparams, property='vmax')
+        else:
+            self.uses_bounds = False
 
         # set up family
         self.family = name.split('_')[0]

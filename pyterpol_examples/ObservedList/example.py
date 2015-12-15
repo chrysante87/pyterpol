@@ -21,7 +21,7 @@ obs1.plot(figname='observed1.png', savefig=True)
 obs2 = pyterpol.ObservedSpectrum(filename='o2.asc', component='primary', korel=True)
 obs2.plot(figname='observed2.png', savefig=True)
 
-# Now attach the spectra to the ObservedList one by one
+# Now attach the sspectra to the ObservedList one by one
 ol.add_one_observation(obs=obs1)
 ol.add_one_observation(obs=obs2)
 
