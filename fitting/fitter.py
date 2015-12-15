@@ -109,7 +109,6 @@ class Fitter(object):
 
         # run fitting
         if self.family == 'sp':
-            print self.uses_bounds
             if self.uses_bounds:
                 bounds = [[vmin, vmax] for vmin, vmax in zip(self.vmins, self.vmaxs)]
                 self.result = self.fitter(func, self.par0, args=args, bounds=bounds, **self.fit_kwargs)
@@ -127,6 +126,10 @@ class Fitter(object):
 
             # the fitting
             self.result = self.fitter.optimize(self.par0)
+
+        # we want only set of parameters for the result
+        if not isinstance(self.result, (list, tuple, type(np.array([])))):
+            self.result = self.result.x
 
     def __str__(self):
         """
@@ -174,6 +177,8 @@ class Fitter(object):
         :param kwargs: keyword arguments controlling the respective fitting environement
         :return:
         """
+        # clear the class first
+        self.clear_all()
 
         # check the input
         if name.lower() not in fitters.keys():
