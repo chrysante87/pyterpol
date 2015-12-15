@@ -19,7 +19,7 @@ sg = pyterpol.SyntheticGrid()
 print sg.list_modes()
 
 # Now we know the modes, so we can either create the grid again
-sg = pyterpol.SyntheticGrid(mode='bstar', debug=True)
+sg = pyterpol.SyntheticGrid(mode='bstar')
 
 # or just set mode for the existing one - BSTAR will be our
 # exemplary grid.
@@ -34,24 +34,26 @@ pars = dict(teff=18200, logg=4.3, z=1.2)
 
 # We should also pass some boundaries, unless we want
 # to get the whole wavelength range of the grid
-spectrum1 = sg.get_synthetic_spectrum(pars, [4250, 4500])
-print len(spectrum1.wave), len(spectrum1.intens)
+spectrum1 = sg.get_synthetic_spectrum(pars, [4300, 4400])
 
-# lets get the spectrum - it is type Syntheticspectrum
-# so it carries all its features - we can rotate, shrink it
-# shift in rv
 # we can view properties of the synthetic spectrum
 print spectrum1
 
 # we can of course plot_it
 spectrum1.plot(savefig=True, figname='spectrum1.png')
 
+# it is class SyntheticSpectrum, so it has all its
+# features, if we want the synthetic spectrum to adopt the
+# new spectrum we say that with keyword 'keep'
+spectrum1.get_spectrum(vrot=30., rv=-200., lr=0.3, wmin=4300, wmax=4400, keep=True)
+spectrum1.plot(savefig=True, figname='spectrum1_adjusted.png')
+
 # A great feature of the class is that it remembers all
 # loaded spectra until the program ends. This means that
 # if your nect interpolation requires similar spectra
 # from the grid, everything will be much faster
 pars = dict(teff=18300, logg=4.2, z=1.1)
-spectrum1= sg.get_synthetic_spectrum(pars, [4250, 4500])
+spectrum1= sg.get_synthetic_spectrum(pars, [4300, 4400])
 
 # User can also change the resolution of the grid
 # by setting keyword step and the number of the
@@ -61,9 +63,9 @@ spectrum1= sg.get_synthetic_spectrum(pars, [4250, 4500])
 # order = maximal number of spectra, that should be used for
 # interpolation
 pars = dict(teff=29300, logg=3.1, z=0.74)
-spectrum2 = sg.get_synthetic_spectrum(pars, [4250, 4500], order=4, step=0.05)
-
-# plot comparison of the two spectra
+spectrum2 = sg.get_synthetic_spectrum(pars, [4300, 4400], order=4, step=0.05)
+#
+# # plot comparison of the two spectra
 fig = plt.figure()
 ax = fig.add_subplot(111)
 spectrum1.plot(ax=ax)

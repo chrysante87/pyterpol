@@ -211,7 +211,8 @@ class SyntheticSpectrum:
 
         return bump_wave, bump_intens
 
-    def get_spectrum(self, wave=None, rv=None, vrot=None, lr=1.0, korel=False, only_intensity=False, wmin=None, wmax=None):
+    def get_spectrum(self, wave=None, rv=None, vrot=None, lr=1.0, korel=False,
+                     only_intensity=False, wmin=None, wmax=None, keep=False):
         """
         Return the sythetic spectrum stored within the class. If
         a set of wavelengths is provided, an interpolated spectrum
@@ -223,6 +224,7 @@ class SyntheticSpectrum:
           vrot.. projected rotational velocity in km/s
           only_intensity.. returns intensity only
           :param korel
+          :param keep
         output:
           wave, intens.. synthetic spectrum
         """
@@ -321,6 +323,21 @@ class SyntheticSpectrum:
         # if we want to extract the spectra in KOREL format
         if korel:
             intens = 1.0 - (lr - intens)
+
+        # if we want to update the class with what
+        # we computed
+        if keep:
+            # update the size of the spectrum
+            self.intens = intens
+            self.wave = wave
+            self.measure_spectrum()
+
+            #update its parameters
+            for attr, val in zip(['rv', 'vrot', 'lr', 'korel'], [rv, vrot, lr, korel]):
+                if val is not None:
+                    setattr(self, attr, val)
+                    self.properties.append(attr)
+            return
 
         if only_intensity:
             return intens
@@ -436,8 +453,8 @@ class SyntheticSpectrum:
                                  (str(self).rstrip('\n'), str(wmin), str(wmax)))
 
             # does the trunctation
-            # ind = np.where((self.wave >= wmin) & (self.wave <= wmax))[0]
-            ind = np.where(((self.wave - wmin) >= ZERO_TOLERANCE) & ((self.wave - wmax) <= ZERO_TOLERANCE))[0]
+            ind = np.where((self.wave >= wmin) & (self.wave <= wmax))[0]
+            # ind = np.where(((self.wave - wmin) >= -ZERO_TOLERANCE) & ((self.wave - wmax) <= ZERO_TOLERANCE))[0]
             self.wave = self.wave[ind]
             self.intens = self.intens[ind]
 
@@ -1213,5 +1230,5 @@ class SyntheticGrid:
             wmax.. maximal wavelength
             step.. step size in the wavelength
         """
-        nstep = int((wmax - wmin)/step)
+        nstep = int((wmax - wmin)/step)+1
         self.wave = np.linspace(wmin, wmax, nstep)
