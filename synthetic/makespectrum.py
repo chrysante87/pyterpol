@@ -529,6 +529,9 @@ class SyntheticGrid:
             wave..   wavelength vector for which the synthetic
                  spectrum should be created.
         """
+        if isinstance(wave, (list, tuple)):
+            wave = np.array(wave)
+
         # sets up the equidistant wavelength vector
         wmin = wave.min() - padding
         wmax = wave.max() + padding
@@ -810,19 +813,19 @@ class SyntheticGrid:
         return syns[0]
 
     @staticmethod
-    def list_modes(self):
+    def list_modes():
         """
         This method lists available modes for the SyntheticGrid.
         :return:
         """
         # go over differents modes
         string = 'List of registered modes and their properties follows:\n'
-        for mode in grid_files.keys():
+        for i in range(0, len(grid_files['identification'])):
             string += ''.ljust(100,'=') + '\n'
-            string += 'mode: %s\n:' % mode
-            string += 'directories: %s \n' % str(grid_files[mode]['directories'])
-            string += 'columns: %s\n' % str(grid_files[mode]['columns'])
-            string += 'families: %s\n' % str(grid_files[mode]['families'])
+            string += 'mode: %s:\n' % grid_files['identification'][i]
+            string += 'directories: %s \n' % str(grid_files['directories'][i])
+            string += 'columns: %s\n' % str(grid_files['columns'][i])
+            string += 'families: %s\n' % str(grid_files['families'][i])
         string += ''.ljust(100,'=') + '\n'
 
         return string
