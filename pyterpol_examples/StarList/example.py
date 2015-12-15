@@ -57,7 +57,7 @@ print sl.get_physical_parameters()
 ############################### END OF THE SAFE ZONE ####################################
 
 # Here will be demonstration of additional methods, which are not needed for
-# usage of the class. It may potentialy be dangerous to use them, if
+# usage of the class. It may be potentialy be dangerous to use them, if
 # your StarList has been added to a interface.
 
 # TODO
