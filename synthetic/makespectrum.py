@@ -211,7 +211,7 @@ class SyntheticSpectrum:
 
         return bump_wave, bump_intens
 
-    def get_spectrum(self, wave=None, rv=None, vrot=None, lr=None, korel=False, only_intensity=False, wmin=None, wmax=None):
+    def get_spectrum(self, wave=None, rv=None, vrot=None, lr=1.0, korel=False, only_intensity=False, wmin=None, wmax=None):
         """
         Return the sythetic spectrum stored within the class. If
         a set of wavelengths is provided, an interpolated spectrum
