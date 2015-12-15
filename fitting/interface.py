@@ -1875,7 +1875,7 @@ class ObservedList(object):
             string += str(spectrum)
         return string
 
-    def add_one_observation(self, update=True, **kwargs):
+    def add_one_observation(self, obs=None, update=True, **kwargs):
         """
         Adds observation to the list.
         :param update - update the observed spectra list
@@ -1885,8 +1885,9 @@ class ObservedList(object):
         # adds the spectrum and loads it
         if self.debug:
             kwargs['debug'] = True
+        if obs is None:
+            obs = ObservedSpectrum(**kwargs)
 
-        obs = ObservedSpectrum(**kwargs)
         self.observedSpectraList['spectrum'].append(obs)
 
         if self.debug:
@@ -1907,7 +1908,10 @@ class ObservedList(object):
         """
         # attachs the spectra
         for rec in spec_list:
-            self.add_one_observation(update=False, **rec)
+            if isinstance(rec, dict):
+                self.add_one_observation(update=False, **rec)
+            else:
+                self.add_one_observation(update=False, obs=rec)
 
         # builds the observedSpectraList dictionary
         if update:
