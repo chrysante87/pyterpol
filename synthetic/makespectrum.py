@@ -436,7 +436,8 @@ class SyntheticSpectrum:
                                  (str(self).rstrip('\n'), str(wmin), str(wmax)))
 
             # does the trunctation
-            ind = np.where((self.wave >= wmin) & (self.wave <= wmax))[0]
+            # ind = np.where((self.wave >= wmin) & (self.wave <= wmax))[0]
+            ind = np.where(((self.wave - wmin) >= ZERO_TOLERANCE) & ((self.wave - wmax) <= ZERO_TOLERANCE))[0]
             self.wave = self.wave[ind]
             self.intens = self.intens[ind]
 
@@ -723,6 +724,7 @@ class SyntheticGrid:
                 # read out the intensities
                 intens = spectrum.get_spectrum(only_intensity=True)
 
+            # print len(intens)
             # append spectrum to the list
             syntheticSpectra.append(intens)
 

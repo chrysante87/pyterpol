@@ -19,7 +19,7 @@ sg = pyterpol.SyntheticGrid()
 print sg.list_modes()
 
 # Now we know the modes, so we can either create the grid again
-sg = pyterpol.SyntheticGrid(mode='bstar')
+sg = pyterpol.SyntheticGrid(mode='bstar', debug=True)
 
 # or just set mode for the existing one - BSTAR will be our
 # exemplary grid.
@@ -35,17 +35,16 @@ pars = dict(teff=18200, logg=4.3, z=1.2)
 # We should also pass some boundaries, unless we want
 # to get the whole wavelength range of the grid
 spectrum1 = sg.get_synthetic_spectrum(pars, [4250, 4500])
+print len(spectrum1.wave), len(spectrum1.intens)
 
 # lets get the spectrum - it is type Syntheticspectrum
 # so it carries all its features - we can rotate, shrink it
 # shift in rv
-print type(spectrum1)
-
 # we can view properties of the synthetic spectrum
 print spectrum1
 
 # we can of course plot_it
-spectrum1.plot(savefig=True, figname='spectrum2.png')
+spectrum1.plot(savefig=True, figname='spectrum1.png')
 
 # A great feature of the class is that it remembers all
 # loaded spectra until the program ends. This means that
@@ -62,7 +61,7 @@ spectrum1= sg.get_synthetic_spectrum(pars, [4250, 4500])
 # order = maximal number of spectra, that should be used for
 # interpolation
 pars = dict(teff=29300, logg=3.1, z=0.74)
-spectrum2 = sg.get_synthetic_spectrum(pars, [4250, 4500], order=2, step=0.1)
+spectrum2 = sg.get_synthetic_spectrum(pars, [4250, 4500], order=4, step=0.05)
 
 # plot comparison of the two spectra
 fig = plt.figure()
