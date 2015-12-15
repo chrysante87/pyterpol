@@ -5,6 +5,7 @@ This function demonstrates usage of the class Fitter.
 import pyterpol
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 ################################## BARE MINIMUM #########################################
 
 # define a function that will be minimized
@@ -42,7 +43,9 @@ fitter.choose_fitter('nlopt_nelder_mead', fitparams=[par], ftol=1e-6)
 print fitter
 
 # we can run the fitting by calling the fitter
+t0 = time.time()
 fitter(func)
+dt1 = time.time() - t0
 
 # have a look at the minimum and the value at minimum
 print "func(%s) = %s" % (fitter.result, func(fitter.result))
@@ -60,7 +63,9 @@ plt.savefig('result_nm.png')
 fitter.choose_fitter('sp_diff_evol', fitparams=[par])
 
 # run the fitting
+t0 = time.time()
 fitter(func)
+dt2 = time.time() - t0
 
 # have a look at the minimum and the value at minimum
 print "func(%s) = %s" % (fitter.result, func(fitter.result))
@@ -72,5 +77,11 @@ plt.plot(fitter.result, func(fitter.result), 'ro')
 plt.ylim(-100, 100)
 plt.savefig('result_de.png')
 
-# differential evolution did not fail to converge
-# No surpise, because it is a global method.
+# The simplex was faster, but converged only
+# locally where the differential evolution
+# converged correctly at the cost of ten times
+# longer computation time
+print "T(simplex) = %s" % str(dt1)
+print "T(differential_evolution) = %s" % str(dt2)
+
+

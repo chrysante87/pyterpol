@@ -128,6 +128,7 @@ class Fitter(object):
             self.result = self.fitter.optimize(self.par0)
 
         # we want only set of parameters for the result
+        # very in elegant
         if not isinstance(self.result, (list, tuple, type(np.array([])))):
             self.result = self.result.x
 
