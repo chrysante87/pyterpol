@@ -3220,8 +3220,11 @@ class StarList(object):
         Reads physical parameters from the starlist.
         :return:
         """
-        component = self._registered_components[0]
-        return self.componentList[component].keys()
+        pars = []
+        for c in self._registered_components:
+            pars.extend(self.componentList[c].keys())
+
+        return np.unique(pars)
 
     def load(self, f):
         """
