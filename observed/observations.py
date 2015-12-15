@@ -270,7 +270,7 @@ class ObservedSpectrum:
             fig = plt.figure()
             ax = fig.add_subplot(111)
 
-        props = str({'filename': self.filename})
+        props = str({'filename': self.filename, 'component': self.component, 'korel': self.korel})
         ax.plot(w, i, label=props, **kwargs)
         ax.set_xlim(self.wmin, self.wmax)
         ax.set_ylim(0.95*i.min(), 1.05*i.max())
