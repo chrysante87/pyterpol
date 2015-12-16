@@ -1368,6 +1368,9 @@ class Interface(object):
         if self.fitter is None:
             self.fitter = Fitter(debug=self.debug)
 
+        # at the end the comparisons synthetic spectra are populated
+        self.populate_comparisons()
+
     def set_grid_properties(self, **kwargs):
         """
         :param kwargs: padding - number of spectra to use for
