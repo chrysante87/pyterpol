@@ -2177,7 +2177,11 @@ class ObservedList(object):
                             cdict[d[i].strip(':')] = map(int, [stub[k].strip(':[]{}\'\"') for k in range(1, len(stub))])
                         i = j
 
-                # cast the paramneters to teh correct types
+                # it is a mess with the global error :-(
+                cdict['error'] = cdict['global_error']
+                del cdict['global_error']
+
+                # cast the parameters to the correct types
                 parnames = ['filename', 'component', 'error', 'korel']
                 cast_types = [str, str, float, string2bool]
                 for k in cdict.keys():
