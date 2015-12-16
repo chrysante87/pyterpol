@@ -462,11 +462,11 @@ class Interface(object):
             raise ValueError('No records on the StarList were found in %s.' % f)
         fitter = Fitter()
         if not fitter.load(f):
-            warnings.warn('No fitter was found in file %s', f)
+            warnings.warn('No fitter was found in file %s' % f)
             fitter = None
         ol = ObservedList()
         if not ol.load(f):
-            warnings.warn('No ObservedList was found in file %s', f)
+            warnings.warn('No ObservedList was found in file %s' % f)
             ol = None
 
         # print ddicts

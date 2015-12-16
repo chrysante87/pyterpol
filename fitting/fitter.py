@@ -332,12 +332,14 @@ class Fitter(object):
                 name = d[1]
 
             # save the kwargs
-            elif d[0].find('fit_parameters') > -1:
+            elif d[0].find('fit_parameters:') > -1:
                 d = d[1:]
+                if len(d) < 2:
+                    continue
                 fit_kwargs = {d[i].strip(':'): float(d[i+1]) for i in range(0, len(d), 2)}
 
             # do the same for enviromental keys
-            if d[0].find('env_keys') > -1:
+            if d[0].find('env_keys:') > -1:
                 # the first string is just identification
                 d = d[1:]
 
@@ -355,7 +357,10 @@ class Fitter(object):
                     setattr(fitter, k, cdict[k])
 
         # choose the fitter
-        fitter.choose_fitter(name, **fit_kwargs)
+        if name != 'None':
+            fitter.choose_fitter(name, **fit_kwargs)
+        else:
+            return False
 
         # finally assign everything to self
         attrs = ['debug', 'fittername', 'verbose', 'fitlog', 'fit_kwargs']
