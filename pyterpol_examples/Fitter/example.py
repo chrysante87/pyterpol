@@ -55,7 +55,11 @@ x = np.linspace(-10, 10, 200)
 plt.plot(x, [func([v]) for v in x], 'k-', label='func(x)')
 plt.plot(fitter.result, func(fitter.result), 'ro')
 plt.ylim(-100, 100)
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.legend()
 plt.savefig('result_nm.png')
+plt.close()
 
 # We see that the minimizer failed to find the global minimum
 # it is not very unusual if we have similar minima.
@@ -75,6 +79,9 @@ x = np.linspace(-10, 10, 200)
 plt.plot(x, [func([v]) for v in x], 'k-', label='func(x)')
 plt.plot(fitter.result, func(fitter.result), 'ro')
 plt.ylim(-100, 100)
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.legend()
 plt.savefig('result_de.png')
 
 # The simplex was faster, but converged only
