@@ -227,6 +227,7 @@ class Interface(object):
         :param other: the other interface
         :return:
         """
+
         other = Interface()
         for attr in ['ol', 'sl', 'rl', 'fitter', 'spectrum_by_spectrum',
                      'adaptive_resolution', 'debug', '_grid_kwargs',
@@ -395,7 +396,8 @@ class Interface(object):
         else:
             raise AttributeError('No fitter has been attached yet.')
 
-    def load(self,f):
+    @staticmethod
+    def load(f):
         """
         Loads the type from a file created with the save method.
         :param f: the loaded file
@@ -482,15 +484,13 @@ class Interface(object):
                 gpars[k] = d[k]
         itf.set_grid_properties(**gpars)
 
-        # copy the class
-        self = itf.copy()
-        self.setup()
-        self.populate_comparisons()
-        print self.fitter.fittername
+        itf.setup()
+        itf.populate_comparisons()
+
         # self.choose_fitter(self.fitter.fittername)
 
         # if we got here, we loaded the data
-        return True
+        return itf
 
     def optimize_spectrum_by_spectrum(self, l=None, spectrum_by_spectrum=None):
         """

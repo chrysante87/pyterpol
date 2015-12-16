@@ -18,7 +18,9 @@ import pyterpol
 
 # Create the fitting environment and load the last
 # session.
-itf = pyterpol.Interface()
-itf.load('setup.itf')
+itf = pyterpol.Interface.load('setup.itf')
+
+# review the loaded interface
+print itf
 
 
