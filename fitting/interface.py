@@ -17,7 +17,7 @@ from pyterpol.synthetic.auxiliary import keys_to_lowercase
 from pyterpol.synthetic.auxiliary import parlist_to_list
 from pyterpol.synthetic.auxiliary import read_text_file
 # from pyterpol.synthetic.auxiliary import renew_file
-from pyterpol.synthetic.auxiliary import select_index_for_multiple_keywords
+# from pyterpol.synthetic.auxiliary import select_index_for_multiple_keywords
 from pyterpol.synthetic.auxiliary import string2bool
 from pyterpol.synthetic.auxiliary import sum_dict_keys
 from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
@@ -48,7 +48,12 @@ class Interface(object):
         :return:
         """
 
-        self.sl = sl
+        # StarList is deepcopied by value, because
+        # it is adjusted by the Interface
+        self.sl = sl.copy()
+
+        # RegionList and the ObservedList are copied
+        # by reference
         self.rl = rl
         self.ol = ol
         self.synthetics = {}
@@ -81,18 +86,6 @@ class Interface(object):
 
         # temporary variable for info on the fitted parameters
         self.ident_fitted_pars = None
-
-    def __eq__(self, other):
-        """
-        Copies the other class to self.
-        :param other: the other interface
-        :return:
-        """
-
-        for attr in ['ol', 'sl', 'rl', 'fitter', 'spectrum_by_spectrum',
-                     'adaptive_resolution', 'debug', '_grid_kwargs',
-                     '_synthetic_spectrum_kwargs']:
-            setattr(self, attr, copy.deepcopy(getattr(other, attr)))
 
     def __str__(self):
         """
@@ -224,6 +217,21 @@ class Interface(object):
         ratio = vmax/vmin
 
         return ratio
+
+    def copy(self):
+        """
+        Copies the other class to self.
+        :param other: the other interface
+        :return:
+        """
+        other = Interface()
+        for attr in ['ol', 'sl', 'rl', 'fitter', 'spectrum_by_spectrum',
+                     'adaptive_resolution', 'debug', '_grid_kwargs',
+                     '_synthetic_spectrum_kwargs']:
+            v = copy.deepcopy(getattr(self, attr))
+            setattr(other, attr, v)
+
+        return other
 
     def choose_fitter(self, *args, **kwargs):
         """
@@ -472,7 +480,7 @@ class Interface(object):
         itf.set_grid_properties(**gpars)
 
         # copy the class
-        self.__eq__(itf)
+        self = itf.copy()
         self.setup()
         self.populate_comparisons()
         print self.fitter.fittername
@@ -636,13 +644,16 @@ class Interface(object):
             else:
                 erorr = None
 
-    def plot_all_comparisons(self, l=None, figname=None):
+    def plot_all_comparisons(self, l=None, savefig=False, figname=None):
         """
         Creates a plot of all setup comparisons.
         :param l
         :param figname
         :return: None
         """
+        if figname is not None:
+            savefig = True
+
         if l is None:
             l = self.comparisonList
         if len(l) == 0:
@@ -699,6 +710,7 @@ class Interface(object):
             figname = "_".join([obsname, 'wmin', str(int(wmin)), 'wmax', str(int(wmax))]) +'.png'
         else:
             figname = "_".join([figname, obsname, 'wmin', str(int(wmin)), 'wmax', str(int(wmax))]) +'.png'
+            savefig = True
 
         if self.debug:
             print "Plotting comparison: observed: %s" % obsname
@@ -744,6 +756,9 @@ class Interface(object):
         """
         if f is None:
             f = self.fitter.fitlog
+
+        if figname is not None:
+            savefig = True
 
         # read the log
         log = read_fitlog(f)
@@ -811,6 +826,9 @@ class Interface(object):
         if any([isinstance(x, (float, int, str)) for x in [components, parameters, groups]]):
             raise TypeError('Parameters (parameter, component, group) have to be either type list'
                             ' or string == \'all\'.')
+
+        if figname is not None:
+            savefig = True
 
         # load data
         if f is None:
@@ -2843,6 +2861,7 @@ class StarList(object):
         # defined groups
         self.groups = {}
 
+
     def __len__(self):
         """
         Returns number of parameters.
@@ -3005,6 +3024,21 @@ class StarList(object):
             self.add_parameter_to_component(component, p=clone)
 
         return clones
+
+    def copy(self):
+        """
+        Creates a deepcopy of the class StarList.
+        :param other: starlist class
+        :return:
+        """
+        other = StarList()
+        for attr in ['_registered_components', 'componentList', 'debug',
+                     'fitted_types', 'groups']:
+            v = getattr(self, attr)
+            setattr(other, attr, copy.deepcopy(v))
+
+        return other
+
 
     def delete_hollow_groups(self):
         """
