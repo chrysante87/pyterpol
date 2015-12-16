@@ -1,0 +1,40 @@
+############################################################################################## INTERFACE ###############################################################################################
+grid_parameters: mode: default 
+synthetic_spectra_parameters: padding: 20.0 step: 0.025 order: 4 
+env_keys: adaptive_resolution: True debug: False 
+############################################################################################## INTERFACE ###############################################################################################
+############################################################################################### STARLIST ###############################################################################################
+component: primary parameter: rv value: 0.0 unit: km.s^-1 fitted: False vmin: -1000.0 vmax: 1000.0 group: 1 
+component: primary parameter: rv value: 0.0 unit: km.s^-1 fitted: False vmin: -1000.0 vmax: 1000.0 group: 2 
+component: primary parameter: rv value: 0.0 unit: km.s^-1 fitted: False vmin: -1000.0 vmax: 1000.0 group: 3 
+component: primary parameter: teff value: 25000.0 unit: K fitted: False vmin: 6000.0 vmax: 50000.0 group: 0 
+component: primary parameter: vrot value: 150.0 unit: km.s^-1 fitted: False vmin: 0.0 vmax: 500.0 group: 0 
+component: primary parameter: logg value: 4.2 unit: log(g.cm^-2) fitted: False vmin: 0.0 vmax: 5.0 group: 0 
+component: primary parameter: lr value: 0.7 unit: relative fitted: False vmin: 0.0 vmax: 1.0 group: 0 
+component: primary parameter: z value: 1.0 unit: Z_solar fitted: False vmin: 0.0 vmax: 2.0 group: 0 
+component: secondary parameter: rv value: 0.0 unit: km.s^-1 fitted: False vmin: -1000.0 vmax: 1000.0 group: 1 
+component: secondary parameter: rv value: 0.0 unit: km.s^-1 fitted: False vmin: -1000.0 vmax: 1000.0 group: 2 
+component: secondary parameter: rv value: 0.0 unit: km.s^-1 fitted: False vmin: -1000.0 vmax: 1000.0 group: 3 
+component: secondary parameter: teff value: 18000.0 unit: K fitted: False vmin: 6000.0 vmax: 50000.0 group: 0 
+component: secondary parameter: vrot value: 50.0 unit: km.s^-1 fitted: False vmin: 0.0 vmax: 500.0 group: 0 
+component: secondary parameter: logg value: 4.2 unit: log(g.cm^-2) fitted: False vmin: 0.0 vmax: 5.0 group: 0 
+component: secondary parameter: lr value: 0.3 unit: relative fitted: False vmin: 0.0 vmax: 1.0 group: 0 
+component: secondary parameter: z value: 1.0 unit: Z_solar fitted: False vmin: 0.0 vmax: 2.0 group: 0 
+env_keys: debug: False 
+############################################################################################### STARLIST ###############################################################################################
+################################################################################################# FITTER ###############################################################################################
+fitter: None
+fit_parameters: 
+env_keys: debug: False verbose: False fitlog: fit.log 
+################################################################################################# FITTER ###############################################################################################
+############################################################################################# REGIONLIST ###############################################################################################
+identification: region00 wmin: 6330 wmax: 6375 component: all lr: 0 
+identification: region01 wmin: 6500 wmax: 6600 component: all lr: 0 
+env_keys: debug: False 
+############################################################################################# REGIONLIST ###############################################################################################
+########################################################################################### OBSERVEDLIST ###############################################################################################
+filename: a component: all korel: False global_error: 0.001 rv: 1 
+filename: b component: all korel: False global_error: 0.001 rv: 2 
+filename: c component: all korel: False global_error: 0.001 rv: 3 
+debug: False 
+########################################################################################### OBSERVEDLIST ###############################################################################################

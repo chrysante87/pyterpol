@@ -50,7 +50,10 @@ class Interface(object):
 
         # StarList is deepcopied by value, because
         # it is adjusted by the Interface
-        self.sl = sl.copy()
+        if sl is not None:
+            self.sl = sl.copy()
+        else:
+            self.sl = None
 
         # RegionList and the ObservedList are copied
         # by reference
