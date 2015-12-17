@@ -191,7 +191,9 @@ class Interface(object):
         if self.fit_is_running:
             self.fitter.append_iteration(dict(parameters=copy.deepcopy(pars), chi2=chi2))
 
-        print 'Computed model: %s chi2: %s' % (str(pars), str(chi2))
+        # print every hundredth iteration
+        if (self.fitter.iter_number+1) % 100 == 0:
+            print 'Computed model: %s chi2: %s' % (str(pars), str(chi2))
 
         return chi2
 

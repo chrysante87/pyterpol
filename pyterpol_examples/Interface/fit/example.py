@@ -14,6 +14,7 @@ fit the data.
 """
 
 import pyterpol
+import numpy as np
 
 # Create the fitting environment and load the last
 # session.
@@ -80,7 +81,7 @@ itf.set_parameter(parname='rv', fitted=True, vmin=-200., vmax=200.)
 # preferably nelder and mead, because they use boundaries
 # for simplex it is good to set the initial uncertainty
 init_step = 50*np.ones(6)
-itf.choose_fitter('nlopt_nelder_mead', step=init_step, ftol=1e-6)
+itf.choose_fitter('nlopt_nelder_mead', init_step=init_step, ftol=1e-6)
 
 # lets review the whole session
 print itf
@@ -139,10 +140,10 @@ itf.run_fit()
 # check the final chi-square
 final_pars = itf.get_fitted_parameters(attribute='value')
 final_chi2 = itf.compute_chi2(final_pars)
-print "Final chi-square: %f" % final_chi2
+print "Final chi-square (nlopt_nelder_mead): %f" % final_chi2
 
 # and plot everything
-itf.plot_all_comparisons()
+itf.plot_all_comparisons(figname='final_nm')
 
 # It is not surprising that the fitting failed - Why?!
 # for radial velocities one is in general far from the
@@ -155,7 +156,18 @@ itf.run_fit()
 # check the final chi-square
 final_pars = itf.get_fitted_parameters(attribute='value')
 final_chi2 = itf.compute_chi2(final_pars)
-print "Final chi-square: %f" % final_chi2
+print "Final chi-square: %f (sp_diff_evol)" % final_chi2
+
+# lets see the difference
+itf.plot_all_comparisons(figname='final_de')
+
+# The message here is that before one really tries
+# to fit radiative rpoerties, it is better to do the
+# fitting of RVs first. Since we are not using
+# any previous information on the RVs (the orbital
+# solution is not attached) it is better to
+# use global method - especially for large parameter space
+
 
 
 
