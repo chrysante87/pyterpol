@@ -80,6 +80,9 @@ class Fitter(object):
         self.iters = []
         self.parameter_identification = None
 
+        # iteration number
+        self.iter_number = 0
+
         # choose a fitter if one
         # was given
         if name is not None:

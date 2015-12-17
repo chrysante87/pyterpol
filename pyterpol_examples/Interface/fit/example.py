@@ -134,6 +134,10 @@ init_pars = itf.get_fitted_parameters(attribute='value')
 init_chi2 = itf.compute_chi2(init_pars)
 print "Initial chi-square: %f" % init_chi2
 
+"""
+Initial chi-square: 950375.454308
+"""
+
 # finally run the fitting
 itf.run_fit()
 
@@ -141,6 +145,10 @@ itf.run_fit()
 final_pars = itf.get_fitted_parameters(attribute='value')
 final_chi2 = itf.compute_chi2(final_pars)
 print "Final chi-square (nlopt_nelder_mead): %f" % final_chi2
+
+"""
+Final chi-square (nlopt_nelder_mead): 98899.073612
+"""
 
 # and plot everything
 itf.plot_all_comparisons(figname='final_nm')
@@ -157,6 +165,10 @@ itf.run_fit()
 final_pars = itf.get_fitted_parameters(attribute='value')
 final_chi2 = itf.compute_chi2(final_pars)
 print "Final chi-square: %f (sp_diff_evol)" % final_chi2
+
+"""
+Final chi-square: 73.231889 (sp_diff_evol)
+"""
 
 # lets see the difference
 itf.plot_all_comparisons(figname='final_de')
