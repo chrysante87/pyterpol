@@ -1815,17 +1815,16 @@ class Interface(object):
         for c in pars.keys():
             for p in pars[c].keys():
                 for row in pars[c][p]:
-                    string += 'component: %s :parameter: %s ' % (c, p)
-                    for key in ['group', 'value', 'lower', 'upper']:
-                        string += "%10s: %10.4f" % (key, row[key])
+                    string += 'c:%15s p:%6s ' % (c, p)
+                    string += 'g:%2i ' % (row['group'])
+                    for key in ['value', 'lower', 'upper']:
+                        string += "%6s: %10.4f" % (key, row[key])
                     string += '\n'
 
         # writes it to a file
         ofile = open(outputname, 'w')
         ofile.writelines([string])
         ofile.close()
-
-
 
     def write_synthetic_spectra(self, component=None, region=None, outputname=None, korel=False):
         """
