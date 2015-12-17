@@ -1,0 +1,6 @@
+c:      secondary p:    rv g: 1  value:   -13.2212 lower:    -1.4128 upper:     0.7135
+c:      secondary p:    rv g: 2  value:   -13.4587 lower:    -1.5877 upper:     1.0753
+c:      secondary p:    lr g: 0  value:     0.2386 lower:    -0.0064 upper:     0.0119
+c:      secondary p:    lr g: 1  value:     0.0771 lower:    -0.0022 upper:     0.0026
+c:      secondary p:  teff g: 0  value:  4245.8306 lower:   -29.3454 upper:    67.8922
+c:      secondary p:  vrot g: 0  value:    23.9974 lower:    -1.2941 upper:     3.2578

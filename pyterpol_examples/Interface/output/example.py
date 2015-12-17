@@ -62,6 +62,15 @@ Initial parameters:
 # write a dictionary of parameters and their errors
 itf.write_fitted_parameters(outputname='result.dat')
 
+"""
+c:        primary p:    rv g: 1  value:    49.9857 lower:    -0.1070 upper:     0.1117
+c:        primary p:    rv g: 2  value:    19.9865 lower:    -0.1184 upper:     0.0943
+c:        primary p:    rv g: 3  value:   100.0095 lower:    -0.0921 upper:     0.1048
+c:      secondary p:    rv g: 1  value:   -49.9461 lower:    -0.0866 upper:     0.1056
+c:      secondary p:    rv g: 2  value:   -19.9589 lower:    -0.1161 upper:     0.0974
+c:      secondary p:    rv g: 3  value:   -99.9753 lower:    -0.0940 upper:     0.1116
+"""
+
 # first we would like to see how our comparisons look like
 # naming the figures using 'figname' is not mandatory, nut
 # it is advised.
