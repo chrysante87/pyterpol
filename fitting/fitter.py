@@ -1,6 +1,6 @@
 import os
 import nlopt
-import warnings
+# import warnings
 import numpy as np
 from scipy.optimize import fmin
 from scipy.optimize import differential_evolution
@@ -141,7 +141,9 @@ class Fitter(object):
         string += 'Fitter: %s optional_arguments: %s\n' % (self.fittername, str(self.fit_kwargs))
         string += 'Initial parameters:'
         for i, par in enumerate(self.fitparams):
-            string += "(%s, group): (%s, %s); " % (par['name'], str(self.par0[i]), str(par['group']))
+            string += "(%s, g.): (%s, %s); " % (par['name'], str(self.par0[i]), str(par['group']))
+            if (i + 1) % 5 == 0:
+                string += '\n'
         string += '\n'
 
         return string
@@ -169,7 +171,7 @@ class Fitter(object):
         """
         self.__init__()
 
-    def choose_fitter(self, name, fitparams=None, **kwargs):
+    def choose_fitter(self, name, fitparams=None, init_step=None, **kwargs):
         """
         Selects a fitter from the list of available ones and
         prepares the fitting variables.
@@ -229,7 +231,7 @@ class Fitter(object):
 
         if self.family == 'nlopt':
             self.nlopt_environment = fitters[name]['environment']
-            self.setup_nlopt()
+            self.setup_nlopt(init_step=init_step)
 
     def flush_iters(self, f=None):
         """
@@ -246,7 +248,7 @@ class Fitter(object):
         # if the file is empty add header
         # print os.path.getsize(self.fitlog)
         if os.path.getsize(self.fitlog) == 0:
-            #construct the header
+            # construct the header
             header = ''
             for key in self.parameter_identification.keys():
                 if key != 'value':
@@ -403,7 +405,7 @@ class Fitter(object):
         # write the remaining parameters
         ofile.writelines(string)
 
-    def setup_nlopt(self):
+    def setup_nlopt(self, init_step=None):
         """
         Sets up the the NLOPT fitter.
         :return:
@@ -432,10 +434,14 @@ class Fitter(object):
             self.fitter.set_lower_bounds(self.vmins)
             self.fitter.set_upper_bounds(self.vmaxs)
 
-        # setup initial step
-        # TODO Maybe this deserves its attribute variable in Parameter class
-        stepsize = (np.array(self.vmaxs) - np.array(self.vmins))/2.
-        stepsize = stepsize.tolist()
+        # setup initial step, which can be either
+        # user-defined or default
+        if init_step is None:
+            stepsize = (np.array(self.vmaxs) - np.array(self.vmins))/2.
+            stepsize = stepsize.tolist()
+        else:
+            stepsize = init_step
+
         self.fitter.set_initial_step(stepsize)
 
     def set_fit_properties(self, pi):

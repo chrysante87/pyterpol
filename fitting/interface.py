@@ -332,14 +332,19 @@ class Interface(object):
 
         return n-m
 
-    def get_fitted_parameters(self):
+    def get_fitted_parameters(self, attribute=None):
         """
-        lists all fitted parameters
+        lists all fitted Parameters or a list of one
+        of their attributes
+        :param
         :return:
         """
 
         # return the list of Parameters
-        return self.sl.get_fitted_parameters()
+        if attribute == None:
+            return self.sl.get_fitted_parameters()
+        else:
+            return [par[attribute] for par in self.sl.get_fitted_parameters()]
 
     def get_observed_spectrum(self, filename=None):
         """
