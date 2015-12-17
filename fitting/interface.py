@@ -334,6 +334,64 @@ class Interface(object):
 
         return n-m
 
+    def get_errors(self, f=None, l=None):
+        """
+        Returns best-fit values and errors estimated from the convergence.
+        :param f: fitting log
+        :return:
+        """
+
+        # get the attached fitlog if none is passed
+        if f is None:
+            f = self.fitter.fitlog
+
+        # get the comparison list if none is passed
+        if l is None:
+            l = self.comparisonList
+
+        # read the fitlog
+        log = read_fitlog(f)
+
+        # get the chi2 treshold
+        ratio = self.compute_chi2_treshold(l=l)
+
+        # get best index
+        minind = np.argmin(log['data'][:,-1])
+
+        # truncate the log
+        ind = np.where(log['data'][:,-1] <= ratio*log['data'][minind,-1])[0]
+        log['data'] = log['data'][ind]
+        minind = np.argmin(log['data'][:,-1])
+
+        # outputlist of errors
+        errors = {}
+
+        # fill the dictionary with errors
+        for i in range(0, len(log['component'])):
+
+            # parameter component, group
+            p = log['name'][i]
+            c = log['component'][i]
+            g = log['group'][i]
+
+            if c not in errors.keys():
+                errors[c] = {}
+            if p not in errors[c].keys():
+                errors[c][p] = []
+
+            # get the error estimate
+            value = log['data'][minind, i]
+            lower = log['data'][:,i].min() - value
+            upper = log['data'][:,i].max() - value
+
+            # append the value
+            errors[c][p].append(dict(group=g, value=value, lower=lower, upper=upper))
+
+        return errors
+
+
+
+
     def get_fitted_parameters(self, attribute=None):
         """
         lists all fitted Parameters or a list of one
@@ -1735,6 +1793,39 @@ class Interface(object):
 
     def verify_before_fitting(self):
         pass
+
+    def write_fitted_parameters(self, f=None, l=None, outputname='fit.res'):
+        """
+        Writes the result of fitting
+        :param f a fitting log
+        :param l a comparisonList
+        :return:
+        """
+        # use default objects if nones were passed
+        if f is None:
+            f = self.fitter.fitlog
+        if l is None:
+            l = self.comparisonList
+
+        # returns a dictionary of fitted parameters and their uncertainties
+        pars = self.get_errors(f, l)
+
+        # creates the output string
+        string = ''
+        for c in pars.keys():
+            for p in pars[c].keys():
+                for row in pars[c][p]:
+                    string += 'component: %s :parameter: %s ' % (c, p)
+                    for key in ['group', 'value', 'lower', 'upper']:
+                        string += "%10s: %10.4f" % (key, row[key])
+                    string += '\n'
+
+        # writes it to a file
+        ofile = open(outputname, 'w')
+        ofile.writelines([string])
+        ofile.close()
+
+
 
     def write_synthetic_spectra(self, component=None, region=None, outputname=None, korel=False):
         """

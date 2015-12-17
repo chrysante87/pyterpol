@@ -59,8 +59,11 @@ Initial parameters:
 ====================================================================================================
 """
 
+# write a dictionary of parameters and their errors
+itf.write_fitted_parameters(outputname='result.dat')
+
 # first we would like to see how our comparisons look like
-# naming the figures using 'figname' is not madatory, nut
+# naming the figures using 'figname' is not mandatory, nut
 # it is advised.
 itf.plot_all_comparisons()
 
