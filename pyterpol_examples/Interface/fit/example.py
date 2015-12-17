@@ -179,6 +179,7 @@ itf.plot_all_comparisons(figname='final_de')
 # any previous information on the RVs (the orbital
 # solution is not attached) it is better to
 # use global method - especially for large parameter space
+itf.save('fitted.itf')
 
 
 

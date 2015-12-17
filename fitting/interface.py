@@ -1759,7 +1759,7 @@ class Interface(object):
             regions = [region]
 
         # go over each region
-        for r in self.rl._registered_regions:
+        for r in regions:
 
             # get the wavelengths
             wmin = self.rl.mainList[r]['wmin']
@@ -1782,11 +1782,11 @@ class Interface(object):
 
                     # the outputname
                     if outputname is not None:
-                        oname = '_'.join([outputname, 'component', c, 'region', str(wmin),
-                                      str(wmax), 'rvgroup', str(rvg)])
+                        oname = '_'.join([outputname, 'c', c, 'r', str(wmin),
+                                      str(wmax), 'g', str(rvg),]) + '.dat'
                     else:
-                        oname = '_'.join(['component', c, 'region', str(wmin),
-                                      str(wmax), 'rvgroup', str(rvg)])
+                        oname = '_'.join(['c', c, 'r', str(wmin),
+                                      str(wmax), 'g', str(rvg),]) + '.dat'
 
                     if self.debug:
                         print "Writing spectrum: %s." % oname
