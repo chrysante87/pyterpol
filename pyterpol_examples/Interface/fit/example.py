@@ -74,7 +74,7 @@ itf.set_parameter(group=1, component='primary', parname='rv', fitted=True, vmin=
 itf.set_parameter(component='primary', parname='rv', fitted=True, vmin=-120., vmax=120.)
 
 # or set everything for every rv in the StarList
-itf.set_parameter(parname='rv', fitted=True, vmin=-200., vmax=200.)
+itf.set_parameter(parname='rv', fitted=True, vmin=-120., vmax=120.)
 
 # now lets set the fitter - one even does not have to construct the class
 # it is sufficient to choose the fitter - lets take nelder and mead
@@ -147,7 +147,7 @@ final_chi2 = itf.compute_chi2(final_pars)
 print "Final chi-square (nlopt_nelder_mead): %f" % final_chi2
 
 """
-Final chi-square (nlopt_nelder_mead): 98899.073612
+Final chi-square (nlopt_nelder_mead): 144433.598816
 """
 
 # and plot everything
