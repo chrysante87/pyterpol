@@ -173,6 +173,7 @@ class ObservedSpectrum:
 
         # save it as an error
         if store:
+            self.global_error = stddev
             self.error = stddev * np.ones(len(self.wave))
 
         return stddev
@@ -210,6 +211,7 @@ class ObservedSpectrum:
         # store the value as an erro if needed
         if store:
             self.error = stddev * np.ones(len(self.wave))
+            self.global_error = stddev
 
         return stddev
 
