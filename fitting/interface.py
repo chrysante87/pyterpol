@@ -1467,6 +1467,11 @@ class Interface(object):
                 for interpolation
         :return:
         """
+        # if we pass step, we turn off
+        # adaptive resolution
+        if 'step' in kwargs.keys():
+            self.adaptive_resolution = False
+
         for k in kwargs.keys():
             # setup grid parameters
             if k in self._grid_kwargs.keys():
@@ -1539,11 +1544,14 @@ class Interface(object):
         else:
             groups = [group]
 
+        print groups
         # propagate to the star
         for c in component:
             for g in groups:
+                print c, g, kwargs
                 self.sl.set_parameter(parname, c, g, **kwargs)
 
+        # print self
         # recompute synthetic spectra
         if parname not in self._not_given_by_grid:
             self.ready_synthetic_spectra()
@@ -3583,6 +3591,7 @@ class StarList(object):
         :param kwargs
         :return:
         """
+        print name, component, group, kwargs
         name = name.lower()
         if name not in self.get_physical_parameters():
             raise Exception("Parameter: %s unknown." % name)
@@ -3591,9 +3600,11 @@ class StarList(object):
             raise Exception("Component: %s unknown" % component)
         else:
             for i, par in enumerate(self.componentList[component][name]):
-                if par['name']== name and par['group'] == group:
+                print group, name, par['name'], par['group'], par['name'] == name, par['group'] == group
+                if par['name'] == name and par['group'] == group:
                     for key in kwargs.keys():
                         keytest = key.lower()
+                        print name, component, keytest, kwargs[key]
                         self.componentList[component][name][i][keytest] = kwargs[key]
         # print self
         # update the list of fitted types
