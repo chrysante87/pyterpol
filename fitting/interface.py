@@ -1544,11 +1544,11 @@ class Interface(object):
         else:
             groups = [group]
 
-        print groups
+        # print groups
         # propagate to the star
         for c in component:
             for g in groups:
-                print c, g, kwargs
+                # print c, g, kwargs
                 self.sl.set_parameter(parname, c, g, **kwargs)
 
         # print self
@@ -3591,7 +3591,7 @@ class StarList(object):
         :param kwargs
         :return:
         """
-        print name, component, group, kwargs
+        # print name, component, group, kwargs
         name = name.lower()
         if name not in self.get_physical_parameters():
             raise Exception("Parameter: %s unknown." % name)
@@ -3600,11 +3600,11 @@ class StarList(object):
             raise Exception("Component: %s unknown" % component)
         else:
             for i, par in enumerate(self.componentList[component][name]):
-                print group, name, par['name'], par['group'], par['name'] == name, par['group'] == group
+                # print group, name, par['name'], par['group'], par['name'] == name, par['group'] == group, type(group), type(par['group'])
                 if par['name'] == name and par['group'] == group:
                     for key in kwargs.keys():
                         keytest = key.lower()
-                        print name, component, keytest, kwargs[key]
+                        # print name, component, keytest, kwargs[key]
                         self.componentList[component][name][i][keytest] = kwargs[key]
         # print self
         # update the list of fitted types
