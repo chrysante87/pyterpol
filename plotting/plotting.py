@@ -104,6 +104,7 @@ def plot_chi2_map(x, y, nbin=10, labels=None, savefig=True, figname=None):
             figname = '_'.join(labels) + '.png'
 
         plt.savefig(figname)
+        plt.close()
 
 def read_fitlog(f):
     """

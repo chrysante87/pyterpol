@@ -192,8 +192,11 @@ class Interface(object):
             self.fitter.append_iteration(dict(parameters=copy.deepcopy(pars), chi2=chi2))
 
         # print every hundredth iteration
-        if (self.fitter.iter_number+1) % 100 == 0:
+        if self.debug:
             print 'Computed model: %s chi2: %s' % (str(pars), str(chi2))
+        else:
+            if (self.fitter.iter_number+1) % 100 == 0:
+                print 'Computed model: %s chi2: %s' % (str(pars), str(chi2))
 
         return chi2
 
@@ -808,6 +811,7 @@ class Interface(object):
         # save the figure
         if savefig:
             plt.savefig(figname)
+            plt.close()
 
     def plot_convergence(self, f=None, parameter='chi2', component='all', group='all', savefig=True, figname=None):
         """
@@ -996,8 +1000,8 @@ class Interface(object):
         # populate the comparison
         self.populate_comparisons(l=l, demand_errors=True)
 
-        if self.debug:
-            print self.list_comparisons(l=l)
+        # if self.debug:
+            # print self.list_comparisons(l=l)
 
 
     def ready_synthetic_spectra(self, complist=[]):
@@ -1291,7 +1295,7 @@ class Interface(object):
         self.fit_is_running = True
         iter = 0
         while iter < niter:
-            print self.list_comparisons(l)
+            # print self.list_comparisons(l)
             # always optimize spectrum owned parameters first
             self.optimize_spectrum_by_spectrum(l=l)
 
@@ -1428,7 +1432,7 @@ class Interface(object):
                 step = self.ol.get_resolution()
 
                 if self.debug:
-                    print "The step size of the grid is: %s Angstrom." % str(step)
+                    print "The step size of the grid is: %s Angstrom." % str(step/2.)
                 self.set_grid_properties(step=step/2.)
 
         else:
