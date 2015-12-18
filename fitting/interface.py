@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
-import re
+# import re
 import copy
 import warnings
-import numpy as np
-import matplotlib.pyplot as plt
+# import numpy as np
+# import matplotlib.pyplot as plt
 from scipy import stats
 from pyterpol.synthetic.makespectrum import SyntheticGrid
-from pyterpol.synthetic.makespectrum import SyntheticSpectrum
+# from pyterpol.synthetic.makespectrum import SyntheticSpectrum
 from pyterpol.observed.observations import ObservedSpectrum
 from pyterpol.fitting.parameter import Parameter
 from pyterpol.fitting.parameter import parameter_definitions
 from pyterpol.fitting.fitter import Fitter
-from pyterpol.synthetic.auxiliary import flatten_2d
+# from pyterpol.synthetic.auxiliary import flatten_2d
 from pyterpol.synthetic.auxiliary import generate_least_number
 from pyterpol.synthetic.auxiliary import keys_to_lowercase
-from pyterpol.synthetic.auxiliary import parlist_to_list
-from pyterpol.synthetic.auxiliary import read_text_file
+# from pyterpol.synthetic.auxiliary import parlist_to_list
+# from pyterpol.synthetic.auxiliary import read_text_file
 # from pyterpol.synthetic.auxiliary import renew_file
 # from pyterpol.synthetic.auxiliary import select_index_for_multiple_keywords
 from pyterpol.synthetic.auxiliary import string2bool
@@ -389,9 +389,6 @@ class Interface(object):
 
         return errors
 
-
-
-
     def get_fitted_parameters(self, attribute=None):
         """
         lists all fitted Parameters or a list of one
@@ -756,13 +753,14 @@ class Interface(object):
 
         # names
         if cpr['observed'] is not None:
-            obsname = cpr['observed'].filename
+            obsname = cpr['observed'].filename.split('/')[-1]
         else:
             obsname = 'NONE'
         synname = ''
         for c in cpr['parameters']:
             synname += 'Component: %s ' % c
-            synname += str(self.extract_parameters(cpr['parameters'][c])) + '\n'
+            pdict = self.extract_parameters(cpr['parameters'][c])
+            synname += str({k: "%.4f" % pdict[k] for k in pdict.keys()}) + '\n'
 
         if cpr['observed'] is not None:
             try:
