@@ -212,9 +212,10 @@ class Interface(object):
         # now get vthe maximal value relative
         # to the minimal - minimal value is
         # what we get with the minimization
-        ratio = vmax/vmin
-
-        return ratio
+        # ratio = vmax/vmin
+        diff = vmax-vmin
+        # return ratio
+        return diff
 
     def copy(self):
         """
@@ -358,7 +359,8 @@ class Interface(object):
         minind = np.argmin(log['data'][:, -1])
 
         # truncate the log
-        ind = np.where(log['data'][:, -1] <= ratio * log['data'][minind, -1])[0]
+        # ind = np.where(log['data'][:, -1] <= ratio * log['data'][minind, -1])[0]
+        ind = np.where(log['data'][:, -1] <= ratio + log['data'][minind, -1])[0]
         log['data'] = log['data'][ind]
         minind = np.argmin(log['data'][:, -1])
 
@@ -909,7 +911,8 @@ class Interface(object):
         tres = self.compute_chi2_treshold(l=l, alpha=0.993)
 
         # narrow down the chi^2
-        ind = np.where(log['data'][:, -1] <= tres*log['data'][:, -1].min())[0]
+        ind = np.where(log['data'][:, -1] <= tres + log['data'][:, -1].min())[0]
+        # ind = np.where(log['data'][:, -1] <= tres * log['data'][:, -1].min())[0]
         log['data'] = log['data'][ind]
 
         if len(ind) < len(self.get_fitted_parameters()):
@@ -951,6 +954,82 @@ class Interface(object):
 
                 # do the oplot
                 plot_chi2_map(x, y, nbin=nbin, labels=labels, savefig=savefig, figname=figname)
+
+    def plot_variances(self, f=None, l=None, parameters=None, components=None, groups=None, nbin=20,
+                         savefig=True, figname=None):
+        """
+        Plots covariances between selected parameters
+        :param f
+        :param l
+        :param parameters
+        :param components
+        :param groups
+        :param nbin
+        :param savefig
+        :param figname
+        :return:
+        """
+        if any([isinstance(x, (float, int, str)) for x in [components, parameters, groups]]):
+            raise TypeError('Parameters (parameter, component, group) have to be either type list'
+                            ' or string == \'all\'.')
+
+        if figname is not None:
+            savefig = True
+
+        # load data
+        if f is None:
+            f = self.fitter.fitlog
+        log = read_fitlog(f)
+
+        # set the plotted parameters
+        if parameters is None:
+            parameters = np.unique(log['name'])
+        if components is None:
+            components = np.unique(log['component'])
+        if groups is None:
+            groups = np.unique(log['group'])
+
+        # compute the chi2 treshold == 1 sigma
+        tres = self.compute_chi2_treshold(l=l)
+
+        # narrow down the chi^2
+        ind = np.where(log['data'][:, -1] <= tres + log['data'][:, -1].min())[0]
+        # ind = np.where(log['data'][:, -1] <= tres * log['data'][:, -1].min())[0]
+        log['data'] = log['data'][ind]
+
+        if len(ind) < len(self.get_fitted_parameters()):
+            warnings.warn('Number of points for which chi^2 lies within three sigma'
+                          ' of the chi^2 distribution is very low. It is actually less'
+                          ' than number of fitted points. This suggests that your '
+                          ' fit did not converge properly.')
+
+        # select those mathcing the choice
+        npar = len(log['name'])
+        for i in range(1, npar):
+            for j in range(0, i):
+
+                # extract individual values
+                p1 = log['name'][i]
+                c1 = log['component'][i]
+                g1 = log['group'][i]
+
+                # end if there are no components matching our
+                # choice of components, groups and parameters
+                if any([p.lower() not in parameters for p in [p1]]):
+                    continue
+                if any([c.lower() not in components for c in [c1]]):
+                    continue
+                if any([g not in groups for g in [g1]]):
+                    continue
+
+                # setup labels
+                label1 = '_'.join(['p', p1, 'c', c1, 'g', str(g1).zfill(2)])
+
+                # setup plotted data
+                x = log['data'][:, i]
+
+                # do the oplot
+                plot_variance(x,nbin=nbin, label=label1, savefig=savefig, figname=figname)
 
     def propagate_and_update_parameters(self, l, pars):
         """
@@ -2629,10 +2708,10 @@ class RegionList(List):
                 ident = 'region' + str(len(self._registered_regions)).zfill(2)
 
             if self.debug:
-                print "Creating new region: %s." % (ident)
+                print "Creating new region: %s." % ident
 
             # register the new region
-            self.mainList[ident] =  dict(wmin=wmin, wmax=wmax, components=[component], groups=[])
+            self.mainList[ident] = dict(wmin=wmin, wmax=wmax, components=[component], groups=[])
             self._registered_regions.append(ident)
 
             # if the luminosity group is not defined

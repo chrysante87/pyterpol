@@ -114,7 +114,7 @@ def optimize_all(session0, session1):
     itf.set_parameter(parname='logg', fitted=True, vmin=3.8, vmax=4.75)
     itf.set_parameter(parname='vrot', fitted=True, vmin=100., vmax=180.)
     itf.set_parameter(parname='z', fitted=True, vmin=1.2, vmax=2.0)
-    itf.choose_fitter('sp_diff_evol')
+    itf.choose_fitter('nlopt_nelder_mead', ftol=1e-7)
 
     # run fit
     itf.run_fit()
@@ -131,13 +131,15 @@ def optimize_all(session0, session1):
 # inspect_spectra('spec.lis')
 # setup_interface_more_obs()
 # optimize_rv('initial.itf', 'rvfit.itf')
-# optimize_all('rvfit.itf', 'allfit.itf')
+optimize_all('rvfit.itf', 'nmallfit.itf')
 
 # lets do some plotting
-itf  = pyterpol.Interface.load('allfit.itf')
+itf  = pyterpol.Interface.load('nmallfit.itf')
 itf.plot_convergence(figname='chi2.png')
 itf.plot_convergence(parameter='all', figname='convergence_params.png')
 itf.plot_covariances(nbin=50, parameters=['z', 'logg', 'teff', 'vrot'])
+itf.plot_variances(nbin=30, parameters=['rv'])
+itf.write_fitted_parameters(outputname='trial.res')
 
 # ol = pyterpol.ObservedList()
 # ol.load('initial.itf')

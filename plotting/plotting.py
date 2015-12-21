@@ -106,6 +106,50 @@ def plot_chi2_map(x, y, nbin=10, labels=None, savefig=True, figname=None):
         plt.savefig(figname)
         plt.close()
 
+def plot_variance(x, nbin=10, label=None, savefig=True, figname=None):
+    """
+    Plots a covariance map.
+    :param x parameter values
+    :param nbin number of bins in a histogram
+    :param labels
+    :param savefig
+    :param figname
+    :return:
+    """
+    fs=8
+    # if user did not pass the labels
+    if label is None:
+        label = 'x'
+
+    # set up the figure
+    fig = plt.figure(figsize=(6,6), dpi=100)
+
+    # firs the plot of the variance
+    ax = fig.add_subplot(111)
+
+    # plot the histogram
+    n, bins, patches = ax.hist(x, nbin, normed=True, label=label)
+    x_g = np.linspace(bins.min(), bins.max(), 50)
+
+    # plot the gaussian 'fit'
+    mean = x.mean()
+    var = x.std(ddof=1)
+    g = norm(loc=mean, scale=var)
+    ax.plot(x_g, g.pdf(x_g), 'r-')
+
+    # labeling
+    ax.set_xlabel(label, fontsize=8)
+    ax.set_ylabel('$n_i/N$', fontsize=8)
+    ax.set_title(r'$\sigma$_%s=%.3f' % (label, var), fontsize=8)
+
+    # save the figure
+    if savefig:
+        if figname is None:
+            figname = label + '.png'
+
+        plt.savefig(figname)
+        plt.close()
+
 def read_fitlog(f):
     """
     Reads the fitting log and stores it within a dictionary.
