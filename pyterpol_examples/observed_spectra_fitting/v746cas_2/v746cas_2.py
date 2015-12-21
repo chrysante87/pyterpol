@@ -131,7 +131,13 @@ def optimize_all(session0, session1):
 # inspect_spectra('spec.lis')
 # setup_interface_more_obs()
 # optimize_rv('initial.itf', 'rvfit.itf')
-optimize_all('rvfit.itf', 'allfit.itf')
+# optimize_all('rvfit.itf', 'allfit.itf')
+
+# lets do some plotting
+itf  = pyterpol.Interface.load('allfit.itf')
+itf.plot_convergence(figname='chi2.png')
+itf.plot_convergence(parameter='all', figname='convergence_params.png')
+itf.plot_covariances(nbin=50, parameters=['z', 'logg', 'teff', 'vrot'])
 
 # ol = pyterpol.ObservedList()
 # ol.load('initial.itf')

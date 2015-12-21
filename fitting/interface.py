@@ -293,7 +293,7 @@ class Interface(object):
                     include = False
                     break
                 if hasattr(self.comparisonList[i]['observed'], key) and \
-                           self.comparisonList[i]['observed'].key != kwargs[key]:
+                                self.comparisonList[i]['observed'].key != kwargs[key]:
                     include = False
                     break
                 if key == 'region' and self.comparisonList[i]['region'] != kwargs[key]:
@@ -656,7 +656,7 @@ class Interface(object):
                 pars = self.extract_parameters(rec['parameters'][c])
 
                 # use only those parameters that are not constrained with the grid
-                pars = {x:pars[x] for x in pars.keys() if x in self._not_given_by_grid}
+                pars = {x: pars[x] for x in pars.keys() if x in self._not_given_by_grid}
                 # print pars
 
                 # populate with the intensity vector of each component
@@ -1045,7 +1045,9 @@ class Interface(object):
                 # padding has to be relatively large, since
                 # we do not know what the rvs will be
                 if self.debug:
-                    print "Creating SyntheticSpectrum: params: %s wmin: %s wmax: %s" % ()
+                    print "Creating SyntheticSpectrum: params: %s wmin: %s wmax: %s" % (str(params),
+                                                                                        str(wmin),
+                                                                                        str(wmax))
 
                 if not self.one4all:
                     self.synthetics[reg][c] = self.grids[reg].get_synthetic_spectrum(params,
@@ -1406,9 +1408,7 @@ class Interface(object):
 
             # TODO setting up the region <-> rv relation better - this is a quick fix
             # TODO and unlikely a robust one
-            self.rel_rvgroup_region = {reg:[0] for reg in self.rl._registered_regions}
-            # print self.rel_rvgroup_region
-
+            self.rel_rvgroup_region = {reg: [0] for reg in self.rl.get_registered_regions()}
             region_groups = self.rl.get_region_groups()
             self.sl.set_groups(region_groups)
 
@@ -1491,7 +1491,7 @@ class Interface(object):
                                ' %s for grid and % for synthetic spectra.'
                                % (k,
                                   str(self._grid_kwargs.keys()),
-                                  str(self._synthetic_spectrum_kwargs.keys())))
+                                  str(self._synthetic_spectrum_kwargs)))
 
     def _set_groups_to_observed(self, varparams, fixparams):
         """
@@ -3184,7 +3184,7 @@ class StarList(object):
         for component in self._registered_components:
             for parkey in self.componentList[component].keys():
                 i = 0
-                while(i < len(self.componentList[component][parkey])):
+                while i < len(self.componentList[component][parkey]):
 
                     # if the parameter group is not, it is deleted
                     if self.componentList[component][parkey][i]['group'] is None:

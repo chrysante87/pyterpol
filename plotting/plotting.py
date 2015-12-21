@@ -71,7 +71,7 @@ def plot_chi2_map(x, y, nbin=10, labels=None, savefig=True, figname=None):
         ax = fig.add_subplot(var_axes[i])
 
         # plot the histogram
-        n, bins, patches = ax.hist(var_data[i], normed=True, label=labels[0])
+        n, bins, patches = ax.hist(var_data[i], nbin, normed=True, label=labels[0])
         x_g = np.linspace(bins.min(), bins.max(), 50)
 
         # plot the gaussian 'fit'
