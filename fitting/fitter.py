@@ -284,53 +284,66 @@ class Fitter(object):
         ofile.writelines(lines)
         ofile.close()
 
-    def run_mcmc(self, chi_square, fitparams, nwalker, *args):
+    def run_mcmc(self, chi_square, chain_file, fitparams, nwalkers, niter, *args):
         """
         :param chi_square
         :param fitparams
-        :param nwalker
+        :param nwalkers
+        :param niter
         :param args
         :return:
         """
 
-        def lnlike(fitparams, *args):
+        def lnlike(pars, *args):
             """
             Model probability.
             :param pars:
             :param args:
             :return:
             """
-            return -0.5*chi_square(x, *args)
+            return -0.5*chi_square(pars, *args)
 
         # define the boundaries and the priors
-        def lnprior(fitparams):
+        def lnprior(pars):
             """
             Prior probabilities i.e. boundaries.
             :param pars:
             :return:
             """
 
-            for p, vmin, vmax in zip(fitparams, self.vmins, self.vmaxs):
+            for p, vmin, vmax in zip(pars, self.vmins, self.vmaxs):
                 if (p < vmin) | (p > vmax):
                     return -np.inf
             return 0.0
 
-        def lnprob(fitparams, *args):
+        def lnprob(pars, *args):
             """
             The full probability function.
             :param pars:
             :param args:
             :return:
             """
-            lp = lnprior(fitparams)
+            lp = lnprior(pars)
             if not np.isfinite(lp):
                 return -np.inf
-            return lp + lnlike(fitparams, *args)
+            return lp + lnlike(pars, *args)
 
         # get the dimensions
         ndim = len(fitparams)
 
+        # initialize the sampler
+        pos = [fitparams + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
 
+        # setup the sampler
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=args)
+
+        # run the sampler
+        for result in sampler.sample(pos, iterations=niter, storechain=False):
+            position = result[0]
+            ofile = open(chain_file, 'a')
+            for k in range(position.shape[0]):
+                ofile.write("%d %s %f\n" % (k, " ".join(['%.12f' % i for i in position[k]]), result[1][k]))
+            ofile.close()
 
     @staticmethod
     def list_fitters():
