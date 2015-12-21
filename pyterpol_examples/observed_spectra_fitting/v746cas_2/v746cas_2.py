@@ -110,11 +110,12 @@ def optimize_all(session0, session1):
 
     # setup the spectra
     itf = pyterpol.Interface.load(session0)
+    itf.set_parameter(parname='rv', fitted=True, vmin=-60., vmax=60.)
     itf.set_parameter(parname='teff', fitted=True, vmin=15000., vmax=18000.)
     itf.set_parameter(parname='logg', fitted=True, vmin=3.8, vmax=4.75)
     itf.set_parameter(parname='vrot', fitted=True, vmin=100., vmax=180.)
     itf.set_parameter(parname='z', fitted=True, vmin=1.2, vmax=2.0)
-    itf.choose_fitter('nlopt_nelder_mead', ftol=1e-7)
+    itf.choose_fitter('nlopt_nelder_mead', ftol=1e-5)
 
     # run fit
     itf.run_fit()
@@ -129,17 +130,21 @@ def optimize_all(session0, session1):
     itf.save(session1)
 
 # inspect_spectra('spec.lis')
-# setup_interface_more_obs()
+setup_interface_more_obs()
 # optimize_rv('initial.itf', 'rvfit.itf')
-optimize_all('rvfit.itf', 'nmallfit.itf')
+optimize_all('initial.itf', 'nmallfit.itf')
 
 # lets do some plotting
 itf  = pyterpol.Interface.load('nmallfit.itf')
-itf.plot_convergence(figname='chi2.png')
-itf.plot_convergence(parameter='all', figname='convergence_params.png')
-itf.plot_covariances(nbin=50, parameters=['z', 'logg', 'teff', 'vrot'])
-itf.plot_variances(nbin=30, parameters=['rv'])
-itf.write_fitted_parameters(outputname='trial.res')
+# itf.plot_convergence(figname='chi2.png')
+# itf.plot_convergence(parameter='all', figname='convergence_params.png')
+# itf.plot_covariances(nbin=50, parameters=['z', 'logg', 'teff', 'vrot'])
+# itf.plot_variances(nbin=30, parameters=['rv'])
+# itf.write_fitted_parameters(outputname='trial.res')
+
+itf.set_error(error=10)
+fitparams = itf.get_fitted_parameters(attribute='value')
+itf.fitter.run_mcmc(itf.compute_chi2, 'chain.dat', fitparams, 4*len(fitparams), 200)
 
 # ol = pyterpol.ObservedList()
 # ol.load('initial.itf')
