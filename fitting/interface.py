@@ -946,8 +946,8 @@ class Interface(object):
                 labels = [label1, label2]
 
                 # setup plotted data
-                x = log['data'][:,i]
-                y = log['data'][:,j]
+                x = log['data'][:, i]
+                y = log['data'][:, j]
 
                 # do the oplot
                 plot_chi2_map(x, y, nbin=nbin, labels=labels, savefig=savefig, figname=figname)
@@ -1002,7 +1002,7 @@ class Interface(object):
         # for which to set the synthetic
         # parameters
         if len(complist) == 0:
-            complist = self.sl._registered_components
+            complist = self.sl.get_components()
 
         # regime in which we use one long spectrum
         if self.one4all:
@@ -1023,9 +1023,9 @@ class Interface(object):
 
             # get all parameters for a given region
             reg_groups = self.rl.mainList[reg]['groups'][0]
-            reg_groups = {x: reg_groups[x] for x in reg_groups.keys() \
+            reg_groups = {x: reg_groups[x] for x in reg_groups.keys()
                           if x not in self._not_given_by_grid}
-            grid_pars = [x for x in self.sl.get_physical_parameters() \
+            grid_pars = [x for x in self.sl.get_physical_parameters()
                          if x not in self._not_given_by_grid]
 
             # print grid_pars, reg_groups
@@ -1080,9 +1080,9 @@ class Interface(object):
             # if verbosity is desired a detailed chi-square
             # info on each region is returned
             if verbose:
-                self.chi2_detailed.append(dict(chi2=l[i]['chi2'],
-                                          region=self.rl.mainList[l[i]['region']],
-                                          rv_group=l[i]['groups']['rv']))
+                chi2_detailed.append(dict(chi2=l[i]['chi2'],
+                                     region=self.rl.mainList[l[i]['region']],
+                                     rv_group=l[i]['groups']['rv']))
         if verbose:
             return chi2, chi2_detailed
         else:
@@ -1171,7 +1171,7 @@ class Interface(object):
 
                     self.add_comparison(region=reg,
                                         parameters=temp_all_pars,
-                                        groups = all_groups,
+                                        groups=all_groups,
                                         observed=o,
                                         )
 
@@ -1228,7 +1228,7 @@ class Interface(object):
                 all_groups_list.append(temp)
 
                 # search until you find a list of lenght > 1 or till the end
-                while  i < len(keys) and (position[keys[i]] == len(unique_groups[keys[i]])-1):
+                while i < len(keys) and (position[keys[i]] == len(unique_groups[keys[i]])-1):
                     i += 1
                 # if end was reached - end
                 if not i < len(keys):
@@ -1278,7 +1278,7 @@ class Interface(object):
 
                     self.add_comparison(region=reg,
                                         parameters=temp_all_pars,
-                                        groups = rec,
+                                        groups=rec,
                                         observed=o,
                                         )
 
@@ -1286,14 +1286,17 @@ class Interface(object):
         """
         :param component: component for which the parameter is deleted
         :param parameter:deleted paramer
+        :param group
         :return:
         """
 
         self.sl.remove_parameter(component, parameter, group)
 
-    def run_iterative_fit(self, niter, l=None, verbose=False):
+    def run_iterative_fit(self, niter, l=None):
         """
         Does niter successive of spectrum owned and common parameters.
+        :param niter
+        :param l
         :return:
         """
         self.fit_is_running = True
@@ -1304,12 +1307,11 @@ class Interface(object):
             self.optimize_spectrum_by_spectrum(l=l)
 
             # then optimize the remaining parameters
-            self.result = self.run_fit(l=l, verbose=False)
+            self.run_fit(l=l, verbose=False)
             iter += 1
 
         self.fitter.flush_iters()
         self.fit_is_running = False
-
 
     def run_fit(self, l=None, verbose=False):
         """
@@ -1328,7 +1330,7 @@ class Interface(object):
         self.fit_is_running = True
 
         # runs the fitting
-        self.fitter(self.compute_chi2,l,verbose)
+        self.fitter(self.compute_chi2, l, verbose)
 
         # writes the remaining iterations within the file
         self.fitter.flush_iters()
@@ -1548,7 +1550,7 @@ class Interface(object):
 
         # setup the components
         if component == 'all':
-            component = self.sl._registered_components
+            component = self.sl.get_components()
         else:
             component = [component]
 
@@ -1576,7 +1578,7 @@ class Interface(object):
         # update the fitter if number of fitted
         # parameters changes
         if 'fitted' in kwargs.keys() and self.fitter.fittername is not None:
-            fitparams=self.get_fitted_parameters()
+            fitparams = self.get_fitted_parameters()
             self.choose_fitter(name=self.fitter.fittername, fitparams=fitparams, **self.fitter.fit_kwargs)
 
     def _setup_grids(self):
@@ -1718,7 +1720,7 @@ class Interface(object):
         # rv_group, spectrum and region
         reg2rv = {x: [] for x in regs}
 
-        #physical parameters
+        # physical parameters
         phys_pars = self.sl.get_physical_parameters()
         phys_pars = [par for par in phys_pars if par not in ['lr']]
 
@@ -1830,6 +1832,7 @@ class Interface(object):
         Writes the result of fitting
         :param f a fitting log
         :param l a comparisonList
+        :param outputname
         :return:
         """
         # use default objects if nones were passed
@@ -1869,13 +1872,13 @@ class Interface(object):
 
         # set defaults for component
         if component is None:
-            components = self.sl._registered_components
+            components = self.sl.get_components()
         if isinstance(component, str):
             components = [component]
 
         # set defaults for region
         if region is None:
-            regions = self.rl._registered_regions
+            regions = self.rl.get_registered_regions()
         if isinstance(region, str):
             regions = [region]
 
@@ -1904,10 +1907,10 @@ class Interface(object):
                     # the outputname
                     if outputname is not None:
                         oname = '_'.join([outputname, 'c', c, 'r', str(wmin),
-                                      str(wmax), 'g', str(rvg),]) + '.dat'
+                                          str(wmax), 'g', str(rvg)]) + '.dat'
                     else:
                         oname = '_'.join(['c', c, 'r', str(wmin),
-                                      str(wmax), 'g', str(rvg),]) + '.dat'
+                                          str(wmax), 'g', str(rvg)]) + '.dat'
 
                     if self.debug:
                         print "Writing spectrum: %s." % oname
@@ -1924,7 +1927,7 @@ class Interface(object):
                     computepars = self.extract_parameters(computepars)
 
                     # compute the synthetic spectra
-                    w,i = self.synthetics[r][c].get_spectrum(wmin=wmin, wmax=wmax, korel=korel, **computepars)
+                    w, i = self.synthetics[r][c].get_spectrum(wmin=wmin, wmax=wmax, korel=korel, **computepars)
 
                     # constrauct header of the file
                     header = ''
@@ -1936,7 +1939,7 @@ class Interface(object):
                     # write the file
                     ofile = open(oname, 'w')
                     ofile.writelines(header)
-                    np.savetxt(ofile, np.column_stack([w,i]), fmt='%15.10e')
+                    np.savetxt(ofile, np.column_stack([w, i]), fmt='%15.10e')
                     ofile.close()
 
 
@@ -2030,6 +2033,7 @@ class ObservedList(object):
     def add_one_observation(self, obs=None, update=True, **kwargs):
         """
         Adds observation to the list.
+        :param obs observed spectrum wrapped in ObservedSpectrum class
         :param update - update the observed spectra list
         :param kwargs
             see class ObservedSpectrum (observations module) for details.
@@ -2281,7 +2285,7 @@ class ObservedList(object):
         ol = ObservedList()
 
         # from here the file is actually being read
-        for i,l in enumerate(lines[data_start+1:]):
+        for i, l in enumerate(lines[data_start+1:]):
 
             # once we reach regionlist, we end
             if l.find('OBSERVEDLIST') > -1:
@@ -2296,7 +2300,7 @@ class ObservedList(object):
                 while i < len(d):
                     if d[i].find(':') > -1:
                         j = i + 1
-                        while j < len(d) and d[j].find(':') == -1 :
+                        while j < len(d) and d[j].find(':') == -1:
                             j += 1
                         stub = d[i:j]
                         if len(stub) < 3:
@@ -2326,7 +2330,7 @@ class ObservedList(object):
 
                 # add the parameter if it does not exist
                 groups = {key: cdict[key] for key in cdict.keys() if key not in parnames}
-                kwargs = {key: cdict[key] for key in cdict.keys() if key  in parnames}
+                kwargs = {key: cdict[key] for key in cdict.keys() if key in parnames}
                 # print groups
                 # print kwargs
                 ol.add_one_observation(group=groups, **kwargs)
@@ -2339,7 +2343,7 @@ class ObservedList(object):
                 # secure corrct types
                 recs = ['debug']
                 cast_types = [string2bool]
-                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0, len(d), 2)}
                 for k in cdict.keys():
                     if k in recs:
                         i = recs.index(k)
@@ -2378,12 +2382,6 @@ class ObservedList(object):
             regions, where slight shifts in rv are
             very likely.
         """
-        # TODO Maybe I should assign groups with respect
-        # TODO to the components.
-
-        # this stores the last group number for
-        # parameter 'rv'
-        gn_rv = None
 
         # First go through each spectrum to see, which
         # groups were defined by user
@@ -2452,7 +2450,7 @@ class ObservedList(object):
     def save(self, ofile):
         """
         Saves the class. It should be retrievable from the file.
-        :param f:
+        :param ofile:
         :return:
         """
         # Open the file
@@ -2526,7 +2524,7 @@ class RegionList(List):
         super(RegionList, self).__init__(**kwargs)
 
         # registered keywords
-        self._registered_records = ['components', 'groups','wmin', 'wmax']
+        self._registered_records = ['components', 'groups', 'wmin', 'wmax']
 
         # if not given along the class a blank one is created
         if len(self.mainList.keys()) < 1:
@@ -2548,7 +2546,7 @@ class RegionList(List):
         for key0 in self.mainList.keys():
             # region properties
             string += "Region name: %s: (wmin, wmax) = (%s, %s):\n" % (key0, str(self.mainList[key0]['wmin']),
-                                                                  str(self.mainList[key0]['wmax']))
+                                                                       str(self.mainList[key0]['wmax']))
             # componentn properties
             for i in range(0, len(self.mainList[key0]['components'])):
                 string += "%s: %s " % ('component', str(self.mainList[key0]['components'][i]))
@@ -2596,7 +2594,7 @@ class RegionList(List):
         # if there is a region exists and the component is all,
         # there is no point to attach it
         # print region, component
-        if (region != None) and (component == 'all'):
+        if (region is not None) and (component == 'all'):
             warnings.warn('The region already exists as region: %s -> doing nothing.' % region)
             return
 
@@ -2638,7 +2636,7 @@ class RegionList(List):
             self._registered_regions.append(ident)
 
             # if the luminosity group is not defined
-            if 'lr' not in groups.keys():# or len(groups['lr']) == 0:
+            if 'lr' not in groups.keys():
                 all_groups = self.get_defined_groups()
                 if 'lr' in all_groups.keys():
                     def_groups = all_groups['lr']
@@ -2807,7 +2805,7 @@ class RegionList(List):
         :return: bool has/has_not the component
         """
 
-        for regcomp  in self.mainList[region]['components']:
+        for regcomp in self.mainList[region]['components']:
             if (regcomp == component) or (regcomp == 'all'):
                 return True
         return False
@@ -2837,7 +2835,7 @@ class RegionList(List):
         rl = RegionList()
 
         # from here the file is actually being read
-        for i,l in enumerate(lines[data_start+1:]):
+        for i, l in enumerate(lines[data_start+1:]):
 
             # once we reach regionlist, we end
             if l.find('REGIONLIST') > -1:
@@ -2846,7 +2844,7 @@ class RegionList(List):
             d = l.split()
             # print d
             if d[0].find('identification') > -1:
-                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0, len(d), 2)}
                 # print cdict
                 # cast the paramneters to teh correct types
                 parnames = ['wmin', 'wmax', 'identification', 'component']
@@ -2861,7 +2859,7 @@ class RegionList(List):
 
                 # add the parameter if it does not exist
                 groups = {key: cdict[key] for key in cdict.keys() if key not in parnames}
-                kwargs = {key: cdict[key] for key in cdict.keys() if key  in parnames}
+                kwargs = {key: cdict[key] for key in cdict.keys() if key in parnames}
                 # print groups
                 # # print kwargs
                 rl.add_region(groups=groups, **kwargs)
@@ -2874,7 +2872,7 @@ class RegionList(List):
                 # secure corrct types
                 recs = ['debug']
                 cast_types = [string2bool]
-                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0, len(d), 2)}
                 for k in cdict.keys():
                     if k in recs:
                         i = recs.index(k)
@@ -2909,7 +2907,7 @@ class RegionList(List):
     def save(self, ofile):
         """
         Saves the class. It should be retrievable from the file.
-        :param f:
+        :param ofile:
         :return:
         """
         # Open the file
@@ -2996,6 +2994,9 @@ class StarList(object):
         # defined groups
         self.groups = {}
 
+        # empty dictionary for the list of
+        # fitted types
+        self.fitted_types = {}
 
     def __len__(self):
         """
@@ -3004,14 +3005,13 @@ class StarList(object):
         """
         pass
 
-
     def __str__(self):
         """
         :return: string = string represantation of the class
         """
         string = ''
         for component in self.componentList.keys():
-            string += "Component: %s\n" % (component)
+            string += "Component: %s\n" % component
             for parkey in self.componentList[component].keys():
                 for par in self.componentList[component][parkey]:
                     string += str(par)
@@ -3032,7 +3032,8 @@ class StarList(object):
 
         :param component: Registration string of the component
                 if None is given, it is registred as 'componentXX'
-        :param group: group set to all parameters of a component
+        :param groups: group set to all parameters of a component
+        :param use_defaults
         :param kwargs:
         :return:
         """
@@ -3040,7 +3041,7 @@ class StarList(object):
         # setup name of the component and create a record within
         # component list
         if component is None:
-            component = 'component'+str(len(self._registered_components))
+            component = 'component' + str(len(self._registered_components))
 
         # register he component
         self._registered_components.append(component)
@@ -3067,7 +3068,7 @@ class StarList(object):
                               'included into component parameters.' % (key, str(kwargs[key])))
             elif keytest not in pd.keys() and kwargs[key] is not None:
 
-                #set up group
+                # set up group
                 if keytest in groups.keys():
                     group = groups[keytest]
                 self.componentList[component][keytest] = []
@@ -3124,7 +3125,7 @@ class StarList(object):
         self.componentList = {}
         self._registered_components = []
 
-    def clone_parameter(self, component, parameter, index=0, all=False, **kwargs):
+    def clone_parameter(self, component, parameter, index=0, **kwargs):
         """
         Clones a parameter and stores it for a given component.
         This function will be primarily used to clone parameters
@@ -3163,7 +3164,6 @@ class StarList(object):
     def copy(self):
         """
         Creates a deepcopy of the class StarList.
-        :param other: starlist class
         :return:
         """
         other = StarList()
@@ -3173,7 +3173,6 @@ class StarList(object):
             setattr(other, attr, copy.deepcopy(v))
 
         return other
-
 
     def delete_hollow_groups(self):
         """
@@ -3191,7 +3190,7 @@ class StarList(object):
                     if self.componentList[component][parkey][i]['group'] is None:
                         del self.componentList[component][parkey][i]
                     else:
-                        i+=1
+                        i += 1
 
     def delete_duplicities(self):
         """
@@ -3203,7 +3202,7 @@ class StarList(object):
             def_groups = []
             for parkey in self.componentList[component].keys():
                 i = 0
-                while (i < len(self.componentList[component][parkey])):
+                while i < len(self.componentList[component][parkey]):
                     if self.componentList[component][parkey][i]['group'] not in def_groups:
                         def_groups.append(self.componentList[component][parkey][i]['group'])
                         i += 1
@@ -3297,13 +3296,15 @@ class StarList(object):
                 for c in components:
                     # print flatten_2d(groups[c][p])
                     temp.extend(groups[c][p])
-                groups[component][p] =  np.unique(temp).tolist()
+                groups[component][p] = np.unique(temp).tolist()
 
         return groups
 
     def get_fitted_parameters(self, verbose=False):
         """
         Returns a list of fitted parameters wrapped within the Parameter class ofc.
+        :param verbose - return a dictionary with additional info on the
+        fitted parameters.
         :return:
         """
         fit_pars = []
@@ -3311,7 +3312,7 @@ class StarList(object):
         # is stored in a list and passed  if
         # necessary
         if verbose:
-            fit_pars_info = {'component':[], 'group':[], 'name':[], 'value':[]}
+            fit_pars_info = {'component': [], 'group': [], 'name': [], 'value': []}
         # go over all parameters and components
         for c in self._registered_components:
             for parname in self.get_physical_parameters():
@@ -3357,7 +3358,6 @@ class StarList(object):
         # print fitted_types
         self.fitted_types = fitted_types
 
-
     def get_index(self, component, parameter, group):
         """
         Returns index of a component/parameter/group.
@@ -3371,8 +3371,8 @@ class StarList(object):
             if par['group'] == group:
                 return i
 
-        warnings.warn('Component: %s Parameter: %s Group: :s'
-                      ' not found.' % (component, parameter, group))
+        warnings.warn('Component: %s Parameter: %s Group: %s'
+                      ' not found.' % (component, parameter, str(group)))
         return None
 
     def get_parameter(self, **kwargs):
@@ -3426,14 +3426,14 @@ class StarList(object):
         sl = StarList()
 
         # from here the file is actually being read
-        for i,l in enumerate(lines[data_start+1:]):
+        for i, l in enumerate(lines[data_start+1:]):
 
             # once we reach starlist again, we end
             if l.find('STARLIST') > -1:
                 break
             d = l.split()
             if d[0].find('component') > -1:
-                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0, len(d), 2)}
 
                 # cast the paramneters to teh correct types
                 for k in cdict.keys():
@@ -3469,7 +3469,7 @@ class StarList(object):
                 # secure corrct types
                 recs = ['debug']
                 cast_types = [string2bool]
-                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0,len(d),2)}
+                cdict = {d[i].rstrip(':'): d[i+1] for i in range(0, len(d), 2)}
                 for k in cdict.keys():
                     if k in recs:
                         i = recs.index(k)
@@ -3499,7 +3499,7 @@ class StarList(object):
         for component in self.componentList.keys():
             self.groups[component] = dict()
             for key in self.componentList[component].keys():
-                self.groups[component][key]=[]
+                self.groups[component][key] = []
                 for par in self.componentList[component][key]:
                     self.groups[component][key].append(par['group'])
 
@@ -3507,6 +3507,7 @@ class StarList(object):
         """
         :param component: component for which the parameter is deleted
         :param parameter:deleted paramer
+        :param group
         :return:
         """
         index = self.get_index(component, parameter, group)
@@ -3515,7 +3516,7 @@ class StarList(object):
     def save(self, ofile):
         """
         Saves the class. It should be retrievable from the file.
-        :param f:
+        :param ofile:
         :return:
         """
         # Open the file
@@ -3524,9 +3525,7 @@ class StarList(object):
 
         # parameters listed for each record in the starlist
         listed_keys = ['value', 'unit', 'fitted', 'vmin', 'vmax', 'group']
-        enviromental_keys = ['debug']
         string = ' STARLIST '.rjust(105, '#').ljust(200, '#') + '\n'
-
         for c in self.componentList.keys():
             for key in self.componentList[c].keys():
                 for par in self.componentList[c][key]:
@@ -3560,7 +3559,8 @@ class StarList(object):
         This function merges groups defined
         in the type and the one passed. In general
         we should not be able to do this.
-
+        :param overwrite
+        :param groups
         :return: None
         """
 
@@ -3592,7 +3592,7 @@ class StarList(object):
                     else:
                         if group not in self.groups[component][parkey]:
                             warnings.warn("Group %s: %s previously undefined."
-                                                  "Adding to the remaining groups." % (parkey, str(group)))
+                                          "Adding to the remaining groups." % (parkey, str(group)))
                             self.clone_parameter(component, parkey, group=group)
 
                             # deletes all previous groups
@@ -3600,7 +3600,6 @@ class StarList(object):
                                 while len(self.groups[one_comp][parkey]) > 1:
                                     del self.groups[one_comp][parkey][0]
                                 first_in_list = False
-
 
     def set_parameter(self, name, component, group, **kwargs):
         """
@@ -3621,7 +3620,6 @@ class StarList(object):
             raise Exception("Component: %s unknown" % component)
         else:
             for i, par in enumerate(self.componentList[component][name]):
-                # print group, name, par['name'], par['group'], par['name'] == name, par['group'] == group, type(group), type(par['group'])
                 if par['name'] == name and par['group'] == group:
                     for key in kwargs.keys():
                         keytest = key.lower()
