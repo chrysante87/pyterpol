@@ -1544,6 +1544,9 @@ class Interface(object):
         else:
             groups = [group]
 
+        for g in groups:
+            print type(g)
+
         # print groups
         # propagate to the star
         for c in component:
@@ -2300,8 +2303,8 @@ class ObservedList(object):
                             cdict[k] = None
                     else:
                         # the remaining must be groups
-                        if len(cdict[k]) == 1:
-                            cdict[k] = int(cdict[k])
+                        # print cdict[k]
+                        cdict[k] = int(cdict[k])
 
                 # add the parameter if it does not exist
                 groups = {key: cdict[key] for key in cdict.keys() if key not in parnames}
@@ -3600,7 +3603,7 @@ class StarList(object):
             raise Exception("Component: %s unknown" % component)
         else:
             for i, par in enumerate(self.componentList[component][name]):
-                # print group, name, par['name'], par['group'], par['name'] == name, par['group'] == group, type(group), type(par['group'])
+                print group, name, par['name'], par['group'], par['name'] == name, par['group'] == group, type(group), type(par['group'])
                 if par['name'] == name and par['group'] == group:
                     for key in kwargs.keys():
                         keytest = key.lower()

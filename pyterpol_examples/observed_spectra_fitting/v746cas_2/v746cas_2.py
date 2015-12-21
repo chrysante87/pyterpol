@@ -132,3 +132,7 @@ def optimize_all(session0, session1):
 # setup_interface_more_obs()
 optimize_rv('initial.itf', 'rvfit.itf')
 # optimize_all('rvfit.itf', 'allfit.itf')
+
+# ol = pyterpol.ObservedList()
+# ol.load('initial.itf')
+# print ol
