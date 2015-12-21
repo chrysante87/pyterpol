@@ -284,19 +284,53 @@ class Fitter(object):
         ofile.writelines(lines)
         ofile.close()
 
-    def run_mcmc(self, chi_square, fitparams, *args):
+    def run_mcmc(self, chi_square, fitparams, nwalker, *args):
         """
+        :param chi_square
+        :param fitparams
+        :param nwalker
+        :param args
         :return:
         """
 
-        # locally defined functions required by emcee
-        # the log likelyhood
-        def lnlike(pars, *args):
+        def lnlike(fitparams, *args):
+            """
+            Model probability.
+            :param pars:
+            :param args:
+            :return:
+            """
             return -0.5*chi_square(x, *args)
 
-        def lnprior
+        # define the boundaries and the priors
+        def lnprior(fitparams):
+            """
+            Prior probabilities i.e. boundaries.
+            :param pars:
+            :return:
+            """
 
-        pass
+            for p, vmin, vmax in zip(fitparams, self.vmins, self.vmaxs):
+                if (p < vmin) | (p > vmax):
+                    return -np.inf
+            return 0.0
+
+        def lnprob(fitparams, *args):
+            """
+            The full probability function.
+            :param pars:
+            :param args:
+            :return:
+            """
+            lp = lnprior(fitparams)
+            if not np.isfinite(lp):
+                return -np.inf
+            return lp + lnlike(fitparams, *args)
+
+        # get the dimensions
+        ndim = len(fitparams)
+
+
 
     @staticmethod
     def list_fitters():
