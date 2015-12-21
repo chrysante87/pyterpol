@@ -1,32 +1,20 @@
 # -*- coding: utf-8 -*-
-# import re
 import copy
 import warnings
 # import numpy as np
 # import matplotlib.pyplot as plt
 from scipy import stats
 from pyterpol.synthetic.makespectrum import SyntheticGrid
-# from pyterpol.synthetic.makespectrum import SyntheticSpectrum
 from pyterpol.observed.observations import ObservedSpectrum
 from pyterpol.fitting.parameter import Parameter
 from pyterpol.fitting.parameter import parameter_definitions
 from pyterpol.fitting.fitter import Fitter
-# from pyterpol.synthetic.auxiliary import flatten_2d
 from pyterpol.synthetic.auxiliary import generate_least_number
 from pyterpol.synthetic.auxiliary import keys_to_lowercase
-# from pyterpol.synthetic.auxiliary import parlist_to_list
-# from pyterpol.synthetic.auxiliary import read_text_file
-# from pyterpol.synthetic.auxiliary import renew_file
-# from pyterpol.synthetic.auxiliary import select_index_for_multiple_keywords
 from pyterpol.synthetic.auxiliary import string2bool
 from pyterpol.synthetic.auxiliary import sum_dict_keys
 from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
 from pyterpol.plotting.plotting import *
-
-
-# TODO Go through similarities in the classes and write a parent class
-# TODO to get rid of the redundant code.
-
 # repeat userwarnings
 warnings.simplefilter('always', UserWarning)
 
@@ -42,7 +30,7 @@ class Interface(object):
         :param ol: ObservedList type
         :param fitter
         :param debug
-        :param adaptive resolution - this (sounds better than it actually is)
+        :param adaptive_resolution - this (sounds better than it actually is)
                 just means that resolution of the grid is set to twice
                 the resolution of the spectrum with highest resolution
         :return:
@@ -89,6 +77,7 @@ class Interface(object):
 
         # temporary variable for info on the fitted parameters
         self.ident_fitted_pars = None
+        self.one4all = False
 
     def __str__(self):
         """
@@ -99,7 +88,7 @@ class Interface(object):
         for attr, name in zip(['sl', 'rl', 'ol', 'fitter'], ['StarList', 'RegionList', 'ObservedList', 'Fitter']):
             string += '%s%s\n' % (name[:len(name)/2].rjust(50, '='), name[len(name)/2:].ljust(50, '='))
             string += str(getattr(self, attr))
-        string += ''.ljust(100,'=')
+        string += ''.ljust(100, '=')
 
         return string
 
@@ -122,13 +111,12 @@ class Interface(object):
         # update the fitter with new initial parameters
         self.fitter.par0 = copy.deepcopy(final_pars)
 
-    def add_comparison(self, region=None, parameters={}, observed=None, synthetic={}, groups={}):
+    def add_comparison(self, region=None, parameters={}, observed=None, groups={}):
         """
         :param region the name of the corresponding region
         :param parameters a dictionary of the parameters required for the synthetic
                             spectrum
         :param observed the observed spectrum
-        :param synthetic empty dictionaryf for the synthetic spectra
         :param groups
 
         Add a record to the comparisonList
@@ -139,17 +127,16 @@ class Interface(object):
             print 'Settting comparison for region: %s \n groups: %s. \n parameters: %s' % \
                   (str(region), str(groups), str(parameters))
 
-
         if self.comparisonList is None:
             raise Exception('The comparisonList has not been defined yet. Use Inteface.get_comparison for that.')
         else:
             self.comparisonList.append(dict(region=region,
-                                        parameters = parameters,
-                                        observed = observed,
-                                        groups = groups,
-                                        synthetic = {x: None for x in parameters.keys()},
-                                        chi2 = 0.0
-                                     ))
+                                            parameters=parameters,
+                                            observed=observed,
+                                            groups=groups,
+                                            synthetic={x: None for x in parameters.keys()},
+                                            chi2=0.0)
+                                       )
 
     def clear_all(self):
         """
@@ -205,19 +192,22 @@ class Interface(object):
         Computes confidence level from normallized chi^2.
         It is of course not correct, but what can be done,
         when the model is evidently incorrect??
-        :param chi2
-        :param ddof:
+        :param l the list of comparisons
+        :param alpha the chi-square treshold
         :return:
         """
 
+        # use in-built comparison list of
+        # no other was passed
         if l is None:
             l = self.comparisonList
 
+        # get the degrees of freedom
         ddof = self.get_degrees_of_freedom(l)
 
         # estimate confidence limits
         chi2 = stats.chi2(ddof)
-        vmin, vmax =  chi2.interval(alpha)
+        vmin, vmax = chi2.interval(alpha)
 
         # now get vthe maximal value relative
         # to the minimal - minimal value is
@@ -228,8 +218,7 @@ class Interface(object):
 
     def copy(self):
         """
-        Copies the other class to self.
-        :param other: the other interface
+        Creates a copy of self.
         :return:
         """
 
@@ -262,7 +251,8 @@ class Interface(object):
 
         self.fitter.choose_fitter(*args, **kwargs)
 
-    def extract_parameters(self, l, attr='value'):
+    @staticmethod
+    def extract_parameters(l, attr='value'):
         """
         Converts a list of parameter class to a
         dictionary.
@@ -270,41 +260,46 @@ class Interface(object):
         :param attr
         :return:
         """
-        params = {par['name']: par['value'] for par in l}
+        params = {par['name']: par[attr] for par in l}
         return params
 
     def get_comparisons(self, l=None, verbose=False, **kwargs):
         """
         Narrows down the number of comparisons.
-        :param verbose
-        :param kwargs
+        :param l list of comparisons, that will be narrowed down.
+        :param verbose return indices in the original list
+        :param kwargs parameters according to the comparison list will be narrowed down
         :return:
         """
-
+        # empty arrays for the output
         clist = []
         indices = []
-        keys = kwargs.keys()
 
+        # parameter keys
+        keys = kwargs.keys()
         if l is None:
             clist = self.comparisonList
 
+        # go over each recordd within list of comparisons
         for i in range(0, len(clist)):
-            # print i, clist
+
+            # the keys that we test are somewhat heterogeneous
+            # thsi construction is not pretty.
             include = True
             for key in keys:
                 # what if the key lies
                 if key in self.comparisonList[i]['groups'].keys() \
                         and (kwargs[key] != self.comparisonList[i]['groups'][key]):
-                    # print key, kwargs[key], self.comparisonList[i]['groups'][key]
                     include = False
                     break
                 if hasattr(self.comparisonList[i]['observed'], key) and \
-                             self.comparisonList[i]['observed'].key != kwargs[key]:
+                           self.comparisonList[i]['observed'].key != kwargs[key]:
                     include = False
                     break
                 if key == 'region' and self.comparisonList[i]['region'] != kwargs[key]:
                     include = False
                     break
+
             # if it survived all tests it is included
             if include:
                 clist.append(self.comparisonList[i])
@@ -340,6 +335,7 @@ class Interface(object):
     def get_errors(self, f=None, l=None):
         """
         Returns best-fit values and errors estimated from the convergence.
+        :param l: list of comparisons
         :param f: fitting log
         :return:
         """
@@ -359,12 +355,12 @@ class Interface(object):
         ratio = self.compute_chi2_treshold(l=l)
 
         # get best index
-        minind = np.argmin(log['data'][:,-1])
+        minind = np.argmin(log['data'][:, -1])
 
         # truncate the log
-        ind = np.where(log['data'][:,-1] <= ratio*log['data'][minind,-1])[0]
+        ind = np.where(log['data'][:, -1] <= ratio * log['data'][minind, -1])[0]
         log['data'] = log['data'][ind]
-        minind = np.argmin(log['data'][:,-1])
+        minind = np.argmin(log['data'][:, -1])
 
         # outputlist of errors
         errors = {}
@@ -384,8 +380,8 @@ class Interface(object):
 
             # get the error estimate
             value = log['data'][minind, i]
-            lower = log['data'][:,i].min() - value
-            upper = log['data'][:,i].max() - value
+            lower = log['data'][:, i].min() - value
+            upper = log['data'][:, i].max() - value
 
             # append the value
             errors[c][p].append(dict(group=g, value=value, lower=lower, upper=upper))
@@ -401,14 +397,15 @@ class Interface(object):
         """
 
         # return the list of Parameters
-        if attribute == None:
+        if attribute is None:
             return self.sl.get_fitted_parameters()
         else:
             return [par[attribute] for par in self.sl.get_fitted_parameters()]
 
     def get_observed_spectrum(self, filename=None):
         """
-        Returns
+        Returns observed spectrum accoreding to its name.
+        :param filename name of the querried spectrum
         :return:
         """
         return self.ol.get_spectra(filename=filename)[0]
@@ -416,13 +413,14 @@ class Interface(object):
     def list_comparisons(self, l=None):
         """
         This function displays all comparisons.
+        :param l list of comparisons
         :return: string
         """
         if l is None:
             l = self.comparisonList
 
         string = ''
-        for i,rec in enumerate(l):
+        for i, rec in enumerate(l):
             string += "========================= Comparison %s =========================\n" % str(i).zfill(3)
             reg = rec['region']
             # list region
@@ -557,7 +555,7 @@ class Interface(object):
         # if we got here, we loaded the data
         return itf
 
-    def optimize_spectrum_by_spectrum(self, l=None, spectrum_by_spectrum=None):
+    def optimize_spectrum_by_spectrum(self, spectrum_by_spectrum=None):
         """
         Runs the fitting in an iterative way. One or more
         parameters should be determined separately for
@@ -565,15 +563,9 @@ class Interface(object):
         Fitting all parameters together is very dangerous,
         therefore the 'owned' parameters are fitted
         separately from the common ones.
-        :param spectrum_by_spectrum
+        :param spectrum_by_spectrum: list of parameters, that should be fitted separately on each spectrum
         :return:
         """
-        # this prevents us from getting into infinite loop
-        # by calling compute chi2 from computechi2
-        # self.fitting_loop = True
-
-        if l is None:
-            l = self.comparisonList
 
         # if we want to use this mode even in case
         # when the interface is not run in this mode.
@@ -684,9 +676,9 @@ class Interface(object):
                     korelmode = rec['observed'].korel
                     # generate the synthetic spectrum
                     rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
-                                                                              only_intensity=True,
-                                                                              korel=korelmode,
-                                                                              **pars)
+                                                                                  only_intensity=True,
+                                                                                  korel=korelmode,
+                                                                                  **pars)
 
                 else:
                     error = None
@@ -701,21 +693,20 @@ class Interface(object):
             # computation of the chi2
             if error is not None:
                 # sum component spectra
-                for i,c in enumerate(rec['synthetic'].keys()):
+                for i, c in enumerate(rec['synthetic'].keys()):
                     if i == 0:
                         syn = rec['synthetic'][c].copy()
                     else:
                         syn = syn + rec['synthetic'][c]
 
                 # setup the chi2
-                rec['chi2'] = np.sum(((intens - syn)/error)**2)
-            else:
-                erorr = None
+                rec['chi2'] = np.sum(((intens - syn) / error)**2)
 
     def plot_all_comparisons(self, l=None, savefig=False, figname=None):
         """
         Creates a plot of all setup comparisons.
         :param l
+        :param savefig
         :param figname
         :return: None
         """
@@ -727,7 +718,7 @@ class Interface(object):
         if len(l) == 0:
             raise ValueError('The comparison list is empty. Did you run interface.setup() and interface.populate()?')
         for i in range(0, len(l)):
-            self.plot_comparison_by_index(i, l=l, savefig=True, figname=figname)
+            self.plot_comparison_by_index(i, l=l, savefig=savefig, figname=figname)
 
     def plot_comparison_by_index(self, index, l=None, savefig=False, figname=None):
         """
@@ -750,7 +741,7 @@ class Interface(object):
         wmax = self.rl.mainList[reg]['wmax']
 
         # merge the spectra
-        if any([cpr['synthetic'][key] == None for key in cpr['synthetic'].keys()]):
+        if any([cpr['synthetic'][key] is None for key in cpr['synthetic'].keys()]):
             raise ValueError('The synthetic spectra are not computed. Did you run Interface.populate_comparisons()?')
         si = sum_dict_keys(cpr['synthetic'])
 
@@ -771,14 +762,14 @@ class Interface(object):
             except:
                 w, oi, = cpr['observed'].get_spectrum(wmin, wmax)
                 ei = np.zeros(len(w))
-                warnings.warn('Your data observed spectrum: %s has not errors attached!' )
+                warnings.warn('Your data observed spectrum: %s has not errors attached!')
         else:
             w = np.linspace(wmin, wmax, len(si))
 
         if figname is None:
-            figname = "_".join([obsname, 'wmin', str(int(wmin)), 'wmax', str(int(wmax))]) +'.png'
+            figname = "_".join([obsname, 'wmin', str(int(wmin)), 'wmax', str(int(wmax))]) + '.png'
         else:
-            figname = "_".join([figname, obsname, 'wmin', str(int(wmin)), 'wmax', str(int(wmax))]) +'.png'
+            figname = "_".join([figname, obsname, 'wmin', str(int(wmin)), 'wmax', str(int(wmax))]) + '.png'
             savefig = True
 
         if self.debug:
@@ -858,37 +849,38 @@ class Interface(object):
         for p, c, g in zip(log['name'], log['component'], log['group']):
 
             if p not in parameters:
-                continue
                 i += 1
+                continue
             elif c not in components:
-                continue
                 i += 1
+                continue
             elif g not in groups:
-                continue
                 i += 1
+                continue
             else:
                 label = '_'.join(['p', p, 'c', c, 'g', str(g)])
                 labels.append(label)
-                block.append(log['data'][:,i])
+                block.append(log['data'][:, i])
                 i += 1
 
         # append chi_square
         if parameter.lower() in ['chi2']:
-            block.append(log['data'][:,-1])
+            block.append(log['data'][:, -1])
             labels.append('chi2')
 
         # print labels
         plot_convergence(np.column_stack(block), labels, figname=figname, savefig=savefig)
 
-    def plot_covariances(self,f=None, l=None, parameters=None, components=None, groups=None, nbin=20,
+    def plot_covariances(self, f=None, l=None, parameters=None, components=None, groups=None, nbin=20,
                          savefig=True, figname=None):
         """
         Plots covariances between selected parameters
         :param f
         :param l
-        :param parameter
-        :param component
-        :param group
+        :param parameters
+        :param components
+        :param groups
+        :param nbin
         :param savefig
         :param figname
         :return:
@@ -906,18 +898,18 @@ class Interface(object):
         log = read_fitlog(f)
 
         # set the plotted parameters
-        if parameters == None:
+        if parameters is None:
             parameters = np.unique(log['name'])
-        if components == None:
+        if components is None:
             components = np.unique(log['component'])
-        if groups == None:
+        if groups is None:
             groups = np.unique(log['group'])
 
         # compute the chi2 treshold == 1 sigma
         tres = self.compute_chi2_treshold(l=l, alpha=0.993)
 
         # narrow down the chi^2
-        ind = np.where(log['data'][:,-1] <= tres*log['data'][:,-1].min())[0]
+        ind = np.where(log['data'][:, -1] <= tres*log['data'][:, -1].min())[0]
         log['data'] = log['data'][ind]
 
         if len(ind) < len(self.get_fitted_parameters()):
@@ -1000,14 +992,10 @@ class Interface(object):
         # populate the comparison
         self.populate_comparisons(l=l, demand_errors=True)
 
-        # if self.debug:
-            # print self.list_comparisons(l=l)
-
-
     def ready_synthetic_spectra(self, complist=[]):
         """
         Readies the synthetic spectra for each region.
-        :param complist
+        :param complist list of components that will be re-computed,
         :return:
         """
         # if there is no list of components
@@ -1016,14 +1004,22 @@ class Interface(object):
         if len(complist) == 0:
             complist = self.sl._registered_components
 
+        # regime in which we use one long spectrum
+        if self.one4all:
+            wl = self.rl.get_wavelengths()
+            wmin = np.min(wl)
+            wmax = np.max(wl)
+
+
         for reg in self.rl._registered_regions:
             # add the region to synthetics
             if reg not in self.synthetics.keys():
                 self.synthetics[reg] = dict()
 
             # wavelength_boundaries
-            wmin = self.rl.mainList[reg]['wmin']
-            wmax = self.rl.mainList[reg]['wmax']
+            if not self.one4all:
+                wmin = self.rl.mainList[reg]['wmin']
+                wmax = self.rl.mainList[reg]['wmax']
 
             # get all parameters for a given region
             reg_groups = self.rl.mainList[reg]['groups'][0]
@@ -1048,10 +1044,19 @@ class Interface(object):
 
                 # padding has to be relatively large, since
                 # we do not know what the rvs will be
-                # print wmin, wmax
-                self.synthetics[reg][c] = self.grids[reg].get_synthetic_spectrum(params,
+                if self.debug:
+                    print "Creating SyntheticSpectrum: params: %s wmin: %s wmax: %s" % ()
+
+                if not self.one4all:
+                    self.synthetics[reg][c] = self.grids[reg].get_synthetic_spectrum(params,
                                                                                  np.array([wmin, wmax]),
                                                                                  **self._synthetic_spectrum_kwargs)
+                else:
+                    self.synthetics[reg][c] = self.grids['all'].get_synthetic_spectrum(params,
+                                                                                 np.array([wmin, wmax]),
+                                                                                 **self._synthetic_spectrum_kwargs)
+
+
     def read_chi2_from_comparisons(self, l=None, verbose=False):
         """
         Reads the chi-squares from the list.
@@ -1097,7 +1102,6 @@ class Interface(object):
 
         # go region by region
         for reg in self.rl.mainList.keys():
-        # reg = self.rl.mainList.keys()[0]
             # fitted region
             wmin = self.rl.mainList[reg]['wmin']
             wmax = self.rl.mainList[reg]['wmax']
@@ -1512,6 +1516,20 @@ class Interface(object):
         # set the groups from table to spectra
         self.ol._set_groups_to_spectra()
 
+    def set_one_for_all(self, switch):
+        """
+        Sets usage of one grid for all regions. This is faster.
+        When we do not have lots of empty regions between fitted
+        regions. It reduces number of spectra loading required
+        but increases the duration of interpolation,
+        :param switch turn on/off the fitting
+        :return:
+        """
+        if not isinstance(switch, (bool, int)):
+            raise TypeError('Switch of the one4all regime must have type bool.')
+
+        self.one4all = switch
+        self._setup_grids()
 
     def set_parameter(self, component='all', parname=None, group='all', **kwargs):
         """
@@ -1544,10 +1562,6 @@ class Interface(object):
         else:
             groups = [group]
 
-        for g in groups:
-            print type(g)
-
-        # print groups
         # propagate to the star
         for c in component:
             for g in groups:
@@ -1574,8 +1588,12 @@ class Interface(object):
         :params kwargs -see pyterpol.
         :return:
         """
-        for reg in self.rl.mainList.keys():
-            self.grids[reg] = SyntheticGrid(**self._grid_kwargs)
+        if not self.one4all:
+            for reg in self.rl.mainList.keys():
+                self.grids[reg] = SyntheticGrid(**self._grid_kwargs)
+        else:
+            # assume that there is only one grid for all
+            self.grids['all'] = SyntheticGrid(**self._grid_kwargs)
 
     def _setup_rv_groups(self):
         """
@@ -3603,7 +3621,7 @@ class StarList(object):
             raise Exception("Component: %s unknown" % component)
         else:
             for i, par in enumerate(self.componentList[component][name]):
-                print group, name, par['name'], par['group'], par['name'] == name, par['group'] == group, type(group), type(par['group'])
+                # print group, name, par['name'], par['group'], par['name'] == name, par['group'] == group, type(group), type(par['group'])
                 if par['name'] == name and par['group'] == group:
                     for key in kwargs.keys():
                         keytest = key.lower()

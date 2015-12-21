@@ -91,13 +91,13 @@ def optimize_rv(session0, session1):
     print itf
 
     # run fit
-    # itf.run_fit()
+    itf.run_fit()
 
     # write result
-    # itf.write_fitted_parameters(outputname=session1.split('.')[0]+'.dat')
+    itf.write_fitted_parameters(outputname=session1.split('.')[0]+'.dat')
 
     # plot every comparison
-    # itf.plot_all_comparisons(figname='rvfit')
+    itf.plot_all_comparisons(figname='rvfit')
 
     # save the fit
     itf.save(session1)
@@ -130,8 +130,8 @@ def optimize_all(session0, session1):
 
 # inspect_spectra('spec.lis')
 # setup_interface_more_obs()
-optimize_rv('initial.itf', 'rvfit.itf')
-# optimize_all('rvfit.itf', 'allfit.itf')
+# optimize_rv('initial.itf', 'rvfit.itf')
+optimize_all('rvfit.itf', 'allfit.itf')
 
 # ol = pyterpol.ObservedList()
 # ol.load('initial.itf')
