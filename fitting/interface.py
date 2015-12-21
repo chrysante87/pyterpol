@@ -1660,6 +1660,21 @@ class Interface(object):
             fitparams = self.get_fitted_parameters()
             self.choose_fitter(name=self.fitter.fittername, fitparams=fitparams, **self.fitter.fit_kwargs)
 
+    def set_error(self, parname='rv', error=1.0):
+        """
+        Sets error by adjusting vmin, vmax,
+        :param parname:
+        :param error:
+        :return:
+        """
+        # get all fitted parameters
+        pars = self.get_fitted_parameters()
+        for p in pars:
+            if p['name'] == parname.lower():
+                v = p['value']
+                p['vmin'] = v - error
+                p['vmax'] = v + error
+
     def _setup_grids(self):
         """
         Initializes grid of synthetic spectra for each region -
