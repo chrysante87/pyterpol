@@ -1,5 +1,6 @@
 import os
 import nlopt
+import emcee
 # import warnings
 import numpy as np
 from scipy.optimize import fmin
@@ -282,6 +283,20 @@ class Fitter(object):
         ofile = open(f, 'a')
         ofile.writelines(lines)
         ofile.close()
+
+    def run_mcmc(self, chi_square, fitparams, *args):
+        """
+        :return:
+        """
+
+        # locally defined functions required by emcee
+        # the log likelyhood
+        def lnlike(pars, *args):
+            return -0.5*chi_square(x, *args)
+
+        def lnprior
+
+        pass
 
     @staticmethod
     def list_fitters():
