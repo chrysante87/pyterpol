@@ -332,7 +332,8 @@ class Fitter(object):
         ndim = len(fitparams)
 
         # initialize the sampler
-        pos = [fitparams + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
+        pos = np.array([[wmin + (wmax - wmin) * np.random.rand() for wmin, wmax in zip(self.wmins, self.wmaxs)]
+                        for i in range(nwalkers)])
 
         # setup the sampler
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=args)

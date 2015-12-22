@@ -1419,6 +1419,12 @@ class Interface(object):
         # turn of the fitting
         self.fit_is_running = False
 
+    def run_mcmc(self):
+        """
+        Runs the mcmc error estimnation
+        :return:
+        """
+
     def save(self, ofile):
         """
         Saves the interface as a text file.
