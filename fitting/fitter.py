@@ -509,6 +509,24 @@ class Fitter(object):
 
         self.fitter.set_initial_step(stepsize)
 
+    def set_lower_boundary(self, arr):
+        """
+        Sets lower boundary.
+        :param arr:
+        :return:
+        """
+
+        self.vmins = arr
+
+    def set_upper_boundary(self, arr):
+        """
+        Sets upper boundary.
+        :param arr:
+        :return:
+        """
+
+        self.vmaxs = arr
+
     def set_fit_properties(self, pi):
         """
         Sets identification of parameters i.e. names, groups and components

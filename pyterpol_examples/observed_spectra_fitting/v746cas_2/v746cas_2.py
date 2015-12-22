@@ -130,9 +130,9 @@ def optimize_all(session0, session1):
     itf.save(session1)
 
 # inspect_spectra('spec.lis')
-setup_interface_more_obs()
+# setup_interface_more_obs()
 # optimize_rv('initial.itf', 'rvfit.itf')
-optimize_all('initial.itf', 'nmallfit.itf')
+# optimize_all('initial.itf', 'nmallfit.itf')
 
 # lets do some plotting
 itf  = pyterpol.Interface.load('nmallfit.itf')
@@ -142,7 +142,10 @@ itf  = pyterpol.Interface.load('nmallfit.itf')
 # itf.plot_variances(nbin=30, parameters=['rv'])
 # itf.write_fitted_parameters(outputname='trial.res')
 
-itf.set_error(error=10)
+# set errors
+itf.set_error(error=10.)
+
+print itf
 fitparams = itf.get_fitted_parameters(attribute='value')
 itf.fitter.run_mcmc(itf.compute_chi2, 'chain.dat', fitparams, 4*len(fitparams), 200)
 

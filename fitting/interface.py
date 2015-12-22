@@ -1663,8 +1663,8 @@ class Interface(object):
     def set_error(self, parname='rv', error=1.0):
         """
         Sets error by adjusting vmin, vmax,
-        :param parname:
-        :param error:
+        :param parname: name of the parameter
+        :param error: the error, ehich will be used to set boundaries
         :return:
         """
         # get all fitted parameters
