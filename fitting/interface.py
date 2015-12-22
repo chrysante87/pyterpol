@@ -873,7 +873,8 @@ class Interface(object):
         # print labels
         plot_convergence(np.column_stack(block), labels, figname=figname, savefig=savefig)
 
-    def plot_convergence_mcmc(self, f='chain.dat', parameters='all', components='all', groups='all',
+    @staticmethod
+    def plot_convergence_mcmc(f='chain.dat', parameters='all', components='all', groups='all',
                               savefig=True, figname=None):
         """
         Plots convergence of a mcmc_chain
@@ -886,7 +887,38 @@ class Interface(object):
         :return:
         """
 
+        # load data
+        log, nwalkers, niter, npars = read_mc_chain(f)
 
+        # set the plotted parameters
+        if parameters == 'all':
+            parameters = np.unique(log['name'])
+        if components == 'all':
+            components = np.unique(log['component'])
+        if groups == 'all':
+            groups = np.unique(log['group'])
+
+        # an array for empty indices.
+        indices = []
+        labels = []
+
+        i = 0
+        # fill the array of indices
+        for p, c, g in zip(log['name'], log['component'], log['group']):
+            # do only the desired ones
+            for v, vals in zip([p, c, g], [parameters, components, groups]):
+                # print v, vals
+                if v not in vals:
+                    i += 1
+                    continue
+            indices.append(i)
+            labels.append('_'.join(['c', c, 'p', p, 'g', str(g)]))
+            i += 1
+
+        # do the plot
+        # print len(indices), len(labels)
+        plot_walkers(log['data'], niter, nwalkers, indices=indices,
+                     labels=labels, savefig=savefig, figname=figname)
 
 
 
@@ -1442,11 +1474,12 @@ class Interface(object):
         :return:
         """
         # pass on the fit properties
+        # print self.sl.get_fitted_parameters(True)[1], 'Tadddddddddy!!!'
         self.fitter.set_fit_properties(self.sl.get_fitted_parameters(True)[1])
 
         # update the boundaries
         vmins = self.get_fitted_parameters(attribute='vmin')
-        vmaxs = self.get_fitted_parameters(attribute='vamx')
+        vmaxs = self.get_fitted_parameters(attribute='vmax')
         self.fitter.set_lower_boundary(vmins)
         self.fitter.set_upper_boundary(vmaxs)
 

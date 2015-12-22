@@ -87,7 +87,8 @@ def plot_walkers(block, niter, nwalker, indices=None, labels=None, savefig=True,
     if savefig:
         if figname is None:
             figname = 'mcmc_convergence.png'
-        plt.tight_layout()
+
+        # plt.tight_layout()
         plt.savefig(figname)
 
 
@@ -287,6 +288,36 @@ def read_mc_chain(f):
     :param f: chain_file
     :return:
     """
+
+    # read the file
+    lines = read_text_file(f)
+
+    # key counter and ouput dictionary
+    chainlog = {}
+    hkcounter = 0
+
+    # define header keys
+    head_keys = ['name', 'component', 'group']
+    for l in lines:
+        d = l.split()
+        # print d
+        for hk in head_keys:
+            if l.find(hk) > -1:
+                # groups are integers of course
+                if hk == 'group':
+                    d[2:] = map(int, d[2:])
+                else:
+                    d[2:] = d[2:]
+
+                # append the header info
+                chainlog[hk] = d[2:]
+                hkcounter += 1
+                break
+
+        # once we read all data, we end
+        if hkcounter == 3:
+            break
+
     # load the file
     d = np.loadtxt(f)
 
@@ -296,8 +327,8 @@ def read_mc_chain(f):
     npars = len(d[0]) - 2
 
     # remove the first column with numbering
-    d = d[:, 1:]
-    return d, nwalkers, niter, npars
+    chainlog['data'] = d[:, 1:]
+    return chainlog, nwalkers, niter, npars
 
 
 
