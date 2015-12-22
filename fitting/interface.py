@@ -1419,11 +1419,26 @@ class Interface(object):
         # turn of the fitting
         self.fit_is_running = False
 
-    def run_mcmc(self):
+    def run_mcmc(self, chain_file='chain.dat', nwalkers=None, niter=500, l=None, verbose=False):
         """
-        Runs the mcmc error estimnation
+        Runs the mcmc error estimation.
         :return:
         """
+        # update the boundaries
+        vmins = self.get_fitted_parameters(attribute='vmin')
+        vmaxs = self.get_fitted_parameters(attribute='vamx')
+        self.fitter.set_lower_boundary(vmins)
+        self.fitter.set_upper_boundary(vmaxs)
+
+        # get the values
+        vals = self.get_fitted_parameters(attribute='value')
+
+        # set up number of walkers
+        if nwalkers is None:
+            nwalkers = 4*len(vals)
+
+        # run the mcmc sampling
+        self.fitter.run_mcmc(self.compute_chi2, chain_file, vals, nwalkers, niter, l, verbose)
 
     def save(self, ofile):
         """

@@ -332,7 +332,7 @@ class Fitter(object):
         ndim = len(fitparams)
 
         # initialize the sampler
-        pos = np.array([[wmin + (wmax - wmin) * np.random.rand() for wmin, wmax in zip(self.wmins, self.wmaxs)]
+        pos = np.array([[wmin + (wmax - wmin) * np.random.rand() for wmin, wmax in zip(self.vmins, self.vmaxs)]
                         for i in range(nwalkers)])
 
         # setup the sampler

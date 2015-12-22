@@ -146,7 +146,8 @@ itf  = pyterpol.Interface.load('nmallfit.itf')
 # there is no point in fitting the z, since it is converging of of the
 # grid.
 itf.set_error(error=10.)
-itf.set_parameter(parname='teff', vmin=14000., vmax=16000.)
+itf.set_one_for_all(True)
+itf.set_parameter(parname='teff', vmin=15000., vmax=16500.)
 itf.set_parameter(parname='logg', vmin=3.5, vmax=4.2)
 itf.set_parameter(parname='vrot', vmin=120., vmax=160.)
 itf.set_parameter(parname='z', fitted=False)
@@ -157,7 +158,3 @@ vmax = itf.get_fitted_parameters(attribute='vmax')
 itf.fitter.set_lower_boundary(vmin)
 itf.fitter.set_upper_boundary(vmax)
 itf.fitter.run_mcmc(itf.compute_chi2, 'chain.dat', fitparams, 4*len(fitparams), 200)
-
-# ol = pyterpol.ObservedList()
-# ol.load('initial.itf')
-# print ol

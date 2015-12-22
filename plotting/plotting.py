@@ -3,6 +3,50 @@ import numpy as np
 from scipy.stats import norm
 from pyterpol.synthetic.auxiliary import read_text_file
 
+
+def get_walker(db, nchain, nwalker, niter):
+    """
+    Retrieves a walker from the chain.
+    :param db:
+    :param nchain:
+    :param nwalker:
+    :param niter:
+    :return:
+    """
+    rows = np.arange(niter)
+    rows = nchain + nwalker*rows
+    return db[rows]
+
+def plot_walkers_for_one_param(db, ipar, nwalker, niter, ax):
+    """
+    :param db:
+    :param ipar:
+    :param nwalker:
+    :param niter:
+    :param ax:
+    :return:
+    """
+    # set teh iterations
+    iters = np.arange(niter)
+    # plot each walker
+    for i in range(0, nwalker):
+        w = get_walker(db, i, nwalker, niter)
+        ax.plot(iters, w[:,ipar], '-')
+
+def plot_walkers(block, indices, niter, nwalker, labels=None, savefig=True, figname=None):
+    """
+    :param block:
+    :param indices:
+    :param niter:
+    :param nwalker:
+    :param labels:
+    :param savefig:
+    :param figname:
+    :return:
+    """
+
+    pass
+
 def plot_convergence(block, labels=None, relative=True, savefig=True, figname=None):
     """
     Plots convergence of the chi^2 and of individual parameters.
@@ -190,6 +234,29 @@ def read_fitlog(f):
     fitlog['data'] = np.loadtxt(f)
 
     return fitlog
+
+def read_mc_chain(f):
+    """
+    Reads the mcmc chain created with emcee
+    :param f: chain_file
+    :return:
+    """
+    # load the file
+    d = np.loadtxt(f)
+
+    # get fit properties
+    nwalkers = np.max(d[:, 0]) + 1
+    niter = len(d[:, 0]) / nwalkers
+    npars = len(d[0]) - 2
+
+    # remove the first column with numbering
+    d = d[:, 1:]
+    return d, nwalkers, niter, npars
+
+
+
+
+
 
 
 
