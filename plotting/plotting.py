@@ -61,8 +61,8 @@ def plot_walkers(block, niter, nwalker, indices=None, labels=None, savefig=True,
         nrow += 1
 
     # create the grid and the figure
-    gs1 = gs.GridSpec(nrow, ncol)
-    fig = plt.figure(figsize=(2*nrow, 3*nrow), dpi=100)
+    gs1 = gs.GridSpec(nrow, ncol, hspace=0.2, wspace=0.4)
+    fig = plt.figure(figsize=(4*ncol, 3*nrow), dpi=100)
 
     # plot each figure
     for j, ind in enumerate(indices):
@@ -74,20 +74,22 @@ def plot_walkers(block, niter, nwalker, indices=None, labels=None, savefig=True,
             label = labels[j]
 
         # set the position
-        icol = j / ncol
-        irow = j % ncol
-        ax = ax.subplot(gs1[irow, icol])
+        icol = j % ncol
+        irow = j / ncol
+        ax = fig.add_subplot(gs1[irow, icol])
 
         # plot the walkers
-        plot_walkers_for_one_param(block, ind, nwalker, ax)
-        ax.set_xlabel('Iteration number')
-        ax.set_ylabel(label)
+        plot_walkers_for_one_param(block, ind, nwalker, niter, ax)
+        ax.set_xlabel('Iteration number', fontsize=8)
+        ax.set_ylabel(label, fontsize=8)
 
     # save the figure
     if savefig:
         if figname is None:
             figname = 'mcmc_convergence.png'
+        plt.tight_layout()
         plt.savefig(figname)
+
 
 def plot_convergence(block, labels=None, relative=True, savefig=True, figname=None):
     """
@@ -130,6 +132,7 @@ def plot_convergence(block, labels=None, relative=True, savefig=True, figname=No
             figname = 'convergence.png'
 
     plt.savefig(figname)
+
 
 def plot_chi2_map(x, y, nbin=10, labels=None, savefig=True, figname=None):
     """
@@ -191,6 +194,7 @@ def plot_chi2_map(x, y, nbin=10, labels=None, savefig=True, figname=None):
 
         plt.savefig(figname)
         plt.close()
+
 
 def plot_variance(x, nbin=10, label=None, savefig=True, figname=None):
     """
@@ -287,7 +291,7 @@ def read_mc_chain(f):
     d = np.loadtxt(f)
 
     # get fit properties
-    nwalkers = np.max(d[:, 0]) + 1
+    nwalkers = int(np.max(d[:, 0])) + 1
     niter = len(d[:, 0]) / nwalkers
     npars = len(d[0]) - 2
 

@@ -873,6 +873,23 @@ class Interface(object):
         # print labels
         plot_convergence(np.column_stack(block), labels, figname=figname, savefig=savefig)
 
+    def plot_convergence_mcmc(self, f='chain.dat', parameters='all', components='all', groups='all',
+                              savefig=True, figname=None):
+        """
+        Plots convergence of a mcmc_chain
+        :param f:
+        :param parameters:
+        :param components:
+        :param groups:
+        :param savefig:
+        :param figname:
+        :return:
+        """
+
+
+
+
+
     def plot_covariances(self, f=None, l=None, parameters=None, components=None, groups=None, nbin=20,
                          savefig=True, figname=None):
         """
@@ -1424,6 +1441,9 @@ class Interface(object):
         Runs the mcmc error estimation.
         :return:
         """
+        # pass on the fit properties
+        self.fitter.set_fit_properties(self.sl.get_fitted_parameters(True)[1])
+
         # update the boundaries
         vmins = self.get_fitted_parameters(attribute='vmin')
         vmaxs = self.get_fitted_parameters(attribute='vamx')

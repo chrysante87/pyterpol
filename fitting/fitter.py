@@ -253,14 +253,7 @@ class Fitter(object):
         # print os.path.getsize(self.fitlog)
         if os.path.getsize(self.fitlog) == 0:
             # construct the header
-            header = ''
-            for key in self.parameter_identification.keys():
-                if key != 'value':
-                    header += '# %s: ' % key
-                    for rec in self.parameter_identification[key]:
-                        header += '%s ' % str(rec)
-                header += '\n'
-            # append the header
+            header = self.make_header()
             lines.append(header)
 
         for row in self.iters:
@@ -337,6 +330,17 @@ class Fitter(object):
 
         # setup the sampler
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=args)
+
+        # initialize the file - create the header
+        if self.parameter_identification is not None:
+            header = [self.make_header()]
+        else:
+            header = ['']
+
+        # write the header and close the file
+        ofile = open(chain_file, 'w')
+        ofile.writelines(header)
+        ofile.close()
 
         # run the sampler
         for result in sampler.sample(pos, iterations=niter, storechain=False):
@@ -437,6 +441,21 @@ class Fitter(object):
 
         # if we got here, we loaded the data
         return True
+
+    def make_header(self):
+        """
+        Creates the header for output file.
+        :return:
+        """
+        header = ''
+        for key in self.parameter_identification.keys():
+            if key != 'value':
+                header += '# %s: ' % key
+                for rec in self.parameter_identification[key]:
+                    header += '%s ' % str(rec)
+            header += '\n'
+
+        return header
 
     def save(self, ofile):
         """
