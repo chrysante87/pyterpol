@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gs
 import numpy as np
 from scipy.stats import norm
 from pyterpol.synthetic.auxiliary import read_text_file
@@ -33,7 +34,7 @@ def plot_walkers_for_one_param(db, ipar, nwalker, niter, ax):
         w = get_walker(db, i, nwalker, niter)
         ax.plot(iters, w[:,ipar], '-')
 
-def plot_walkers(block, indices, niter, nwalker, labels=None, savefig=True, figname=None):
+def plot_walkers(block, niter, nwalker, indices=None, labels=None, savefig=True, figname=None):
     """
     :param block:
     :param indices:
@@ -45,7 +46,48 @@ def plot_walkers(block, indices, niter, nwalker, labels=None, savefig=True, fign
     :return:
     """
 
-    pass
+    if figname is not None:
+        savefig = True
+
+    # define which parameters are plotted
+    if indices is None:
+        indices = np.arange(len(block[0]))
+    npar = len(indices)
+
+    # definethe plotting grid
+    ncol = 3
+    nrow = npar / ncol
+    if npar % ncol > 0:
+        nrow += 1
+
+    # create the grid and the figure
+    gs1 = gs.GridSpec(nrow, ncol)
+    fig = plt.figure(figsize=(2*nrow, 3*nrow), dpi=100)
+
+    # plot each figure
+    for j, ind in enumerate(indices):
+
+        # set label
+        if labels is None:
+            label = 'p' + str(ind).zfill(2)
+        else:
+            label = labels[j]
+
+        # set the position
+        icol = j / ncol
+        irow = j % ncol
+        ax = ax.subplot(gs1[irow, icol])
+
+        # plot the walkers
+        plot_walkers_for_one_param(block, ind, nwalker, ax)
+        ax.set_xlabel('Iteration number')
+        ax.set_ylabel(label)
+
+    # save the figure
+    if savefig:
+        if figname is None:
+            figname = 'mcmc_convergence.png'
+        plt.savefig(figname)
 
 def plot_convergence(block, labels=None, relative=True, savefig=True, figname=None):
     """
