@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
+import corner
 import warnings
 # import numpy as np
 # import matplotlib.pyplot as plt
@@ -844,8 +845,6 @@ class Interface(object):
         else:
             groups = [group]
 
-        # print parameters, components, groups
-
         # select those mathcing the choice
         i = 0
         for p, c, g in zip(log['name'], log['component'], log['group']):
@@ -898,6 +897,10 @@ class Interface(object):
         if groups == 'all':
             groups = np.unique(log['group'])
 
+        if any([isinstance(x, (float, int, str)) for x in [components, parameters, groups]]):
+            raise TypeError('Parameters (parameter, component, group) have to be either type list'
+                            ' or string == \'all\'.')
+
         # an array for empty indices.
         indices = []
         labels = []
@@ -910,7 +913,7 @@ class Interface(object):
                 # print v, vals
                 if v not in vals:
                     i += 1
-                    continue
+                    break
             indices.append(i)
             labels.append('_'.join(['c', c, 'p', p, 'g', str(g)]))
             i += 1
@@ -919,8 +922,6 @@ class Interface(object):
         # print len(indices), len(labels)
         plot_walkers(log['data'], niter, nwalkers, indices=indices,
                      labels=labels, savefig=savefig, figname=figname)
-
-
 
     def plot_covariances(self, f=None, l=None, parameters=None, components=None, groups=None, nbin=20,
                          savefig=True, figname=None):
@@ -1003,6 +1004,73 @@ class Interface(object):
 
                 # do the oplot
                 plot_chi2_map(x, y, nbin=nbin, labels=labels, savefig=savefig, figname=figname)
+
+    @staticmethod
+    def plot_covariances_mc(f='chain.dat', l=None, treshold=100, parameters=None,
+                            components=None, groups=None, nbin=20, savefig=True, figname=None):
+        """
+        Plots covariances between selected parameters
+        :param f
+        :param l
+        :param treshold
+        :param parameters
+        :param components
+        :param groups
+        :param nbin
+        :param savefig
+        :param figname
+        :return:
+        """
+        if any([isinstance(x, (float, int, str)) for x in [components, parameters, groups]]):
+            raise TypeError('Parameters (parameter, component, group) have to be either type list'
+                            ' or string == \'all\'.')
+
+        if figname is not None:
+            savefig = True
+
+        # reads the chan
+        log, nwalkers, niter, npars = read_mc_chain(f)
+
+        # set the plotted parameters
+        if parameters is None:
+            parameters = np.unique(log['name'])
+        if components is None:
+            components = np.unique(log['component'])
+        if groups is None:
+            groups = np.unique(log['group'])
+
+        # take only the part, where the sampler is burnt in
+        log['data'] = log['data'][nwalkers*treshold:,:]
+
+        # select those matching the choice
+        indices = []
+        labels = []
+
+        i = 0
+        # fill the array of indices
+        for p, c, g in zip(log['name'], log['component'], log['group']):
+            # do only the desired ones
+            saveind = True
+            for v, vals in zip([p, c, g], [parameters, components, groups]):
+                if v not in vals:
+                    saveind = False
+                    break
+
+            if saveind:
+                indices.append(i)
+                labels.append('_'.join(['c', c, 'p', p, 'g', str(g)]))
+            i += 1
+
+        # do the corner plot
+        # print indices
+        # print len(indices), len(labels)
+        corner.corner(log['data'][:,indices], bins=nbin, labels=labels)
+
+        if savefig:
+            if figname is None:
+                figname = 'correlations.png'
+            plt.savefig(figname)
+
 
     def plot_variances(self, f=None, l=None, parameters=None, components=None, groups=None, nbin=20,
                          savefig=True, figname=None):
