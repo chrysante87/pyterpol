@@ -232,11 +232,14 @@ def plot_variance(x, nbin=10, label=None, savefig=True, figname=None):
     ax.set_xlabel(label, fontsize=8)
     ax.set_ylabel('$n_i/N$', fontsize=8)
     ax.set_title(r'$\sigma$_%s=%.3f' % (label, var), fontsize=8)
+    ax.legend(fontsize=8)
 
     # save the figure
     if savefig:
         if figname is None:
             figname = label + '.png'
+        else:
+            figname += label+'.png'
 
         plt.savefig(figname)
         plt.close()

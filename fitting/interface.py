@@ -1006,7 +1006,7 @@ class Interface(object):
                 plot_chi2_map(x, y, nbin=nbin, labels=labels, savefig=savefig, figname=figname)
 
     @staticmethod
-    def plot_covariances_mc(f='chain.dat', l=None, treshold=100, parameters=None,
+    def plot_covariances_mcmc(f='chain.dat', l=None, treshold=100, parameters=None,
                             components=None, groups=None, nbin=20, savefig=True, figname=None):
         """
         Plots covariances between selected parameters
@@ -1062,10 +1062,9 @@ class Interface(object):
             i += 1
 
         # do the corner plot
-        # print indices
-        # print len(indices), len(labels)
         corner.corner(log['data'][:,indices], bins=nbin, labels=labels)
 
+        # save the figure
         if savefig:
             if figname is None:
                 figname = 'correlations.png'
@@ -1119,6 +1118,71 @@ class Interface(object):
                           ' of the chi^2 distribution is very low. It is actually less'
                           ' than number of fitted points. This suggests that your '
                           ' fit did not converge properly.')
+
+        # select those mathcing the choice
+        npar = len(log['name'])
+        for i in range(1, npar):
+            for j in range(0, i):
+
+                # extract individual values
+                p1 = log['name'][i]
+                c1 = log['component'][i]
+                g1 = log['group'][i]
+
+                # end if there are no components matching our
+                # choice of components, groups and parameters
+                if any([p.lower() not in parameters for p in [p1]]):
+                    continue
+                if any([c.lower() not in components for c in [c1]]):
+                    continue
+                if any([g not in groups for g in [g1]]):
+                    continue
+
+                # setup labels
+                label1 = '_'.join(['p', p1, 'c', c1, 'g', str(g1).zfill(2)])
+
+                # setup plotted data
+                x = log['data'][:, i]
+
+                # do the oplot
+                plot_variance(x,nbin=nbin, label=label1, savefig=savefig, figname=figname)
+
+    @staticmethod
+    def plot_variances_mcmc(f=None, l=None, parameters=None, components=None, groups=None, nbin=20,
+                         treshold=100, savefig=True, figname=None):
+        """
+        Plots covariances between selected parameters
+        :param f
+        :param l
+        :param treshold
+        :param parameters
+        :param components
+        :param groups
+        :param nbin
+        :param savefig
+        :param fignamez
+        :return:
+        """
+        if any([isinstance(x, (float, int, str)) for x in [components, parameters, groups]]):
+            raise TypeError('Parameters (parameter, component, group) have to be either type list'
+                            ' or string == \'all\'.')
+
+        if figname is not None:
+            savefig = True
+
+        # reads the chan
+        log, nwalkers, niter, npars = read_mc_chain(f)
+
+        # set the plotted parameters
+        if parameters is None:
+            parameters = np.unique(log['name'])
+        if components is None:
+            components = np.unique(log['component'])
+        if groups is None:
+            groups = np.unique(log['group'])
+
+        # take only the part, where the sampler is burnt in
+        log['data'] = log['data'][nwalkers*treshold:,:]
 
         # select those mathcing the choice
         npar = len(log['name'])
