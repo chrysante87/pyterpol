@@ -265,6 +265,54 @@ class Interface(object):
         params = {par['name']: par[attr] for par in l}
         return params
 
+    @staticmethod
+    def evaluate_mcmc(f=None, treshold=100):
+        """
+        Returns best-fit values and errors estimated from the convergence.
+        :param l: list of comparisons
+        :param f: mcmc log
+        :param treshold
+        :return:
+        """
+
+        # read the fitlog
+        log, nwalkers, niter, npars = read_mc_chain(f)
+
+        # take only data, where the mcmc, has burnt in
+        log['data'] = log['data'][nwalkers*treshold:,:]
+
+        # best result
+        minind = np.argmin(log['data'][:, -1])
+
+        # outputlist of errors
+        errors = {}
+
+        # fill the dictionary with errors
+        for i in range(0, len(log['component'])):
+
+            # parameter component, group
+            p = log['name'][i]
+            c = log['component'][i]
+            g = log['group'][i]
+
+            if c not in errors.keys():
+                errors[c] = {}
+            if p not in errors[c].keys():
+                errors[c][p] = []
+
+            # get the error estimate
+            best = log['data'][minind, i]
+            lower = log['data'][:, i].min() - best
+            upper = log['data'][:, i].max() - best
+            gauss_mean = log['data'].mean()
+            gauss_sigma = log['data'].std(ddof=1)
+
+            # append the value
+            errors[c][p].append(dict(best=best, group=g, gauss_mean=gauss_mean,
+                                     gauss_sigma=gauss_sigma, lower=lower, upper=upper))
+
+        return errors
+
     def get_comparisons(self, l=None, verbose=False, **kwargs):
         """
         Narrows down the number of comparisons.
@@ -333,63 +381,6 @@ class Interface(object):
                 n += len(rec['synthetic'][c])
 
         return n-m
-
-    def get_errors(self, f=None, l=None):
-        """
-        Returns best-fit values and errors estimated from the convergence.
-        :param l: list of comparisons
-        :param f: fitting log
-        :return:
-        """
-
-        # get the attached fitlog if none is passed
-        if f is None:
-            f = self.fitter.fitlog
-
-        # get the comparison list if none is passed
-        if l is None:
-            l = self.comparisonList
-
-        # read the fitlog
-        log = read_fitlog(f)
-
-        # get the chi2 treshold
-        ratio = self.compute_chi2_treshold(l=l)
-
-        # get best index
-        minind = np.argmin(log['data'][:, -1])
-
-        # truncate the log
-        # ind = np.where(log['data'][:, -1] <= ratio * log['data'][minind, -1])[0]
-        ind = np.where(log['data'][:, -1] <= ratio + log['data'][minind, -1])[0]
-        log['data'] = log['data'][ind]
-        minind = np.argmin(log['data'][:, -1])
-
-        # outputlist of errors
-        errors = {}
-
-        # fill the dictionary with errors
-        for i in range(0, len(log['component'])):
-
-            # parameter component, group
-            p = log['name'][i]
-            c = log['component'][i]
-            g = log['group'][i]
-
-            if c not in errors.keys():
-                errors[c] = {}
-            if p not in errors[c].keys():
-                errors[c][p] = []
-
-            # get the error estimate
-            value = log['data'][minind, i]
-            lower = log['data'][:, i].min() - value
-            upper = log['data'][:, i].max() - value
-
-            # append the value
-            errors[c][p].append(dict(group=g, value=value, lower=lower, upper=upper))
-
-        return errors
 
     def get_fitted_parameters(self, attribute=None):
         """
@@ -2127,22 +2118,19 @@ class Interface(object):
     def verify_before_fitting(self):
         pass
 
-    def write_fitted_parameters(self, f=None, l=None, outputname='fit.res'):
+    @staticmethod
+    def write_mc_result(f, treshold=100, outputname='fit.res'):
         """
         Writes the result of fitting
         :param f a fitting log
         :param l a comparisonList
         :param outputname
+        :param treshold
         :return:
         """
-        # use default objects if nones were passed
-        if f is None:
-            f = self.fitter.fitlog
-        if l is None:
-            l = self.comparisonList
 
         # returns a dictionary of fitted parameters and their uncertainties
-        pars = self.get_errors(f, l)
+        pars = Interface.evaluate_mcmc(f, treshold=treshold)
 
         # creates the output string
         string = ''
@@ -2151,7 +2139,7 @@ class Interface(object):
                 for row in pars[c][p]:
                     string += 'c:%15s p:%6s ' % (c, p)
                     string += 'g:%2i ' % (row['group'])
-                    for key in ['value', 'lower', 'upper']:
+                    for key in ['best', 'gauss_mean', 'gauss_sigma', 'lower', 'upper']:
                         string += "%6s: %10.4f" % (key, row[key])
                     string += '\n'
 
