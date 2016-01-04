@@ -88,8 +88,6 @@ def optimize_rv(session0, session1):
     itf.set_parameter(parname='rv', fitted=True, vmin=-60., vmax=60.)
     itf.choose_fitter('nlopt_nelder_mead', ftol=1e-6)
 
-    print itf
-
     # run fit
     itf.run_fit()
 
@@ -129,18 +127,14 @@ def optimize_all(session0, session1):
     # save the fit
     itf.save(session1)
 
-# inspect_spectra('spec.lis')
-# setup_interface_more_obs()
-# optimize_rv('initial.itf', 'rvfit.itf')
-# optimize_all('initial.itf', 'nmallfit.itf')
+# setup the interface
+setup_interface_more_obs()
 
-# lets do some plotting
-itf  = pyterpol.Interface.load('nmallfit.itf')
-# itf.plot_convergence(figname='chi2.png')
-# itf.plot_convergence(parameter='all', figname='convergence_params.png')
-# itf.plot_covariances(nbin=50, parameters=['z', 'logg', 'teff', 'vrot'])
-# itf.plot_variances(nbin=30, parameters=['rv'])
-# itf.write_fitted_parameters(outputname='trial.res')
+# run the optimization
+optimize_all('initial.itf', 'nmallfit.itf')
+
+
+# load the result
 
 # set errors for mc, mc estimation, they should lie within the interval
 # there is no point in fitting the z, since it is converging of of the

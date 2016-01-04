@@ -282,7 +282,7 @@ class Interface(object):
         log['data'] = log['data'][nwalkers*treshold:,:]
 
         # best result
-        minind = np.argmin(log['data'][:, -1])
+        minind = np.argmin(-log['data'][:, -1])
 
         # outputlist of errors
         errors = {}
@@ -304,8 +304,8 @@ class Interface(object):
             best = log['data'][minind, i]
             lower = log['data'][:, i].min() - best
             upper = log['data'][:, i].max() - best
-            gauss_mean = log['data'].mean()
-            gauss_sigma = log['data'].std(ddof=1)
+            gauss_mean = log['data'][:, i].mean()
+            gauss_sigma = log['data'][:, i].std(ddof=1)
 
             # append the value
             errors[c][p].append(dict(best=best, group=g, gauss_mean=gauss_mean,
@@ -2140,7 +2140,7 @@ class Interface(object):
                     string += 'c:%15s p:%6s ' % (c, p)
                     string += 'g:%2i ' % (row['group'])
                     for key in ['best', 'gauss_mean', 'gauss_sigma', 'lower', 'upper']:
-                        string += "%6s: %10.4f" % (key, row[key])
+                        string += "%6s: %10.4f " % (key, row[key])
                     string += '\n'
 
         # writes it to a file
