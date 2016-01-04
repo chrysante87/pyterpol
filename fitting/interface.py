@@ -361,6 +361,16 @@ class Interface(object):
         else:
             return clist
 
+    def get_defined_groups(self, component=None, parameter=None):
+        """
+        Returns a dictionary of defined groups
+        :param component:
+        :param parameter:
+        :return:
+        """
+
+        return self.sl.get_defined_groups(component=component, parameter=parameter)
+
     def get_degrees_of_freedom(self, l=None):
         """
         Computes degrees of freadom for a given comparison list
@@ -1054,8 +1064,8 @@ class Interface(object):
 
         # do the corner plot
         corner.corner(log['data'][:,indices], bins=nbin, labels=labels,
-                      quantiles=0.67*np.ones(len(indices)),
-                      truths=np.zeros(len(indices))
+                      # quantiles=(0.67*np.ones(len(indices))).tolist(),
+                      truths=(np.zeros(len(indices))).tolist()
                       )
 
         # save the figure

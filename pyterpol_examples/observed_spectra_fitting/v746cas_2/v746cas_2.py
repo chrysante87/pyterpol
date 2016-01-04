@@ -88,9 +88,6 @@ def optimize_rv(session0, session1):
     # run fit
     itf.run_fit()
 
-    # write result
-    itf.write_fitted_parameters(outputname=session1.split('.')[0]+'.dat')
-
     # plot every comparison
     itf.plot_all_comparisons(figname='rvfit')
 
@@ -116,11 +113,8 @@ def optimize_all(session0, session1):
     # run fit
     itf.run_fit()
 
-    # write result
-    itf.write_fitted_parameters(outputname=session1.split('.')[0]+'.dat')
-
     # plot every comparison
-    itf.plot_all_comparisons(figname='allfit')
+    itf.plot_all_comparisons(figname='nmallfit')
 
     # save the fit
     itf.save(session1)
