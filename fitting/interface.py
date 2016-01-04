@@ -1053,7 +1053,10 @@ class Interface(object):
             i += 1
 
         # do the corner plot
-        corner.corner(log['data'][:,indices], bins=nbin, labels=labels)
+        corner.corner(log['data'][:,indices], bins=nbin, labels=labels,
+                      quantiles=0.67*np.ones(len(indices)),
+                      truths=np.zeros(len(indices))
+                      )
 
         # save the figure
         if savefig:

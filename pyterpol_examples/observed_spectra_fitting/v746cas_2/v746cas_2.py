@@ -40,7 +40,7 @@ def read_obs_from_list(f):
     obs = []
     for i,rec in enumerate(slist[:]):
         o = pyterpol.ObservedSpectrum(filename=rec.rstrip('\n'), group=dict(rv=i))
-        o.get_sigma_from_fft(store=True)
+        o.get_sigma_from_continuum(cmin=6620., cmax=6640., store=True)
         obs.append(o)
 
     return obs
@@ -68,9 +68,6 @@ def setup_interface_more_obs():
     # set fit order = 2 to do it fast
     itf.set_grid_properties(order=2, step=0.05)
     itf.setup()
-
-    #review
-    print itf
 
     # save the session
     itf.save('initial.itf')
@@ -108,6 +105,7 @@ def optimize_all(session0, session1):
 
     # setup the spectra
     itf = pyterpol.Interface.load(session0)
+    itf.set_one_for_all(True)
     itf.set_parameter(parname='rv', fitted=True, vmin=-60., vmax=60.)
     itf.set_parameter(parname='teff', fitted=True, vmin=15000., vmax=18000.)
     itf.set_parameter(parname='logg', fitted=True, vmin=3.8, vmax=4.75)
@@ -127,23 +125,24 @@ def optimize_all(session0, session1):
     # save the fit
     itf.save(session1)
 
+    return itf
+
 # setup the interface
 setup_interface_more_obs()
 
 # run the optimization
-optimize_all('initial.itf', 'nmallfit.itf')
+itf = optimize_all('initial.itf', 'nmallfit.itf')
 
-
-# load the result
+# plot the comparisons found with the minimizer
+itf.plot_all_comparisons()
 
 # set errors for mc, mc estimation, they should lie within the interval
 # there is no point in fitting the z, since it is converging of of the
 # grid.
-itf.set_error(error=10.)
+itf.set_error(parname='rv', error=10.)
 itf.set_one_for_all(True)
 itf.set_parameter(parname='teff', vmin=15000., vmax=16500.)
 itf.set_parameter(parname='logg', vmin=3.5, vmax=4.2)
 itf.set_parameter(parname='vrot', vmin=120., vmax=160.)
-itf.set_parameter(parname='z', fitted=False)
-print itf
+itf.set_parameter(parname='z', value=2.0, fitted=False)
 itf.run_mcmc(chain_file='chain.dat', niter=200)
