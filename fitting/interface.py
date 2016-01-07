@@ -2136,7 +2136,6 @@ class Interface(object):
         """
         Writes the result of fitting
         :param f a fitting log
-        :param l a comparisonList
         :param outputname
         :param treshold
         :return:
@@ -2160,6 +2159,31 @@ class Interface(object):
         ofile = open(outputname, 'w')
         ofile.writelines([string])
         ofile.close()
+
+    def write_rvs(self, outputname='rv.lst'):
+        """
+        :param outputname
+        :param parname:
+        :return:
+        """
+
+        # get define groups
+        groups = self.get_defined_groups(component='all', parameter='rv')
+
+        # get a parameter
+        components = groups.keys()
+
+        # get a list of unique groups
+        allgroups = []
+        for c in components:
+            allgroups.extend(groups[c]['rv'])
+        allgroups =  np.unique(allgroups)
+        # print allgroups
+
+        # get a parameter
+        for g in allgroups:
+            self.sl.get_parameter()
+
 
     def write_synthetic_spectra(self, component=None, region=None, outputname=None, korel=False):
         """

@@ -54,7 +54,7 @@ def setup_interface_more_obs():
 
     # define a starlist
     sl = pyterpol.StarList()
-    sl.add_component(component='primary', teff=15800., logg=4.13, vrot=148., z=1.9, lr=1.0)
+    sl.add_component(component='primary', teff=16000., logg=3.9, vrot=95., z=1.2, lr=1.0)
 
     # define regions
     rl = pyterpol.RegionList()
@@ -102,12 +102,12 @@ def optimize_all(session0, session1):
 
     # setup the spectra
     itf = pyterpol.Interface.load(session0)
-    itf.set_one_for_all(True)
+    # itf.set_one_for_all(True)
     itf.set_parameter(parname='rv', fitted=True, vmin=-60., vmax=60.)
-    itf.set_parameter(parname='teff', fitted=True, vmin=15000., vmax=18000.)
-    itf.set_parameter(parname='logg', fitted=True, vmin=3.8, vmax=4.75)
-    itf.set_parameter(parname='vrot', fitted=True, vmin=100., vmax=180.)
-    itf.set_parameter(parname='z', fitted=True, vmin=1.2, vmax=2.0)
+    itf.set_parameter(parname='teff', fitted=True, vmin=15000., vmax=17000.)
+    itf.set_parameter(parname='logg', fitted=True, vmin=3.7, vmax=4.2)
+    itf.set_parameter(parname='vrot', fitted=True, vmin=80., vmax=160.)
+    itf.set_parameter(parname='z', fitted=True, vmin=1.0, vmax=2.0)
     itf.choose_fitter('nlopt_nelder_mead', ftol=1e-5)
 
     # run fit
@@ -125,18 +125,18 @@ def optimize_all(session0, session1):
 setup_interface_more_obs()
 
 # run the optimization
-itf = optimize_all('initial.itf', 'nmallfit.itf')
+itf = optimize_all('initial.itf', 'nmallfit_newinit.itf')
 
 # plot the comparisons found with the minimizer
-itf.plot_all_comparisons()
+#itf.plot_all_comparisons()
 
 # set errors for mc, mc estimation, they should lie within the interval
 # there is no point in fitting the z, since it is converging of of the
 # grid.
-itf.set_error(parname='rv', error=10.)
-itf.set_one_for_all(True)
-itf.set_parameter(parname='teff', vmin=15000., vmax=16500.)
-itf.set_parameter(parname='logg', vmin=3.5, vmax=4.2)
-itf.set_parameter(parname='vrot', vmin=120., vmax=160.)
-itf.set_parameter(parname='z', value=2.0, fitted=False)
-itf.run_mcmc(chain_file='chain.dat', niter=200)
+#itf.set_error(parname='rv', error=10.)
+#itf.set_one_for_all(True)
+#itf.set_parameter(parname='teff', vmin=15000., vmax=16500.)
+#itf.set_parameter(parname='logg', vmin=3.5, vmax=4.2)
+#itf.set_parameter(parname='vrot', vmin=120., vmax=160.)
+#itf.set_parameter(parname='z', value=2.0, fitted=False)
+#itf.run_mcmc(chain_file='chain.dat', niter=200)
