@@ -1882,8 +1882,20 @@ class Interface(object):
         for p in pars:
             if p['name'] == parname.lower():
                 v = p['value']
-                p['vmin'] = v - error
-                p['vmax'] = v + error
+
+                # relative luminosity needs special treatment
+                if p['name'] == 'lr':
+                    p['vmin'] = max([0.0, v - error])
+                    p['vmax'] = max([1.0, v + error])
+
+                # and so does also the rotational velocity
+                elif p['name'] == 'vrot':
+                    p['vmin'] = max([0.0, v - error])
+                    p['vmax'] = v + error
+
+                else:
+                    p['vmin'] = v - error
+                    p['vmax'] = v + error
 
     def _setup_grids(self):
         """
@@ -2201,26 +2213,19 @@ class Interface(object):
             ofile = open(outputname, 'w')
 
             # write the header
-            ofile.write("%20s" % ('FILENAME'))
+            ofile.write("%5s%20s" % ('GROUP', 'FILENAME'))
             for j in range(0, len(components)):
                 ofile.write("%15s" % components[j].upper())
             ofile.write('\n')
 
             # write teh rvs
             for i in range(0, len(names)):
-                ofile.write("%20s" % (names[i]))
+                ofile.write("%5s%20s" % (str(allgroups[i]).zfill(3), names[i]))
                 for j in range(0, len(components)):
                     ofile.write("%15.6f" % rvs[i, j])
                 ofile.write('\n')
 
-        return rvs, names
-
-
-
-
-
-
-
+        return rvs, allgroups, names
 
     def write_synthetic_spectra(self, component=None, region=None, outputname=None, korel=False):
         """
