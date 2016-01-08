@@ -205,11 +205,6 @@ def rotate_spectrum(wave, intens, vrot, fwhm=0.0, epsilon=0.6):
 
     if vrot > ZERO_TOLERANCE:
         # we need it equidistant in RV
-        # lambda_n = lambda_0*(1+RV/c)**n
-        # n = len(wave)
-        # RV = ((wave[-1]/wave[0])**(1/(n-1))-1)/c.value
-        # indices = np.arange(n)
-        # wave_rv = wave[0]*(1-RV/c.value)**indices
         wave_log = np.log(wave)
         rv = np.linspace(wave_log[0], wave_log[-1], len(wave))
         step = rv[1] - rv[0]
@@ -222,7 +217,8 @@ def rotate_spectrum(wave, intens, vrot, fwhm=0.0, epsilon=0.6):
 
         # get the kernel
         # velocity vector
-        n = int(2 * vrot / step)
+        # print vrot, step
+        n = int(np.ceil(2 * vrot / step))
         rv_ker = np.arange(n) * step
         rv_ker = rv_ker - rv_ker[-1] / 2.
         y = 1 - (rv_ker / vrot) ** 2
