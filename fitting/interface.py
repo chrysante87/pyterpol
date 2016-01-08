@@ -1595,7 +1595,8 @@ class Interface(object):
         # this starts recording of each iteration chi2
         self.fit_is_running = True
 
-        # runs the fitting
+        # print len(l), l
+        # runs the fittinsg
         self.fitter(self.compute_chi2, l, verbose)
 
         # writes the remaining iterations within the file
