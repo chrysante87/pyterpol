@@ -230,7 +230,8 @@ class SyntheticSpectrum:
         """
         # checks that we do not pass negative values
         if vrot is not None and vrot < 0.0:
-            raise ValueError('vrot cannot be negative!')
+            warnings.warn('vrot cannot be negative! Setting to zero!')
+            vrot = 0.0
 
         if wave is None:
             # for some reason we want to work with the
@@ -243,8 +244,9 @@ class SyntheticSpectrum:
                 intens = self.intens
             syn_wave = wave.copy()
 
-            if vrot is not None and vrot > 0.0:
+            if vrot is not None and vrot > ZERO_TOLERANCE:
                 # rotates the spectrum
+                # print vrot
                 intens = rotate_spectrum(syn_wave, intens, vrot)
 
             if rv is not None and abs(rv) > 0.0:
@@ -307,6 +309,7 @@ class SyntheticSpectrum:
 
             # rotates the spectrum
             if vrot is not None and vrot > ZERO_TOLERANCE:
+                print vrot
                 intens = rotate_spectrum(syn_wave, intens, vrot)
 
             # adjusts the spectrum for the radial velocity

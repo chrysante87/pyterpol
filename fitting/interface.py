@@ -1886,7 +1886,7 @@ class Interface(object):
                 # relative luminosity needs special treatment
                 if p['name'] == 'lr':
                     p['vmin'] = max([0.0, v - error])
-                    p['vmax'] = max([1.0, v + error])
+                    p['vmax'] = min([1.0, v + error])
 
                 # and so does also the rotational velocity
                 elif p['name'] == 'vrot':
@@ -2192,7 +2192,7 @@ class Interface(object):
         allgroups =  np.unique(allgroups)
 
         # get all components for a given group
-        rvs = np.zeros((len(allgroups), len(components)))
+        rvs = {c: np.zeros(len(allgroups)) for c in components}
         names = []
         for i, g in enumerate(allgroups):
 
@@ -2200,9 +2200,9 @@ class Interface(object):
             pars = self.sl.get_parameter(rv=g)
             for j, c in enumerate(components):
                 if c in pars.keys():
-                    rvs[i, j] = pars[c][0]['value']
+                    rvs[c][i] = pars[c][0]['value']
                 else:
-                    rvs[i, j] = -9999.9999
+                    rvs[c][i] = -9999.9999
 
             # get observed spectrum
             obsname = self.ol.get_spectra(rv=g)[0].filename
@@ -2221,8 +2221,8 @@ class Interface(object):
             # write teh rvs
             for i in range(0, len(names)):
                 ofile.write("%5s%20s" % (str(allgroups[i]).zfill(3), names[i]))
-                for j in range(0, len(components)):
-                    ofile.write("%15.6f" % rvs[i, j])
+                for c in components:
+                    ofile.write("%15.6f" % rvs[c][i])
                 ofile.write('\n')
 
         return rvs, allgroups, names
