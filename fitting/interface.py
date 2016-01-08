@@ -2160,7 +2160,7 @@ class Interface(object):
         ofile.writelines([string])
         ofile.close()
 
-    def write_rvs(self, outputname='rv.lst'):
+    def write_rvs(self, outputname=None):
         """
         :param outputname
         :param parname:
@@ -2171,18 +2171,55 @@ class Interface(object):
         groups = self.get_defined_groups(component='all', parameter='rv')
 
         # get a parameter
-        components = groups.keys()
+        components = self.sl._registered_components
 
         # get a list of unique groups
         allgroups = []
         for c in components:
             allgroups.extend(groups[c]['rv'])
         allgroups =  np.unique(allgroups)
-        # print allgroups
 
-        # get a parameter
-        for g in allgroups:
-            self.sl.get_parameter()
+        # get all components for a given group
+        rvs = np.zeros((len(allgroups), len(components)))
+        names = []
+        for i, g in enumerate(allgroups):
+
+            # assign the radial velocities
+            pars = self.sl.get_parameter(rv=g)
+            for j, c in enumerate(components):
+                if c in pars.keys():
+                    rvs[i, j] = pars[c][0]['value']
+                else:
+                    rvs[i, j] = -9999.9999
+
+            # get observed spectrum
+            obsname = self.ol.get_spectra(rv=g)[0].filename
+            names.append(obsname)
+
+        if outputname is not None:
+            # opent the file
+            ofile = open(outputname, 'w')
+
+            # write the header
+            ofile.write("%20s" % ('FILENAME'))
+            for j in range(0, len(components)):
+                ofile.write("%15s" % components[j].upper())
+            ofile.write('\n')
+
+            # write teh rvs
+            for i in range(0, len(names)):
+                ofile.write("%20s" % (names[i]))
+                for j in range(0, len(components)):
+                    ofile.write("%15.6f" % rvs[i, j])
+                ofile.write('\n')
+
+        return rvs, names
+
+
+
+
+
+
 
 
     def write_synthetic_spectra(self, component=None, region=None, outputname=None, korel=False):
