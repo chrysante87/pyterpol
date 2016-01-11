@@ -522,7 +522,7 @@ class Fitter(object):
         # setup initial step, which can be either
         # user-defined or default
         if init_step is None:
-            stepsize = (np.array(self.vmaxs) - np.array(self.vmins))/2.
+            stepsize = (np.array(self.vmaxs) - np.array(self.vmins))/4.
             stepsize = stepsize.tolist()
         else:
             stepsize = init_step
