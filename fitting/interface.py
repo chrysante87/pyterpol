@@ -2163,7 +2163,7 @@ class Interface(object):
             for p in pars[c].keys():
                 for row in pars[c][p]:
                     string += 'c:%15s p:%6s ' % (c, p)
-                    string += 'g:%2i ' % (row['group'])
+                    string += 'g:%3i ' % (row['group'])
                     for key in ['best', 'gauss_mean', 'gauss_sigma', 'lower', 'upper']:
                         string += "%6s: %10.4f " % (key, row[key])
                     string += '\n'
