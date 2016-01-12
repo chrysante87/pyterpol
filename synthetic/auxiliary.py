@@ -28,6 +28,69 @@ def flatten_2d(arr):
     else:
         return arr
 
+def broadening_instrumental(wave, flux, width=0.25, width_type='fwhm'):
+    """
+    Code taken from PHOEBE2.0
+    :param: wave:
+    :param: flux:
+    :param width:
+    :param width_type:
+    :return:
+    """
+
+    # If there is no broadening to apply, don't bother
+    if width == 0:
+        return flux
+
+    # Convert user input width type to sigma (standard devation)
+    width_type = width_type.lower()
+    if width_type == 'fwhm':
+        sigma = width / 2.3548
+    elif width_type == 'sigma':
+        sigma = width
+    else:
+        raise ValueError(("Unrecognised width_type='{}' (must be one of 'fwhm'"
+                          "or 'sigma')").format(width_type))
+
+    # Make sure the wavelength range is equidistant before applying the
+    # convolution
+    delta_wave = np.diff(wave).min()
+    range_wave = wave.ptp()
+    n_wave = int(range_wave/delta_wave) + 1
+    wave_ = np.linspace(wave[0], wave[-1], n_wave)
+    flux_ = np.interp(wave_, wave, flux)
+    dwave = wave_[1]-wave_[0]
+    n_kernel = int(2*4*sigma/dwave)
+
+    # The kernel might be of too low resolution, or the the wavelength range
+    # might be too narrow. In both cases, raise an appropriate error
+    if n_kernel == 0:
+        raise ValueError(("Spectrum resolution too low for "
+                          "instrumental broadening (delta_wave={}, "
+                          "width={}").format(delta_wave, width))
+    elif n_kernel > n_wave:
+        raise ValueError(("Spectrum range too narrow for "
+                          "instrumental broadening"))
+
+    # Construct the broadening kernel
+    wave_k = np.arange(n_kernel)*dwave
+    wave_k -= wave_k[-1]/2.
+    kernel = np.exp(- (wave_k)**2/(2*sigma**2))
+    kernel /= sum(kernel)
+
+    # Convolve the flux with the kernel
+    flux_conv = fftconvolve(1-flux_, kernel, mode='same')
+
+    # And interpolate the results back on to the original wavelength array,
+    # taking care of even vs. odd-length kernels
+    if n_kernel % 2 == 1:
+        offset = 0.0
+    else:
+        offset = dwave / 2.0
+    flux = np.interp(wave+offset, wave_, 1-flux_conv, left=1, right=1)
+
+    # Return the results.
+    return flux
 
 def interpolate_block(x, block, xnew):
     """
@@ -194,6 +257,7 @@ def renew_file(f):
 
 def rotate_spectrum(wave, intens, vrot, fwhm=0.0, epsilon=0.6):
     """
+    Code taken from PHOEBE2.0
     input:
       wave.. input wavelength
       intens.. input intensities
