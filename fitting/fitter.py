@@ -4,6 +4,7 @@ import emcee
 # import warnings
 import numpy as np
 from scipy.optimize import fmin
+from scipy.optimize import fmin_slsqp
 from scipy.optimize import differential_evolution
 from pyterpol.synthetic.auxiliary import parlist_to_list
 from pyterpol.synthetic.auxiliary import string2bool
@@ -19,6 +20,14 @@ fitters = dict(
                              'Implemetation: http://docs.scipy.org/doc/scipy-0.16.1/reference/generated/'
                              'scipy.optimize.fmin.html#scipy.optimize.fmin Ineffective for high dimensional'
                              ' parameter space.'),
+    sp_slsqp=dict(par0type='value',
+                  optional_kwargs=['ftol'],
+                  object=fmin_slsqp,
+                  uses_bounds=True,
+                  info='Sequential Least Square Programming. '
+                       'Implemetation: http://docs.scipy.org/doc/scipy-0.16.1/reference/generated/'
+                       'scipy.optimize.fmin.html#scipy.optimize.fmin Ineffective for high dimensional'
+                       ' parameter spacse.'),
     sp_diff_evol=dict(par0type='limit',
                       optional_kwargs=['popsize', 'tol', 'strategy', 'maxiter'],
                       object=differential_evolution,
@@ -40,7 +49,8 @@ fitters = dict(
                      uses_bounds=True,
                      info='Sbplx - a variation of the Tom Rowans Subplex. '
                           'Implementation NLOPT: Steven G. Johnson, The NLopt '
-                          'nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'),)
+                          'nonlinear-optimization package, http://ab-initio.mit.edu/nlopt.'),
+)
 
 
 class Fitter(object):
