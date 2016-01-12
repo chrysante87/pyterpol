@@ -175,7 +175,6 @@ class Interface(object):
         chi2 = self.read_chi2_from_comparisons(l, verbose)
 
         # if we are fitting we store the info on the parameters
-        # print pars
         if self.fit_is_running:
             self.fitter.append_iteration(dict(parameters=copy.deepcopy(pars), chi2=chi2))
 
@@ -313,10 +312,9 @@ class Interface(object):
 
         return errors
 
-    def get_comparisons(self, l=None, verbose=False, **kwargs):
+    def get_comparisons(self, verbose=False, **kwargs):
         """
         Narrows down the number of comparisons.
-        :param l list of comparisons, that will be narrowed down.
         :param verbose return indices in the original list
         :param kwargs parameters according to the comparison list will be narrowed down
         :return:
@@ -327,16 +325,17 @@ class Interface(object):
 
         # parameter keys
         keys = kwargs.keys()
-        if l is None:
-            clist = self.comparisonList
+        # if l is None:
+        #     clist = self.comparisonList
 
         # go over each recordd within list of comparisons
-        for i in range(0, len(clist)):
+        for i in range(0, len(self.comparisonList)):
 
             # the keys that we test are somewhat heterogeneous
             # thsi construction is not pretty.
             include = True
             for key in keys:
+                # print key
                 # what if the key lies
                 if key in self.comparisonList[i]['groups'].keys() \
                         and (kwargs[key] != self.comparisonList[i]['groups'][key]):
@@ -349,7 +348,7 @@ class Interface(object):
                 if key == 'region' and self.comparisonList[i]['region'] != kwargs[key]:
                     include = False
                     break
-
+            # print include
             # if it survived all tests it is included
             if include:
                 clist.append(self.comparisonList[i])
