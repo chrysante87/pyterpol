@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.constants import c
 from auxiliary import is_within_interval
+from auxiliary import instrumental_broadening
 from auxiliary import interpolate_spec
 from auxiliary import interpolate_block
 from auxiliary import interpolate_block_faster
@@ -212,7 +213,8 @@ class SyntheticSpectrum:
         return bump_wave, bump_intens
 
     def get_spectrum(self, wave=None, rv=None, vrot=None, lr=1.0, korel=False,
-                     only_intensity=False, wmin=None, wmax=None, keep=False):
+                     only_intensity=False, wmin=None, wmax=None, keep=False,
+                     fwhm=None):
         """
         Return the sythetic spectrum stored within the class. If
         a set of wavelengths is provided, an interpolated spectrum
@@ -243,6 +245,10 @@ class SyntheticSpectrum:
                 wave = self.wave
                 intens = self.intens
             syn_wave = wave.copy()
+
+            # adds the instrumental broadening
+            if fwhm is not None and fwhm > ZERO_TOLERANCE:
+                intens = instrumental_broadening(syn_wave, intens, fwhm)
 
             if vrot is not None and vrot > ZERO_TOLERANCE:
                 # rotates the spectrum
@@ -307,9 +313,12 @@ class SyntheticSpectrum:
             # print wmin, wmax
             syn_wave, intens = self.select_interval(wmin, wmax)
 
+            # adds the instrumental broadening
+            if fwhm is not None and fwhm > ZERO_TOLERANCE:
+                intens = instrumental_broadening(syn_wave, intens, fwhm)
+
             # rotates the spectrum
             if vrot is not None and vrot > ZERO_TOLERANCE:
-                # print vrot
                 intens = rotate_spectrum(syn_wave, intens, vrot)
 
             # adjusts the spectrum for the radial velocity
