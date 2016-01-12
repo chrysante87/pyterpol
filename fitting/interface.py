@@ -675,12 +675,17 @@ class Interface(object):
                         else:
                             wave = rec['observed'].get_spectrum(wmin, wmax)[0]
                             error = None
+
+                    # get the instrumental braodening
+                    fwhm = abs(wave[1]-wave[0])
+
                     # define korelmode
                     korelmode = rec['observed'].korel
                     # generate the synthetic spectrum
                     rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
                                                                                   only_intensity=True,
                                                                                   korel=korelmode,
+                                                                                  fwhm=fwhm,
                                                                                   **pars)
 
                 else:
