@@ -28,7 +28,7 @@ def flatten_2d(arr):
     else:
         return arr
 
-def instrumental_broadening(wave, flux, width=0.25, width_type='fwhm'):
+def instrumental_broadening(wave, flux, width=0.25, width_type='sigma'):
     """
     Code taken from PHOEBE2.0
     :param: wave:
@@ -37,7 +37,7 @@ def instrumental_broadening(wave, flux, width=0.25, width_type='fwhm'):
     :param width_type:
     :return:
     """
-
+    # print "Computing instr. broadening."
     # If there is no broadening to apply, don't bother
     if width == 0:
         return flux

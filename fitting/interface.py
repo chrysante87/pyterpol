@@ -678,6 +678,7 @@ class Interface(object):
 
                     # get the instrumental braodening
                     fwhm = abs(wave[1]-wave[0])
+                    # print fwhm
 
                     # define korelmode
                     korelmode = rec['observed'].korel
@@ -1883,24 +1884,26 @@ class Interface(object):
         :return:
         """
         # get all fitted parameters
-        pars = self.get_fitted_parameters()
-        for p in pars:
-            if p['name'] == parname.lower():
-                v = p['value']
+        parname = parname.lower()
+        for c in self.sl.componentList.keys():
+            if parname in self.sl.componentList[c].keys():
+                for p in self.sl.componentList[c][parname]:
+                    v = p['value']
 
-                # relative luminosity needs special treatment
-                if p['name'] == 'lr':
-                    p['vmin'] = max([0.0, v - error])
-                    p['vmax'] = min([1.0, v + error])
+                    # relative luminosity needs special treatment
+                    if p['name'] == 'lr':
+                        p['vmin'] = max([0.0, v - error])
+                        p['vmax'] = min([1.0, v + error])
 
-                # and so does also the rotational velocity
-                elif p['name'] == 'vrot':
-                    p['vmin'] = max([0.0, v - error])
-                    p['vmax'] = v + error
+                    # and so does also the rotational velocity
+                    elif p['name'] == 'vrot':
+                        p['vmin'] = max([0.0, v - error])
+                        p['vmax'] = v + error
 
-                else:
-                    p['vmin'] = v - error
-                    p['vmax'] = v + error
+                    # and the rest is simple
+                    else:
+                        p['vmin'] = v - error
+                        p['vmax'] = v + error
 
     def _setup_grids(self):
         """
@@ -2218,14 +2221,14 @@ class Interface(object):
             ofile = open(outputname, 'w')
 
             # write the header
-            ofile.write("%5s%20s" % ('GROUP', 'FILENAME'))
+            ofile.write("#%5s%20s" % ('GROUP', 'FILENAME'))
             for j in range(0, len(components)):
                 ofile.write("%15s" % components[j].upper())
             ofile.write('\n')
 
             # write teh rvs
             for i in range(0, len(names)):
-                ofile.write("%5s%20s" % (str(allgroups[i]).zfill(3), names[i]))
+                ofile.write("%6s%20s" % (str(allgroups[i]).zfill(3), names[i]))
                 for c in components:
                     ofile.write("%15.6f" % rvs[c][i])
                 ofile.write('\n')
