@@ -302,34 +302,6 @@ class ObservedSpectrum:
         self.npixel = len(self.wave)
         self.step = np.mean(self.wave[1:] - self.wave[:-1])
 
-    def select_random_subset(self, frac):
-        """
-        :param frac: sepctrum fraction 0.0-1.0
-        :return:
-        """
-
-        if not self.loaded:
-            raise AttributeError('Cannost select a subset. '
-                                 'The spectrum %s has not been loaded yet.' % (str(self)))
-
-        # set the newlength
-        newlength = int(np.ceil(frac*self.npixel))
-
-        if newlength >= self.npixel:
-            return
-
-        # surviving spectra indices
-        inds = np.sort(np.random.randint(self.npixel, size=newlength))
-
-        # adjustr the spectra
-        self.wave = self.wave[inds]
-        self.intens = self.intens[inds]
-        if self.error is not None:
-            self.error = self.error[inds]
-
-        # measure the spectrum
-        self.read_size()
-
     def read_spectrum_from_file(self, filename, global_error=None):
         """
         Reads the spectrum from a file. Following format
@@ -371,6 +343,46 @@ class ObservedSpectrum:
 
         # the spectrum is checked
         self.check_length()
+        self.read_size()
+
+    def reload_spectrum(self):
+        """
+        Reloads the spectrum.
+        :return:
+        """
+        if self.loaded == False:
+            warnings.warn('The spectrum was not loaded, so I am not reloading, but loading... just FYI.')
+        if self.filename is None:
+            raise ValueError('There has been no spectrum given for %s' % (str(self)))
+
+        self.read_spectrum_from_file(self.filename)
+
+    def select_random_subset(self, frac):
+        """
+        :param frac: sepctrum fraction 0.0-1.0
+        :return:
+        """
+
+        if not self.loaded:
+            raise AttributeError('Cannost select a subset. '
+                                 'The spectrum %s has not been loaded yet.' % (str(self)))
+
+        # set the newlength
+        newlength = int(np.ceil(frac*self.npixel))
+
+        if newlength >= self.npixel:
+            return
+
+        # surviving spectra indices
+        inds = np.sort(np.random.randint(self.npixel, size=newlength))
+
+        # adjustr the spectra
+        self.wave = self.wave[inds]
+        self.intens = self.intens[inds]
+        if self.error is not None:
+            self.error = self.error[inds]
+
+        # measure the spectrum
         self.read_size()
 
     def set_error(self, vec_error=None, global_error=None):
