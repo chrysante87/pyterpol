@@ -302,9 +302,9 @@ class ObservedSpectrum:
         self.npixel = len(self.wave)
         self.step = np.mean(self.wave[1:] - self.wave[:-1])
 
-    def select_random_subset(self, pct):
+    def select_random_subset(self, frac):
         """
-        :param pct:
+        :param frac: sepctrum fraction 0.0-1.0
         :return:
         """
 
@@ -313,17 +313,17 @@ class ObservedSpectrum:
                                  'The spectrum %s has not been loaded yet.' % (str(self)))
 
         # set the newlength
-        newlength = int(np.ceil(pct*self.npixel))
+        newlength = int(np.ceil(frac*self.npixel))
 
         if newlength >= self.npixel:
             return
 
         # surviving spectra indices
-        inds = np.random.randint(self.npixel, size=newlength)
+        inds = np.sort(np.random.randint(self.npixel, size=newlength))
 
         # adjustr the spectra
         self.wave = self.wave[inds]
-        self.intens = self.wave[inds]
+        self.intens = self.intens[inds]
         if self.error is not None:
             self.error = self.error[inds]
 
@@ -340,6 +340,11 @@ class ObservedSpectrum:
         :param global_error the error applicable to the spectrum
         :return None
         """
+
+        # just in case we have already set up the global error
+        if global_error is None and self.global_error is not None:
+            global_error = self.global_error
+
         try:
             # first we try to load 3 columns, i.e with errors
             self.wave, self.intens, self.error = np.loadtxt(filename, unpack=True, usecols=[0, 1, 2])
