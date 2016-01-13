@@ -302,6 +302,34 @@ class ObservedSpectrum:
         self.npixel = len(self.wave)
         self.step = np.mean(self.wave[1:] - self.wave[:-1])
 
+    def select_random_subset(self, pct):
+        """
+        :param pct:
+        :return:
+        """
+
+        if not self.loaded:
+            raise AttributeError('Cannost select a subset. '
+                                 'The spectrum %s has not been loaded yet.' % (str(self)))
+
+        # set the newlength
+        newlength = int(np.ceil(pct*self.npixel))
+
+        if newlength >= self.npixel:
+            return
+
+        # surviving spectra indices
+        inds = np.random.randint(self.npixel, size=newlength)
+
+        # adjustr the spectra
+        self.wave = self.wave[inds]
+        self.intens = self.wave[inds]
+        if self.error is not None:
+            self.error = self.error[inds]
+
+        # measure the spectrum
+        self.read_size()
+
     def read_spectrum_from_file(self, filename, global_error=None):
         """
         Reads the spectrum from a file. Following format
