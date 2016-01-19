@@ -3777,6 +3777,15 @@ class StarList(object):
 
         return np.unique(pars)
 
+    def list_parameters(self):
+        """
+        Returns a list of all parameters.
+        :return:
+        """
+        # empty output structure
+        return copy.deepcopy(self.componentList)
+
+
     def load(self, f):
         """
         Loads the text representation of the class from
