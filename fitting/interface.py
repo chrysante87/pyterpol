@@ -796,7 +796,7 @@ class Interface(object):
         ax.set_ylim(0.95*si.min(), 1.05*si.max())
         ax.set_xlabel('$\lambda(\AA)$')
         ax.set_ylabel('$F_{\lambda}$(rel.)')
-        ax.legend(fontsize=8, loc=3)
+        ax.legend(fontsize=8, fancybox=True, shadow=True, bbox_to_anchor=(1.0, 1.2))
 
         if cpr['observed'] is not None:
             ax = fig.add_subplot(212)
@@ -811,7 +811,7 @@ class Interface(object):
         # save the figure
         if savefig:
             plt.savefig(figname)
-            plt.close()
+            plt.close(fig)
 
     def plot_convergence(self, f=None, parameter='chi2', component='all', group='all', savefig=True, figname=None):
         """
