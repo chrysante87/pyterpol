@@ -683,6 +683,7 @@ class Interface(object):
                     # define korelmode
                     korelmode = rec['observed'].korel
                     # generate the synthetic spectrum
+                    # print pars
                     rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
                                                                                   only_intensity=True,
                                                                                   korel=korelmode,
@@ -1876,16 +1877,22 @@ class Interface(object):
             fitparams = self.get_fitted_parameters()
             self.choose_fitter(name=self.fitter.fittername, fitparams=fitparams, **self.fitter.fit_kwargs)
 
-    def set_error(self, parname='rv', error=1.0):
+    def set_error(self, parname='rv', component=None, error=1.0):
         """
         Sets error by adjusting vmin, vmax,
         :param parname: name of the parameter
+        :paramn components
         :param error: the error, ehich will be used to set boundaries
         :return:
         """
+        if component is not None:
+            components = [component]
+        else:
+            components = self.sl._registered_components
+
         # get all fitted parameters
         parname = parname.lower()
-        for c in self.sl.componentList.keys():
+        for c in components:
             if parname in self.sl.componentList[c].keys():
                 for p in self.sl.componentList[c][parname]:
                     v = p['value']
@@ -2778,7 +2785,7 @@ class ObservedList(object):
 
                 # If not user defined the maximal possible
                 # group is assigned
-                if key is not 'rv':
+                if key != 'rv':
                     gn = spectrum.get_group(key)
                     def_groups = groups[key]
 
@@ -2797,7 +2804,6 @@ class ObservedList(object):
                     self.observedSpectraList['group'][key][i] = gn
 
                 else:
-
                     gn = spectrum.get_group(key)
                     if gn is None:
                         self.observedSpectraList['group'][key][i] = None
@@ -2879,7 +2885,7 @@ class ObservedList(object):
     def _set_groups_to_spectra(self):
         """
         Propagates groups, which are set in observedSpectraList,
-        in in dividual spectra.
+        in individual spectra.
         """
         for i in range(0, len(self.observedSpectraList['spectrum'])):
             group = {key: self.observedSpectraList['group'][key][i] for key in self.observedSpectraList['group'].keys()}
