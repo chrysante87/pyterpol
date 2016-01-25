@@ -2591,14 +2591,11 @@ class ObservedList(object):
             elif keytest == 'wmin':
                 vind = np.where(np.array(osl['properties'][keytest]) <= kwargs[key])[0]
             elif keytest == 'wmax':
-                # print osl['properties'][keytest], kwargs[key]
                 vind = np.where(np.array(osl['properties'][keytest]) >= kwargs[key])[0]
 
             # those that are defined in groups
             elif keytest in osl['group'].keys():
                 vind = []
-                # print osl['spectrum'], len(osl['spectrum'])
-                # print len(osl), keytest, kwargs[key], osl['group'][keytest]
                 for i in range(0, len(osl['spectrum'])):
                     if isinstance(osl['group'][keytest][i], (tuple, list)):
                         if kwargs[key] in osl['group'][keytest][i]:
@@ -2608,10 +2605,8 @@ class ObservedList(object):
                             vind.append(i)
                 vind = np.array(vind)
 
-            # print keytest, vind
-
             # TODO Improve this, so the warning is not issued,
-            # TODO when the observed spectra are lusted under all.
+            # TODO when the observed spectra are listed under all.
 
             if len(vind) == 0:
                 warnings.warn('No spectrum matching %s: %s was found in the '
@@ -2959,6 +2954,8 @@ class RegionList(List):
             groups = keys_to_lowercase(groups)
         else:
             groups = {}
+
+        # make component case insensitive
         component = component.lower()
         ident = identification
         if ident is not None:
