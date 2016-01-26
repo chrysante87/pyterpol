@@ -217,6 +217,29 @@ class Interface(object):
         # return ratio
         return diff
 
+    def change_observed_list(self, ol):
+        """
+        Removes the old observe list and adds a new one.
+        It also resets the group assignment between
+        regions a and radial velocity groups. Each
+        observed spectrum should have a rv group
+        assigned. Otherwise the outcome might be
+        wrong.
+        :param ol:
+        :return:
+        """
+
+        if self.ol is None:
+            warnings.warn('There was no ObservedList attached to the Interface. Correct?')
+        else:
+            self.ol.clear_all()
+
+        # attach new observed list
+        self.ol = ol
+
+        # reset the rv-group settings
+        self._setup_rv_groups()
+
     def copy(self):
         """
         Creates a copy of self.
