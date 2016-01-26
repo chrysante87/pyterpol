@@ -1418,6 +1418,8 @@ class Interface(object):
 
                     # the wmin wmax is used to check again that
                     # we are in the correct region.
+                    if self.debug:
+                        print "Queried parameters in ready comparisons:", wmin, wmax, rv_group
                     obs = self.ol.get_spectra(wmin=wmin, wmax=wmax, rv=rv_group)
                     if len(obs) == 0:
                         continue
@@ -2582,7 +2584,6 @@ class ObservedList(object):
 
             # these can be tested on equality as strings
             if keytest in self._queriables:
-                # print osl['properties'][keytest], kwargs[key]
                 vind = np.where(np.array(osl['properties'][keytest], dtype=str) == str(kwargs[key]))
             elif keytest == 'component':
                 vind = np.where((np.array(osl['properties'][keytest], dtype=str) == str(kwargs[key])) or
