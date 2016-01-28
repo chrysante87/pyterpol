@@ -486,7 +486,7 @@ class Interface(object):
             raise AttributeError('No fitter has been attached yet.')
 
     @staticmethod
-    def load(f):
+    def load(f, one4all=False):
         """
         Loads the type from a file created with the save method.
         :param f: the loaded file
@@ -561,9 +561,10 @@ class Interface(object):
             ol = None
 
         # print ddicts
-        print fitter
+        # print fitter
         # setup the interface
         itf = Interface(sl=sl, ol=ol, rl=rl, fitter=fitter, **ddicts['env_keys'])
+        itf.set_one_for_all(one4all)
         gpars = {}
 
         # print ddicts
@@ -1278,7 +1279,7 @@ class Interface(object):
                 if rec not in self._not_given_by_grid:
                     components_to_update.append(c)
 
-        # update the syntrhetic spectra
+        # update the synthetic spectra
         if len(components_to_update) > 0:
             self.ready_synthetic_spectra(complist=components_to_update)
 
@@ -3806,7 +3807,7 @@ class StarList(object):
 
     def list_parameters(self):
         """
-        Returns a list of all parameters.
+        Returns a list of all parameters.s
         :return:
         """
         # empty output structure
