@@ -28,7 +28,7 @@ def flatten_2d(arr):
     else:
         return arr
 
-def instrumental_broadening(wave, flux, width=0.25, width_type='sigma'):
+def instrumental_broadening(wave, flux, width=0.25, width_type='sigma', interpolate_back=True):
     """
     Code taken from PHOEBE2.0
     :param: wave:
@@ -39,7 +39,7 @@ def instrumental_broadening(wave, flux, width=0.25, width_type='sigma'):
     """
     # print "Computing instr. broadening."
     # If there is no broadening to apply, don't bother
-    if width == 0:
+    if width < ZERO_TOLERANCE:
         return flux
 
     # Convert user input width type to sigma (standard devation)
@@ -88,10 +88,14 @@ def instrumental_broadening(wave, flux, width=0.25, width_type='sigma'):
         offset = 0.0
     else:
         offset = dwave / 2.0
-    # flux = np.interp(wave+offset, wave_, 1-flux_conv, left=1, right=1)
-    flux = interpolate_spec(wave_, 1-flux_conv, wave+offset)
-    # Return the results.
-    return flux
+
+    if interpolate_back:
+        # flux = np.interp(wave+offset, wave_, 1-flux_conv, left=1, right=1)
+        flux = interpolate_spec(wave_, 1-flux_conv, wave+offset)
+        # Return the results.
+        return flux
+    else:
+        return wave_, 1-flux_conv
 
 def interpolate_block(x, block, xnew):
     """
@@ -256,7 +260,7 @@ def renew_file(f):
     ofile = open(f, 'w')
     ofile.close()
 
-def rotate_spectrum(wave, intens, vrot, fwhm=0.0, epsilon=0.6):
+def rotate_spectrum(wave, intens, vrot, fwhm=0.0, epsilon=0.6, interpolate_back=True):
     """
     Code taken from PHOEBE2.0
     input:
@@ -302,9 +306,11 @@ def rotate_spectrum(wave, intens, vrot, fwhm=0.0, epsilon=0.6):
         wave_conv = np.exp(rv)
 
         # interpolate back
-        intens = interpolate_spec(wave_conv, 1 - intens_conv, wave)
-
-    return intens
+        if interpolate_back:
+            intens = interpolate_spec(wave_conv, 1 - intens_conv, wave)
+            return intens
+        else:
+            return wave_conv, intens
 
 
 def shift_spectrum(wave, RV):
