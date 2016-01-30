@@ -58,7 +58,8 @@ def instrumental_broadening(wave, flux, width=0.25, width_type='sigma'):
     range_wave = wave.ptp()
     n_wave = int(range_wave/delta_wave) + 1
     wave_ = np.linspace(wave[0], wave[-1], n_wave)
-    flux_ = np.interp(wave_, wave, flux)
+    # flux_ = np.interp(wave_, wave, flux)
+    flux_ = interpolate_spec(wave, flux, wave_)
     dwave = wave_[1]-wave_[0]
     n_kernel = int(2*4*sigma/dwave)
 
@@ -87,8 +88,8 @@ def instrumental_broadening(wave, flux, width=0.25, width_type='sigma'):
         offset = 0.0
     else:
         offset = dwave / 2.0
-    flux = np.interp(wave+offset, wave_, 1-flux_conv, left=1, right=1)
-
+    # flux = np.interp(wave+offset, wave_, 1-flux_conv, left=1, right=1)
+    flux = interpolate_spec(wave_, 1-flux_conv, wave+offset)
     # Return the results.
     return flux
 
@@ -155,7 +156,7 @@ def interpolate_spec(wave0, intens0, wave1):
     output:
       intens1.. new set of intensities
     """
-    tck = splrep(wave0, intens0)
+    tck = splrep(wave0, intens0, k=3)
     intens1 = splev(wave1, tck)
 
     return intens1

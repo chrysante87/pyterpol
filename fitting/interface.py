@@ -24,7 +24,8 @@ class Interface(object):
     """
     """
     def __init__(self, sl=None, rl=None, ol=None, fitter=None, debug=False,
-                 adaptive_resolution=True, spectrum_by_spectrum=None):
+                 adaptive_resolution=True, spectrum_by_spectrum=None,
+                 log_iterations=False):
         """
         :param sl: StarList type
         :param rl: RegionList type
@@ -75,6 +76,7 @@ class Interface(object):
         self.grid_properties_passed = False
         self.fit_is_running = False
         self.adaptive_resolution = adaptive_resolution
+        self.log_iterations = log_iterations
 
         # temporary variable for info on the fitted parameters
         self.ident_fitted_pars = None
@@ -196,7 +198,7 @@ class Interface(object):
         chi2 = self.read_chi2_from_comparisons(l, verbose)
 
         # if we are fitting we store the info on the parameters
-        if self.fit_is_running:
+        if self.fit_is_running & self.log_iterations:
             self.fitter.append_iteration(dict(parameters=copy.deepcopy(pars), chi2=chi2))
 
         # print every hundredth iteration
@@ -1132,14 +1134,11 @@ class Interface(object):
         # this should also change the starlist
         # and corresponding
         fitpars = self.sl.get_fitted_parameters()
-        # for par in fitpars:
-        #     print par
         if len(pars) != len(fitpars):
             raise ValueError('Length of the vector passed with the fitting environment does '
                              'mot match length of the parameters marked as fitted.')
 
         for i, v in enumerate(pars):
-            # print fitpars[i]['value'], v
             fitpars[i]['value'] = v
 
         # we have to recompute the synthetic spectra
@@ -1147,10 +1146,13 @@ class Interface(object):
         # first check for which parameters
         # the grid parameters are fitted
         components_to_update = []
+
         for c in self.sl.fitted_types.keys():
             # print self.sl.fitted_types, components_to_update
             for rec in self.sl.fitted_types[c]:
-                # print rec
+
+                # recompute only those components for those
+                # grid parameter is fitted
                 if rec not in self._not_given_by_grid:
                     components_to_update.append(c)
 
