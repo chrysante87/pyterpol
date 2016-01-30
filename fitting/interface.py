@@ -200,6 +200,8 @@ class Interface(object):
         # if we are fitting we store the info on the parameters
         if self.fit_is_running & self.log_iterations:
             self.fitter.append_iteration(dict(parameters=copy.deepcopy(pars), chi2=chi2))
+        else:
+            self.fitter.iter_number += 1
 
         # print every hundredth iteration
         if self.debug:
