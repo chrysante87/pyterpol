@@ -129,14 +129,35 @@ class Interface(object):
                   (str(region), str(groups), str(parameters))
 
         if self.comparisonList is None:
-            raise Exception('The comparisonList has not been defined yet. Use Inteface.get_comparison for that.')
+            raise Exception('The comparisonList has not been defined yet. Use Inteface.ready_comparison for that.')
         else:
+            # pass the regions
+            wmin = self.rl.mainList[region]['wmin']
+            wmax = self.rl.mainList[region]['wmax']
+
+            # try to read out the observed spectrum - everything
+            if observed is not None:
+                try:
+                    ow, oi, oe = observed.get_spectrum(wmin, wmax)
+                except:
+                    # if it does not work out..
+                    ow = observed.get_spectrum(wmin, wmax)
+                    oi = None
+                    oe = None
+
+
             self.comparisonList.append(dict(region=region,
                                             parameters=parameters,
                                             observed=observed,
                                             groups=groups,
                                             synthetic={x: None for x in parameters.keys()},
-                                            chi2=0.0)
+                                            chi2=0.0,
+                                            wmin=wmin,
+                                            wmax=wmax,
+                                            wave=ow,
+                                            intens=oi,
+                                            error=oe
+                                            )
                                        )
 
     def clear_all(self):
@@ -675,8 +696,13 @@ class Interface(object):
         for rec in l:
             # get the region
             region = rec['region']
-            wmin = self.rl.mainList[region]['wmin']
-            wmax = self.rl.mainList[region]['wmax']
+
+            # get the intensity and error
+            error = rec['error']
+            intens = rec['intens']
+
+            # wmin = self.rl.mainList[region]['wmin']
+            # wmax = self.rl.mainList[region]['wmax']
 
             # go over each component
             for c in rec['parameters'].keys():
@@ -689,17 +715,23 @@ class Interface(object):
                 # populate with the intensity vector of each component
                 # print rec['observed']
                 if rec['observed'] is not None:
-                    try:
-                        wave, intens, error = rec['observed'].get_spectrum(wmin, wmax)
-                    except:
-                        # if we are fitting we will demand errors
-                        if demand_errors:
-                            raise ValueError('It is not allowed to call chi-square without having'
-                                             ' uncertainties set. SET THE ERRORS FFS!')
-                        else:
-                            wave = rec['observed'].get_spectrum(wmin, wmax)[0]
-                            error = None
+                #     try:
+                #         # try to extract everything
+                #         wave, intens, error = rec['observed'].get_spectrum(wmin, wmax)
+                #     except:
+                #         # if we are fitting we will demand errors
+                #         if demand_errors:
+                #             raise ValueError('It is not allowed to call chi-square without having'
+                #                              ' uncertainties set. SET THE ERRORS FFS!')
+                #         else:
+                #             wave = rec['observed'].get_spectrum(wmin, wmax)[0]
+                #             error = None
+                    if demand_errors and rec['error'] is None:
+                        raise ValueError('It is not allowed to call chi-square without having'
+                                         ' uncertainties set. SET THE ERRORS FFS!')
 
+                    # extract the wavelength
+                    wave = rec['wave']
                     # get the instrumental braodening
                     fwhm = abs(wave[1]-wave[0])
                     # print fwhm
@@ -715,6 +747,8 @@ class Interface(object):
                                                                                   **pars)
 
                 else:
+                    wmin = rec['wmin']
+                    wmax = rec['wmax']
                     error = None
                     korelmode = False
                     rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wmin=wmin,
