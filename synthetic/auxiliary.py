@@ -95,7 +95,7 @@ def instrumental_broadening(wave, flux, width=0.25, width_type='sigma', interpol
         # Return the results.
         return flux
     else:
-        return wave_, 1-flux_conv
+        return 1-flux_conv, wave_
 
 def interpolate_block(x, block, xnew):
     """
@@ -310,7 +310,7 @@ def rotate_spectrum(wave, intens, vrot, fwhm=0.0, epsilon=0.6, interpolate_back=
             intens = interpolate_spec(wave_conv, 1 - intens_conv, wave)
             return intens
         else:
-            return wave_conv, intens
+            return 1-intens_conv, wave_conv
 
 
 def shift_spectrum(wave, RV):

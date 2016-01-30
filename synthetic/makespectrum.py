@@ -321,6 +321,7 @@ class SyntheticSpectrum:
             # rotates the spectrum
             if vrot is not None and vrot > ZERO_TOLERANCE:
                 # intens = rotate_spectrum(syn_wave, intens, vrot)
+                # print syn_wave
                 intens, syn_wave = rotate_spectrum(syn_wave, intens, vrot, interpolate_back=False)
 
             # adjusts the spectrum for the radial velocity
