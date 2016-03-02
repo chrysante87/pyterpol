@@ -316,7 +316,7 @@ class SyntheticSpectrum:
             # adds the instrumental broadening
             if fwhm is not None and fwhm > ZERO_TOLERANCE:
                 # intens = instrumental_broadening(syn_wave, intens, width=fwhm)
-                intens, syn_wave = instrumental_broadening(syn_wave, intens, width=fwhm, interpolate_back=False)
+                intens = instrumental_broadening(syn_wave, intens, width=fwhm)
 
             # rotates the spectrum
             if vrot is not None and vrot > ZERO_TOLERANCE:

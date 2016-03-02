@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import copy
 import corner
+import sys
 import warnings
 # import numpy as np
 # import matplotlib.pyplot as plt
@@ -719,17 +720,6 @@ class Interface(object):
                 # populate with the intensity vector of each component
                 # print rec['observed']
                 if rec['observed'] is not None:
-                #     try:
-                #         # try to extract everything
-                #         wave, intens, error = rec['observed'].get_spectrum(wmin, wmax)
-                #     except:
-                #         # if we are fitting we will demand errors
-                #         if demand_errors:
-                #             raise ValueError('It is not allowed to call chi-square without having'
-                #                              ' uncertainties set. SET THE ERRORS FFS!')
-                #         else:
-                #             wave = rec['observed'].get_spectrum(wmin, wmax)[0]
-                #             error = None
                     if demand_errors and rec['error'] is None:
                         raise ValueError('It is not allowed to call chi-square without having'
                                          ' uncertainties set. SET THE ERRORS FFS!')
@@ -737,7 +727,8 @@ class Interface(object):
                     # extract the wavelength
                     wave = rec['wave']
                     # get the instrumental braodening
-                    fwhm = abs(wave[1]-wave[0])
+                    # fwhm = abs(wave[1]-wave[0])
+                    fwhm = 0.2
                     # print fwhm
 
                     # define korelmode
@@ -1613,6 +1604,8 @@ class Interface(object):
             region_groups = self.rl.get_region_groups()
             self.sl.set_groups(region_groups)
 
+        # print self
+
         # setup radial velocity groups
         if self.ol is not None:
             # we will fit some parameters separately at some spectra
@@ -1631,7 +1624,9 @@ class Interface(object):
                 self._set_groups_to_observed(varparams, fixparams)
                 self._setup_all_groups()
             else:
+                # print self
                 self._setup_rv_groups()
+                # print self
 
             # setup the wavelength step of synthetic spectra
             # from observed psectra
@@ -1922,11 +1917,12 @@ class Interface(object):
             if gref not in registered_groups:
                 self.remove_parameter(c, 'rv', gref)
 
-        # print new_groups
         # back register the group numbers to the observed spectra
         for filename in new_groups.keys():
+            # print new_groups[filename]
             self.ol.set_spectrum(filename=filename, group={'rv': new_groups[filename]})
 
+        # print self
         # finalize the list of rv_groups for each region
         self.rel_rvgroup_region = {x: np.unique(reg2rv[x]).tolist() for x in reg2rv.keys()}
 
@@ -2147,7 +2143,7 @@ class Interface(object):
 
         return rvs, allgroups, names
 
-    def write_synthetic_spectra(self, component=None, region=None, outputname=None, korel=False):
+    def write_synthetic_spectra(self, component=None, region=None, rvgroups=None, outputname=None, korel=False):
         """
         Writes the synthetic spectra obtained through the fitting.
         :param component
@@ -2188,7 +2184,12 @@ class Interface(object):
 
             for c in components:
                 # get defined rv groups
-                rv_groups = self.sl.get_defined_groups(component=c, parameter='rv')[c]['rv']
+                if rv_groups is None:
+                    rv_groups = self.sl.get_defined_groups(component=c, parameter='rv')[c]['rv']
+                else:
+                    if not isinstance(rv_groups, (list, tuple)):
+                        rv_groups = [rv_groups]
+
                 for rvg in rv_groups:
 
                     # the outputname
@@ -2681,12 +2682,12 @@ class ObservedList(object):
         # Assigning groups to every spectrum
         for i, spectrum in enumerate(self.observedSpectraList['spectrum']):
             for key in groups.keys():
-
                 # If not user defined the maximal possible
                 # group is assigned
                 if key != 'rv':
                     gn = spectrum.get_group(key)
                     def_groups = groups[key]
+                    # print key, gn, def_groups
 
                     # if spectrum has no group, but some groups have been defined,
                     # the group is assigned to the least number not in defuined groups
@@ -2778,6 +2779,8 @@ class ObservedList(object):
                     setattr(self.observedSpectraList['spectrum'][i], key, kwargs[key])
                 if key is 'group':
                     self.observedSpectraList['spectrum'][i].set_group(kwargs[key])
+                # print self
+
         self.read_groups()
         self.groupValues = self.get_defined_groups()
 

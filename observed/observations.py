@@ -235,9 +235,14 @@ class ObservedSpectrum:
             else:
                 # corrects boundaries if needed
                 if wmin is None:
-                    wmin = self.wave.min()
+                    wmin = self.wmin
                 if wmax is None:
-                    wmax = self.wave.max()
+                    wmax = self.wmax
+
+                # What if we query too long spectrum
+                if (wmin-self.wmin) < -1e-6 or (wmax - self.wmax) > 1e-6:
+                    raise ValueError("Querried spectral bounds (%f %f) lie outside observed spectrum bounds (%f %f)." % \
+                                     (wmin, wmax, self.wmin, self.wmax))
 
                 # selects the spectrum part
                 ind = np.where((self.wave >= wmin) & (self.wave <= wmax))[0]
@@ -408,6 +413,7 @@ class ObservedSpectrum:
         Sets a group to the spectrum
         :param group a dictionary of pairs parameter + group
         """
+        # print group
         for key in group.keys():
             self.group[key.lower()] = group[key]
 

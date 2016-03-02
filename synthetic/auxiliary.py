@@ -6,6 +6,7 @@ from scipy.interpolate import splev
 from scipy.interpolate import bisplrep
 from scipy.interpolate import bisplev
 from scipy.interpolate import RectBivariateSpline
+from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import spline
 from scipy.signal import fftconvolve
 
@@ -90,12 +91,10 @@ def instrumental_broadening(wave, flux, width=0.25, width_type='sigma', interpol
         offset = dwave / 2.0
 
     if interpolate_back:
-        # flux = np.interp(wave+offset, wave_, 1-flux_conv, left=1, right=1)
-        flux = interpolate_spec(wave_, 1-flux_conv, wave+offset)
+        flux = np.interp(wave+offset, wave_, 1-flux_conv, left=1, right=1)
+        # flux = interpolate_spec(wave_, 1-flux_conv, wave+offset)
         # Return the results.
         return flux
-    else:
-        return 1-flux_conv, wave_
 
 def interpolate_block(x, block, xnew):
     """
@@ -160,6 +159,8 @@ def interpolate_spec(wave0, intens0, wave1):
     output:
       intens1.. new set of intensities
     """
+    # spl = InterpolatedUnivariateSpline(wave0, intens0, k=3)
+    # intens1 = spl(wave1)
     tck = splrep(wave0, intens0, k=3)
     intens1 = splev(wave1, tck)
 
@@ -260,9 +261,10 @@ def renew_file(f):
     ofile = open(f, 'w')
     ofile.close()
 
-def rotate_spectrum(wave, intens, vrot, fwhm=0.0, epsilon=0.6, interpolate_back=True):
+def rotate_spectrum(wave, intens, vrot, epsilon=0.6, interpolate_back=True):
     """
     Code taken from PHOEBE2.0
+    Eqs consistent with Gray (2005).
     input:
       wave.. input wavelength
       intens.. input intensities
@@ -286,7 +288,6 @@ def rotate_spectrum(wave, intens, vrot, fwhm=0.0, epsilon=0.6, interpolate_back=
 
         # get the kernel
         # velocity vector
-        # print vrot, step
         n = int(np.ceil(2 * vrot / step))
         rv_ker = np.arange(n) * step
         rv_ker = rv_ker - rv_ker[-1] / 2.
