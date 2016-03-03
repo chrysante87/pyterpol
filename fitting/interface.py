@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import copy
 import corner
-import sys
+# import sys
 import warnings
 # import numpy as np
 # import matplotlib.pyplot as plt
@@ -317,7 +317,6 @@ class Interface(object):
     def evaluate_mcmc(f=None, treshold=100):
         """
         Returns best-fit values and errors estimated from the convergence.
-        :param l: list of comparisons
         :param f: mcmc log
         :param treshold
         :return:
@@ -360,6 +359,7 @@ class Interface(object):
                                      gauss_sigma=gauss_sigma, lower=lower, upper=upper))
 
         return errors
+
 
     def get_comparisons(self, verbose=False, **kwargs):
         """
@@ -740,7 +740,6 @@ class Interface(object):
                                                                                   korel=korelmode,
                                                                                   fwhm=fwhm,
                                                                                   **pars)
-
                 else:
                     wmin = rec['wmin']
                     wmax = rec['wmax']
@@ -2142,6 +2141,43 @@ class Interface(object):
                 ofile.write('\n')
 
         return rvs, allgroups, names
+
+    def write_spectra_from_comparisonlist(self, outputfile=None):
+        """
+        :return:
+        """
+        # setup name prefix
+        if outputfile is None:
+            outputfile = ''
+
+        # go over each record within comparisonList
+        for cp in self.comparisonList:
+
+            # extract description of the compariosn
+            wave = cp['wave']
+            intens = sum_dict_keys(cp['synthetic'])
+            wmin = cp['wmin']
+            wmax = cp['wmax']
+            component = cp['observed'].component
+            korel = cp['observed'].korel
+            rvgroup = cp['groups']['rv']
+            cpars = cp['parameters']
+
+            # set name
+            name = '_'.join([outputfile, 'c', component, 'wmin', str(wmin), 'wmax', str(wmax), 'g', str(rvgroup)]) \
+                   + '.dat'
+
+            # construct header of the file
+            header = ''
+            header += '# Component: %s\n' % str(component)
+            header += '# Region: (%s,%s)\n' % (str(wmin), str(wmax))
+            header += '# KOREL: %s\n' % str(korel)
+
+            # write the synthetic spectrum
+            ofile = open(name, 'w')
+            ofile.writelines(header)
+            np.savetxt(ofile, np.column_stack([wave, intens]), fmt='%15.6e')
+            ofile.close()
 
     def write_synthetic_spectra(self, component=None, region=None, rvgroups=None, outputname=None, korel=False):
         """
