@@ -924,7 +924,7 @@ class Interface(object):
                 i += 1
 
         # append chi_square
-        if parameter.lower() in ['chi2']:
+        if (parameter.lower() in ['chi2']) | (parameter == 'all'):
             block.append(log['data'][:, -1])
             labels.append('chi2')
 

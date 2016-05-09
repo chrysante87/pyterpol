@@ -1,3 +1,4 @@
+import copy
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gs
 import numpy as np
@@ -107,8 +108,9 @@ def plot_convergence(block, labels=None, relative=True, savefig=True, figname=No
     # normalize with the best value
     # if relative is p[assed
     if relative:
+        rel_block = copy.deepcopy(block)
         for i in range(0, ncol):
-            block[:,i] = block[:, i]/block[-1, i]
+            rel_block[:,i] = block[:, i]/block[-1, i]
 
     # start a new figure
     fig = plt.figure(dpi=100, figsize=(15, 10))
@@ -120,9 +122,9 @@ def plot_convergence(block, labels=None, relative=True, savefig=True, figname=No
         color = 0.1 +0.9*np.random.random(3)
 
         if labels is not None:
-            ax.plot(block[:,i], '-', color=color, label=labels[i])
+            ax.plot(rel_block[:,i], '-', color=color, label=labels[i])
         else:
-            ax.plot(block[:,i], '-', color=color)
+            ax.plot(rel_block[:,i], '-', color=color)
         ax.set_xlabel('Iteration number')
         ax.set_ylabel('Relative value.')
         ax.legend(loc=1, fontsize=10)
@@ -133,6 +135,32 @@ def plot_convergence(block, labels=None, relative=True, savefig=True, figname=No
             figname = 'convergence.png'
 
     plt.savefig(figname)
+
+    # try to produce another kind of plot
+    if ncol % 2 > 0:
+        nfigrow = ncol / 2 + 1
+    else:
+        nfigrow = ncol / 2
+
+    # setup the grid
+    gs1 = gs.GridSpec(nfigrow, 2, hspace=0.5)
+
+    # setup the figure
+    fig2 = plt.figure(dpi=100, figsize=(10, 3*nfigrow))
+
+    # plot convergence of individual parameters
+    for i in range(0, ncol):
+        ax = fig2.add_subplot(gs1[i/2, i%2])
+        ax.set_xlabel('Iteration number')
+        ax.set_ylabel('Value')
+        ax.set_ylabel(labels[i], fontsize=8)
+        ax.plot(block[:, i], 'k-', label=labels[i])
+        # ax.legend(loc=1)
+
+    # save the figure
+    fig2.savefig('convergence_2.png')
+    plt.close()
+
 
 
 def plot_chi2_map(x, y, nbin=10, labels=None, savefig=True, figname=None):
