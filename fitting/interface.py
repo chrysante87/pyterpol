@@ -727,8 +727,8 @@ class Interface(object):
                     # extract the wavelength
                     wave = rec['wave']
                     # get the instrumental braodening
-                    # fwhm = abs(wave[1]-wave[0])
-                    fwhm = 0.2
+                    fwhm = abs(wave[1]-wave[0])
+                    # fwhm = 0.2
                     # print fwhm
 
                     # define korelmode
@@ -2220,7 +2220,7 @@ class Interface(object):
 
             for c in components:
                 # get defined rv groups
-                if rv_groups is None:
+                if rvgroups is None:
                     rv_groups = self.sl.get_defined_groups(component=c, parameter='rv')[c]['rv']
                 else:
                     if not isinstance(rv_groups, (list, tuple)):
@@ -2240,15 +2240,21 @@ class Interface(object):
                         print "Writing spectrum: %s." % oname
 
                     # get the parameters
-                    # print rvg
+                    # the radial velocity
                     rvpar = self.sl.get_parameter(rv=rvg)[c]
+
+                    # remaining parameters
                     cpars = reg_pars[c]
+
+                    # append the radial velocity
                     cpars.extend(rvpar)
+                    # print cpars
 
                     # separate those that need to be computed,
                     # i.e. those not defined by the grid
                     computepars = [par for par in cpars if par['name'] in self._not_given_by_grid]
                     computepars = self.extract_parameters(computepars)
+                    # print computepars
 
                     # compute the synthetic spectra
                     w, i = self.synthetics[r][c].get_spectrum(wmin=wmin, wmax=wmax, korel=korel, **computepars)
@@ -2265,6 +2271,10 @@ class Interface(object):
                     ofile.writelines(header)
                     np.savetxt(ofile, np.column_stack([w, i]), fmt='%15.10e')
                     ofile.close()
+
+                # destroy the
+                if rvgroups is None:
+                    rv_groups = None
 
 
 class List(object):
