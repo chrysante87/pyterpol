@@ -454,6 +454,16 @@ class Interface(object):
         else:
             return [par[attribute] for par in self.sl.get_fitted_parameters()]
 
+    def get_observed_spectra_number(self):
+        """
+        :return:
+        """
+
+        if self.ol is not None:
+            return len(self.ol)
+        else:
+            return 0
+
     def get_observed_spectrum(self, filename=None):
         """
         Returns observed spectrum accoreding to its name.
@@ -3706,6 +3716,7 @@ class StarList(object):
                       ' not found.' % (component, parameter, str(group)))
         return None
 
+
     def get_parameter(self, **kwargs):
         """
         Returns all parameters, which have certain group.
@@ -3852,6 +3863,27 @@ class StarList(object):
         """
         index = self.get_index(component, parameter, group)
         del self.componentList[component][parameter][index]
+
+    def reset(self, parameters='all'):
+        """
+        Leaves only one parameter per type and component.
+        :param parameters - list of reseted parameters
+        :return:
+        """
+        # cycle over components
+        for c in self._registered_components:
+
+            # select all parameters
+            if parameters == 'all':
+                reset_params = self.componentList[c].keys()
+            else:
+                reset_params = parameters
+
+            # cycle over reseted parameters
+            for p in reset_params:
+                self.componentList[c][p] = [self.componentList[c][p][0]]
+                self.groups[c][p] = [self.groups[c][p][0]]
+
 
     def save(self, ofile):
         """
