@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
-import corner
+# import corner
 # import sys
 import warnings
 # import numpy as np
@@ -1039,10 +1039,10 @@ class Interface(object):
             i += 1
 
         # do the corner plot
-        corner.corner(log['data'][:,indices], bins=nbin, labels=labels,
+        # corner.corner(log['data'][:,indices], bins=nbin, labels=labels,
                       # quantiles=(0.67*np.ones(len(indices))).tolist(),
-                      truths=(np.zeros(len(indices))).tolist()
-                      )
+                      # truths=(np.zeros(len(indices))).tolist()
+                      # )
 
         # save the figure
         if savefig:
