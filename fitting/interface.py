@@ -3716,6 +3716,20 @@ class StarList(object):
                       ' not found.' % (component, parameter, str(group)))
         return None
 
+    def get_parameter_types(self):
+        """
+        Returns a list of all parameter names
+        :return:
+        """
+        partypes = []
+
+        # go over each component and parameter
+        for c in self._registered_components:
+            for p in self.componentList[c].keys():
+                if p not in partypes:
+                    partypes.append(p)
+        return partypes
+
 
     def get_parameter(self, **kwargs):
         """
