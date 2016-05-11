@@ -2163,7 +2163,7 @@ class Interface(object):
         # go over each record within comparisonList
         for cp in self.comparisonList:
 
-            # extract description of the compariosn
+            # extract description of the comparison
             wave = cp['wave']
             intens = sum_dict_keys(cp['synthetic'])
             wmin = cp['wmin']
@@ -2171,7 +2171,7 @@ class Interface(object):
             component = cp['observed'].component
             korel = cp['observed'].korel
             rvgroup = cp['groups']['rv']
-            cpars = cp['parameters']
+            # cpars = cp['parameters']
 
             # set name
             name = '_'.join([outputfile, 'c', component, 'wmin', str(wmin), 'wmax', str(wmax), 'g', str(rvgroup)]) \
