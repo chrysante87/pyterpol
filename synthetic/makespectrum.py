@@ -473,6 +473,14 @@ class SyntheticSpectrum:
             self.wave = self.wave[ind]
             self.intens = self.intens[ind]
 
+    def write_spectrum(self, filename='synspec.dat', fmt='%12.6f%10.6f', **kwargs):
+        """
+        Writes the current synthetic spectrum.
+        :return:
+        """
+        header = str(self.get_properties())
+        np.savetxt(filename, np.column_stack([self.wave, self.intens]), fmt=fmt, header=header)
+
 
 class SyntheticGrid:
     def __init__(self, mode='default', debug=False):
