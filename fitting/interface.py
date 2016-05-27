@@ -1522,7 +1522,6 @@ class Interface(object):
         :return:
         """
         # pass on the fit properties
-        # print self.sl.get_fitted_parameters(True)[1], 'Tadddddddddy!!!'
         self.fitter.set_fit_properties(self.sl.get_fitted_parameters(True)[1])
 
         # update the boundaries
@@ -2152,7 +2151,7 @@ class Interface(object):
 
         return rvs, allgroups, names
 
-    def write_spectra_from_comparisonlist(self, outputfile=None):
+    def write_shifted_spectra(self, outputfile=None, residuals=False):
         """
         :return:
         """
@@ -2162,6 +2161,9 @@ class Interface(object):
 
         # go over each record within comparisonList
         for cp in self.comparisonList:
+
+            if residuals:
+                outputfile = cp['observed'].filename
 
             # extract description of the comparison
             wave = cp['wave']
@@ -2182,11 +2184,16 @@ class Interface(object):
             header += '# Component: %s\n' % str(component)
             header += '# Region: (%s,%s)\n' % (str(wmin), str(wmax))
             header += '# KOREL: %s\n' % str(korel)
+            header += '# Residual: %s\n' % str(residuals)
 
             # write the synthetic spectrum
             ofile = open(name, 'w')
             ofile.writelines(header)
-            np.savetxt(ofile, np.column_stack([wave, intens]), fmt='%15.6e')
+            if residuals:
+                oi = cp['observed'].get_spectrum(wmin, wmax)[1]
+                np.savetxt(ofile, np.column_stack([wave, oi - intens]), fmt='%15.8e')
+            else:
+                np.savetxt(ofile, np.column_stack([wave, intens]), fmt='%15.8e')
             ofile.close()
 
     def write_synthetic_spectra(self, component=None, region=None, rvgroups=None, outputname=None, korel=False):
