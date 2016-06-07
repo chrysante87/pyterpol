@@ -4,7 +4,8 @@ import numpy as np
 
 def main():
     ps = argparse.ArgumentParser()
-    ps.add_argument('--remove', action='store_true', default=False)
+    ps.add_argument('--remove', action='store_true', default=False, help='Removes ascii files.')
+    ps.add_argument('--overwrite', action='store_true', default=False, help='Overwrites binary files -- mandatory for every machine swap.')
     args = ps.parse_args()
     print args
     
@@ -33,7 +34,7 @@ def main():
           
             # define name of the binary file
             bin_synspec = synspec + '.npz'
-    	    if os.path.isfile(os.path.join(path, bin_synspec)):
+            if os.path.isfile(os.path.join(path, bin_synspec)) and not args.overwrite:
                 print "File: %s exists." % bin_synspec
                 if os.path.isfile(os.path.join(path, synspec)) and args.remove:
                     os.remove(os.path.join(path, synspec))       
