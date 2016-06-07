@@ -124,10 +124,6 @@ class SyntheticSpectrum:
         if wmax is None:
             wmax = self.wmax
 
-        # print wmin, self.wmin
-        # print wmax, self.wmax
-        # print (wmin - (self.wmin - self.step))
-        # print wmax - (self.wmax + self.step)
         if (wmin - (self.wmin - self.step) < ZERO_TOLERANCE) | \
            (wmax - (self.wmax + self.step) > ZERO_TOLERANCE):
             return False
@@ -146,12 +142,24 @@ class SyntheticSpectrum:
         input:
             f.. filename
         """
-        if f is None:
+        if f is not None:
             # will raise an Exception if self.filename is not specified
-            self.wave, self.intens = np.loadtxt(self.filename, unpack=True, usecols=[0, 1])
-        else:
             self.filename = f
-            self.wave, self.intens = np.loadtxt(f, unpack=True, usecols=[0, 1])
+
+        # define binary file
+        binf = ".".join([self.filename,'npz'])
+        # print binf
+        # print os.path.isfile(binf)
+
+        # check that binary representation exists -- that load it
+        if os.path.isfile(binf):
+            # loads the spectrum
+            self.filename = binf
+            data = np.load(binf)
+            self.wave = data['arr_0']
+            self.intens = data['arr_1']
+        else:
+            self.wave, self.intens = np.loadtxt(self.filename, unpack=True, usecols=[0, 1])
 
         # measures the spectrum and marks it as loaded
         self.measure_spectrum()

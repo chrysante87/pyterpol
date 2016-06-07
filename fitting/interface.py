@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
-# import corner
+import corner
 # import sys
 import warnings
 # import numpy as np
@@ -1008,10 +1008,6 @@ class Interface(object):
         :param figname
         :return:
         """
-        if any([isinstance(x, (float, int, str)) for x in [components, parameters, groups]]):
-            raise TypeError('Parameters (parameter, component, group) have to be either type list'
-                            ' or string == \'all\'.')
-
         if figname is not None:
             savefig = True
 
@@ -1025,6 +1021,10 @@ class Interface(object):
             components = np.unique(log['component'])
         if groups is None:
             groups = np.unique(log['group'])
+
+        if any([isinstance(x, (float, int, str)) for x in [components, parameters, groups]]):
+            raise TypeError('Parameters (parameter, component, group) have to be either type list'
+                            ' or string == \'all\'.')
 
         # take only the part, where the sampler is burnt in
         log['data'] = log['data'][nwalkers*treshold:,:]
@@ -1049,10 +1049,10 @@ class Interface(object):
             i += 1
 
         # do the corner plot
-        # corner.corner(log['data'][:,indices], bins=nbin, labels=labels,
-                      # quantiles=(0.67*np.ones(len(indices))).tolist(),
-                      # truths=(np.zeros(len(indices))).tolist()
-                      # )
+        corner.corner(log['data'][:,indices], bins=nbin, labels=labels,
+                      quantiles=(0.67*np.ones(len(indices))).tolist(),
+                      truths=(np.zeros(len(indices))).tolist()
+                      )
 
         # save the figure
         if savefig:
