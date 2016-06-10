@@ -121,6 +121,9 @@ class Fitter(object):
         if len(self.par0) == 0:
             raise ValueError('No initial vector of parameters (wrapped in Parameter class) was passeed.')
 
+        # check that initial parameters do not lie outside the fitted region.
+        self.check_initial_parameters()
+
         # run fitting
         if self.family == 'sp':
             if self.uses_bounds:
@@ -184,6 +187,17 @@ class Fitter(object):
         :return:
         """
         self.__init__()
+
+    def check_initial_parameters(self):
+        """
+        Checks that initial parameters do not lie outside the fitted region.
+        :return:
+        """
+        p0 = self.par0
+        for i, p in enumerate(self.fitparams):
+            if (p0[i] > p['vmax']) | (p0[i] < p['vmin']):
+                raise ValueError('Parameter %s (group %i) lies outside the fitted regions! %f not in (%f, %f)' %
+                                 (p['name'], p['group'], p['value'], p['vmin'], p['vmax']))
 
     def choose_fitter(self, name, fitparams=None, init_step=None, **kwargs):
         """

@@ -5,7 +5,7 @@ import numpy as np
 def main():
     ps = argparse.ArgumentParser()
     ps.add_argument('--remove', action='store_true', default=False, help='Removes ascii files.')
-    ps.add_argument('--overwrite', action='store_true', default=False, help='Overwrites binary files -- mandatory for every machine swap.')
+    ps.add_argument('--overwrite', action='store_true', default=False, help='Overwrites binary files -- mandatory for every machine swap. ')
     args = ps.parse_args()
     print args
     

@@ -140,13 +140,14 @@ def interpolate_block_faster(x, block, xnew):
     # length of the datablock
     nx = len(block[0])
     ny = len(x)
+    # print x
 
     if ny > 3:
         ky = 3
     else:
         ky = ny - 1
 
-    f = RectBivariateSpline(x, np.arange(nx), block, kx=ky, ky=2)
+    f = RectBivariateSpline(x, np.arange(nx), block, kx=ky, ky=1)
     intens = f(xnew, np.arange(nx))[0]
 
     return intens
