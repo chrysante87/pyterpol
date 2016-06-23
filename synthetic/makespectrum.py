@@ -23,7 +23,6 @@ from defaults import ABS_gridDirectory
 from defaults import ABS_grid_files
 from defaults import ABS_gridListFile
 
-
 # CONSTANTS
 
 class SyntheticSpectrum:
@@ -482,7 +481,7 @@ class SyntheticSpectrum:
             self.wave = self.wave[ind]
             self.intens = self.intens[ind]
 
-    def write_spectrum(self, filename='synspec.dat', fmt='%12.6f%10.6f', **kwargs):
+    def write_spectrum(self, filename='synspec.dat', fmt='%12.6f %12.8e', **kwargs):
         """
         Writes the current synthetic spectrum.
         :return:
@@ -498,6 +497,12 @@ class SyntheticGrid:
         input:
             mode..
         """
+
+        # import from defaults
+        self.default_grid_order = default_grid_order
+        self.gridDirectory = gridDirectory
+        self.grid_files = grid_files
+        self.gridListFile = gridListFile
 
         # Table containing list of the SyntheticSpectrum types
         self.SyntheticSpectraList = []
@@ -871,12 +876,12 @@ class SyntheticGrid:
         """
         # go over differents modes
         string = 'List of registered modes and their properties follows:\n'
-        for i in range(0, len(grid_files['identification'])):
+        for i in range(0, len(self.grid_files['identification'])):
             string += ''.ljust(100,'=') + '\n'
-            string += 'mode: %s:\n' % grid_files['identification'][i]
-            string += 'directories: %s \n' % str(grid_files['directories'][i])
-            string += 'columns: %s\n' % str(grid_files['columns'][i])
-            string += 'families: %s\n' % str(grid_files['families'][i])
+            string += 'mode: %s:\n' % self.grid_files['identification'][i]
+            string += 'directories: %s \n' % str(self.grid_files['directories'][i])
+            string += 'columns: %s\n' % str(self.grid_files['columns'][i])
+            string += 'families: %s\n' % str(self.grid_files['families'][i])
         string += ''.ljust(100,'=') + '\n'
 
         return string
@@ -1219,30 +1224,33 @@ class SyntheticGrid:
         flux_type = flux_type.upper()
 
         # select the correct type of flux
+        print "flux_type = " + str(flux_type)
+
+        # note we cannot overwrite globals, but only class variables
         if flux_type == 'ABSOLUTE':
-            grid_files = ABS_grid_files
-            gridDirectory = ABS_gridDirectory
-            gridListFile = ABS_gridListFile
-            default_grid_order = ABS_default_grid_order
+            self.grid_files = ABS_grid_files
+            self.gridDirectory = ABS_gridDirectory
+            self.gridListFile = ABS_gridListFile
+            self.default_grid_order = ABS_default_grid_order
 
         # select properties
-        ind = grid_files['identification'].index(mode)
+        ind = self.grid_files['identification'].index(mode)
 
         if ind < 0:
             raise ValueError('Default settings named %s not found.' % (mode))
 
-        dirs = grid_files['directories'][ind]
-        cols = grid_files['columns'][ind]
-        fams = grid_files['families'][ind]
+        dirs = self.grid_files['directories'][ind]
+        cols = self.grid_files['columns'][ind]
+        fams = self.grid_files['families'][ind]
 
         # reads the grid files
         for i, d in enumerate(dirs):
-            spectralist = os.path.join(gridDirectory, d, gridListFile)
-            directory = os.path.join(gridDirectory, d)
+            spectralist = os.path.join(self.gridDirectory, d, self.gridListFile)
+            directory = os.path.join(self.gridDirectory, d)
             self.read_list_from_file(spectralist, cols, family=fams[i], directory=directory)
 
         # also sets the default grid order
-        self.set_grid_order(default_grid_order)
+        self.set_grid_order(self.default_grid_order)
 
     def set_mode(self, mode='default'):
         """

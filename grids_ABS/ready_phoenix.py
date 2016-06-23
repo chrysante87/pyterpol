@@ -68,9 +68,10 @@ def fits2dat(filename, wave):
     for i in xrange(0,len(intens)):
         if intens[i] < 0.0:
             intens[i] = 0.0
+        intens[i] = intens[i]*1.e-8  # erg s^-1 cm^-2 cm^-1 -> erg s^-1 cm^-2 A^-1 (as in POLLUX)
 
     # save spectra
-    out = filename[:-4]+'dat'
+    out = filename[:-4]+'vis.dat'
     np.savetxt(out, np.column_stack([wnew, intens]), fmt="%.6e %.10e")
 
     sys.exit(1)  # dbg
