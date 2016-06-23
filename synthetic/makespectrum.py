@@ -18,6 +18,10 @@ from defaults import default_grid_order
 from defaults import gridDirectory
 from defaults import grid_files
 from defaults import gridListFile
+from defaults import ABS_default_grid_order
+from defaults import ABS_gridDirectory
+from defaults import ABS_grid_files
+from defaults import ABS_gridListFile
 
 
 # CONSTANTS
@@ -491,7 +495,7 @@ class SyntheticSpectrum:
 
 
 class SyntheticGrid:
-    def __init__(self, mode='default', debug=False):
+    def __init__(self, mode='default', flux_type='relative', debug=False):
         """
         Setup the grid.
         input:
@@ -510,7 +514,7 @@ class SyntheticGrid:
 
         # reads default grids
         if mode.lower() != 'custom':
-            self.setup_defaults(mode)
+            self.setup_defaults(mode, flux_type)
 
         # updates debug mode
         self.debug = debug
@@ -1203,17 +1207,26 @@ class SyntheticGrid:
                     break
         return values
 
-    def setup_defaults(self, mode):
+    def setup_defaults(self, mode, flux_type):
         """
         Given a key loads a grid stored within
         the directory.
         input:
             mode.. one of the defaults mode OSTAR, BSTAR, POLLUX, AMBRE
-               defaulst = all
+                   defaulst = all
+            flux_type.. either relative or absolute
         """
 
         # we do not want to bother with the case
         mode = mode.upper()
+        flux_type = flux_type.upper()
+
+        # select the correct type of flux
+        if flux_type == 'ABSOLUTE':
+            grid_files = ABS_grid_files
+            gridDirectory = ABS_gridDirectory
+            gridListFile = ABS_gridListFile
+            default_grid_order = ABS_default_grid_order
 
         # select properties
         ind = grid_files['identification'].index(mode)

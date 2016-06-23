@@ -57,4 +57,4 @@ ABS_grid_files = dict(
 )
 
 # stores default grid order
-ABS_default_grid_order = ['BSTAR', 'OSTAR', 'AMBRE', 'POLLUX']
+ABS_default_grid_order = []
