@@ -142,10 +142,14 @@ def interpolate_block_faster(x, block, xnew):
     ny = len(x)
     # print x
 
-    if ny > 3:
+    if (ny > 3) & (ny < 6):
         ky = 3
+    elif ny > 5:
+        ky = 5
     else:
         ky = ny - 1
+
+    print ky
 
     f = RectBivariateSpline(x, np.arange(nx), block, kx=ky, ky=1)
     intens = f(xnew, np.arange(nx))[0]
