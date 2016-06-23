@@ -5,7 +5,11 @@ import emcee
 import numpy as np
 from scipy.optimize import fmin
 from scipy.optimize import fmin_slsqp
-from scipy.optimize import differential_evolution
+try:
+    from scipy.optimize import differential_evolution
+except ImportError as ex:
+    print ex
+    differential_evolution = None
 from pyterpol.synthetic.auxiliary import parlist_to_list
 from pyterpol.synthetic.auxiliary import string2bool
 from pyterpol.synthetic.auxiliary import read_text_file

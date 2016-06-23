@@ -147,23 +147,20 @@ class SyntheticSpectrum:
             f.. filename
         """
         if f is not None:
-            # will raise an Exception if self.filename is not specified
             self.filename = f
 
-        # define binary file
-        binf = ".".join([self.filename,'npz'])
-        # print binf
-        # print os.path.isfile(binf)
+        # check if a binary representation exists -- then load it
+        binary_file = self.filename + '.npz'
+        if os.path.isfile(binary_file):
+            npz = np.load(binary_file, mmap_mode='r')
+            self.wave = npz['arr_0']
+            self.intens = npz['arr_1']
 
-        # check that binary representation exists -- that load it
-        if os.path.isfile(binf):
-            # loads the spectrum
-            self.filename = binf
-            data = np.load(binf)
-            self.wave = data['arr_0']
-            self.intens = data['arr_1']
+        # otherwise, load ascii (very slow!) and save it as binary
         else:
             self.wave, self.intens = np.loadtxt(self.filename, unpack=True, usecols=[0, 1])
+            print("Saving binary file: " + str(binary_file))
+            np.savez(binary_file, self.wave, self.intens)
 
         # measures the spectrum and marks it as loaded
         self.measure_spectrum()

@@ -1,0 +1,6 @@
+# vim temporary files
+*.swp
+
+# compiled by python
+*.py[co]
+
