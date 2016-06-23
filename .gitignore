@@ -4,3 +4,8 @@
 # compiled by python
 *.py[co]
 
+# synthetic spectra
+*.vis.1
+*.vis.dat
+*.npz
+
