@@ -1224,8 +1224,6 @@ class SyntheticGrid:
         flux_type = flux_type.upper()
 
         # select the correct type of flux
-        print "flux_type = " + str(flux_type)
-
         # note we cannot overwrite globals, but only class variables
         if flux_type == 'ABSOLUTE':
             self.grid_files = ABS_grid_files

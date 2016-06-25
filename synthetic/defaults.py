@@ -43,20 +43,21 @@ ABS_gridDirectory = os.path.join("/".join(curdir.split('/')[:-1]), 'grids_ABS')
 # name of the file containing records on synthetic spectra
 ABS_gridListFile = 'gridlist'
 
+# POLLUX has a too narrow wavelength range => it was deleted
 ABS_grid_files = dict(
     identification=['DEFAULT'],
     directories=[
-        ['OSTAR_Z_1.0', 'BSTAR_Z_1.0', 'POLLUX_Z_1.0', 'PHOENIX_Z_1.0'],
+        ['OSTAR_Z_1.0', 'BSTAR_Z_1.0', 'PHOENIX_Z_1.0'],
  ],
     columns=[
         ['FILENAME', 'TEFF', 'LOGG', 'Z'],
              ],
     families=[
-        ['OSTAR', 'BSTAR', 'POLLUX', 'PHOENIX'],
+        ['OSTAR', 'BSTAR', 'PHOENIX'],
               ]
 )
 
 # stores default grid order
-ABS_default_grid_order = ['BSTAR', 'OSTAR', 'PHOENIX', 'POLLUX']
+ABS_default_grid_order = ['BSTAR', 'OSTAR', 'PHOENIX']
 
 
