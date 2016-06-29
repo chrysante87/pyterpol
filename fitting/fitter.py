@@ -199,6 +199,11 @@ class Fitter(object):
         """
         p0 = self.par0
         for i, p in enumerate(self.fitparams):
+            
+            # differential evolution uses interval as a p0, and
+            # this function tests only floats
+            if isinstance(p0[i], (list, tuple)):
+                continue
             if (p0[i] > p['vmax']) | (p0[i] < p['vmin']):
                 raise ValueError('Parameter %s (group %i) lies outside the fitted regions! %f not in (%f, %f)' %
                                  (p['name'], p['group'], p['value'], p['vmin'], p['vmax']))
