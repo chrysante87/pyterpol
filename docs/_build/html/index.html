@@ -1,0 +1,460 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to Pyterpol’s documentation! &#8212; Pyterpol 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Pyterpol 0.0.1 documentation" href="#" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-pyterpol-s-documentation">
+<h1>Welcome to Pyterpol&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyterpol-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-pyterpol.synthetic.auxiliary"></span><dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.flatten_2d">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">flatten_2d</code><span class="sig-paren">(</span><em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#flatten_2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.flatten_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flattens 2-dim array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>arr</strong> &#8211; 2d array</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.generate_least_number">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">generate_least_number</code><span class="sig-paren">(</span><em>l</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#generate_least_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.generate_least_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Goes over integer in list and finds the
+smallest integer not in the list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>l</strong> &#8211; the list</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">int the smallest integer</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.instrumental_broadening">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">instrumental_broadening</code><span class="sig-paren">(</span><em>wave</em>, <em>flux</em>, <em>width=0.25</em>, <em>width_type='sigma'</em>, <em>interpolate_back=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#instrumental_broadening"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.instrumental_broadening" title="Permalink to this definition">¶</a></dt>
+<dd><p>A convolution of a spectrum with a normal distribution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body"><p class="first">wave:</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body"><p class="first">flux:</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>width</strong> &#8211; </li>
+<li><strong>width_type</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.interpolate_block">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">interpolate_block</code><span class="sig-paren">(</span><em>x</em>, <em>block</em>, <em>xnew</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#interpolate_block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.interpolate_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolates in each line of a 2d array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numpy.float64</em>) &#8211; independent variable</li>
+<li><strong>block</strong> (<em>numpy.float64</em>) &#8211; 2d array for each column f(x)= block[i]</li>
+<li><strong>xnew</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; point at which it is interpolated</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.interpolate_block_faster">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">interpolate_block_faster</code><span class="sig-paren">(</span><em>x</em>, <em>block</em>, <em>xnew</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#interpolate_block_faster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.interpolate_block_faster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolation of teh spectra... hopefully faster?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> &#8211; </li>
+<li><strong>block</strong> &#8211; </li>
+<li><strong>xnew</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.interpolate_spec">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">interpolate_spec</code><span class="sig-paren">(</span><em>wave0</em>, <em>intens0</em>, <em>wave1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#interpolate_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.interpolate_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines a function intens0 = f(wave0) and
+than interpolates in it at wave1.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>wave0</strong> (<em>numpy.float64</em>) &#8211; initial wavelength array</li>
+<li><strong>intens0</strong> (<em>numpy.float64</em>) &#8211; initial intensity array</li>
+<li><strong>wave1</strong> (<em>numpy.float64</em>) &#8211; wavelength array at which we interpolate</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return intens1:</th><td class="field-body"><p class="first">final intensity array</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Rtype intens1:</th><td class="field-body"><p class="first last">numpy.float64</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.is_within_interval">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">is_within_interval</code><span class="sig-paren">(</span><em>v</em>, <em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#is_within_interval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.is_within_interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tests whether value v lies within interval [min(arr); max(arr)]</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>v</strong> (<em>numpy.float64</em>) &#8211; tested values</li>
+<li><strong>arr</strong> &#8211; tested array</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.keys_to_lowercase">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">keys_to_lowercase</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#keys_to_lowercase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.keys_to_lowercase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts dictionary keys to lowercase</p>
+<p>:param d the converted dictionary
+:return: dnew</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.parlist_to_list">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">parlist_to_list</code><span class="sig-paren">(</span><em>l</em>, <em>property='value'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#parlist_to_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.parlist_to_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a list of Parameter class to a
+regular list - only the property is returned</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>l</strong> &#8211; </li>
+<li><strong>prop</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.read_text_file">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">read_text_file</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#read_text_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.read_text_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads ascii file f.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>f</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return lines:</th><td class="field-body">list of all lines within file f</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)">list</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.renew_file">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">renew_file</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#renew_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.renew_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes an existing file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>f</strong> &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.rotate_spectrum">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">rotate_spectrum</code><span class="sig-paren">(</span><em>wave</em>, <em>intens</em>, <em>vrot</em>, <em>epsilon=0.6</em>, <em>interpolate_back=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#rotate_spectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.rotate_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotates a spectrum represented by arrays wave and intes to the prjected
+rotational velocity vrot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>wave</strong> (<em>numpy.float64</em>) &#8211; wavelength array</li>
+<li><strong>intens</strong> (<em>numpy.float64</em>) &#8211; intensity array</li>
+<li><strong>vrot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; projected rotational velocity in km/s</li>
+<li><strong>epsilon</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Coefficient of linear limb-darkening.</li>
+<li><strong>interpolate_back</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; interpolate the spectrum back to the original wavelength sampling</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return intens:</th><td class="field-body"><p class="first">the rotated spectrum in the original wavelength sanmpling</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Rtype intens:</th><td class="field-body"><p class="first">numpy.float64</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return intens_conv:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first">the rotated spectrum equidistant in rv</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Rtype intens_conv:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><p class="first">numpy.float64</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return wave_conv:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first">the wavelength array equidistant in rv</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Rtype wave_conv:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><p class="first last">numpy.float64</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.select_index_for_multiple_keywords">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">select_index_for_multiple_keywords</code><span class="sig-paren">(</span><em>d</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#select_index_for_multiple_keywords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.select_index_for_multiple_keywords" title="Permalink to this definition">¶</a></dt>
+<dd><p>From a dictionary of lists selects
+one index meeting all requirements.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.shift_spectrum">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">shift_spectrum</code><span class="sig-paren">(</span><em>wave</em>, <em>RV</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#shift_spectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.shift_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doppler-shifts spectrum.
+:param wave: original wavelength array
+:type wave: numpy.float64
+:param RV: radial velocity in km/s
+:type RV: float
+:return new_wave: shifted wavelength array
+:rtype new_wave: numpy.float64</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.string2bool">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">string2bool</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#string2bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.string2bool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts string to boolean.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>s</strong> &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.sum_dict_keys">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">sum_dict_keys</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#sum_dict_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.sum_dict_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sums dictionary key records.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>d</strong> &#8211; the dictionary</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">s the sum</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyterpol.synthetic.auxiliary.write_numpy">
+<code class="descclassname">pyterpol.synthetic.auxiliary.</code><code class="descname">write_numpy</code><span class="sig-paren">(</span><em>f</em>, <em>cols</em>, <em>fmt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyterpol/synthetic/auxiliary.html#write_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyterpol.synthetic.auxiliary.write_numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>An example of lack of brain of the main developer of this &#8220;code&#8221;.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>f</strong> &#8211; outputfile or handler</li>
+<li><strong>cols</strong> &#8211; block of data to be writte</li>
+<li><strong>fmt</strong> &#8211; format of the blocs</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Pyterpol&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Nemravova Jana.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/index.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

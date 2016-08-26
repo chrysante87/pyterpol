@@ -12,9 +12,11 @@ from scipy.signal import fftconvolve
 
 ZERO_TOLERANCE = 1e-6
 
+
 def flatten_2d(arr):
     """
     Flattens 2-dim array
+
     :param arr: 2d array
     :return:
     """
@@ -29,9 +31,11 @@ def flatten_2d(arr):
     else:
         return arr
 
+
 def instrumental_broadening(wave, flux, width=0.25, width_type='sigma', interpolate_back=True):
     """
-    Code taken from PHOEBE2.0
+    A convolution of a spectrum with a normal distribution.
+
     :param: wave:
     :param: flux:
     :param width:
@@ -57,12 +61,12 @@ def instrumental_broadening(wave, flux, width=0.25, width_type='sigma', interpol
     # convolution
     delta_wave = np.diff(wave).min()
     range_wave = wave.ptp()
-    n_wave = int(range_wave/delta_wave) + 1
+    n_wave = int(range_wave / delta_wave) + 1
     wave_ = np.linspace(wave[0], wave[-1], n_wave)
     # flux_ = np.interp(wave_, wave, flux)
     flux_ = interpolate_spec(wave, flux, wave_)
-    dwave = wave_[1]-wave_[0]
-    n_kernel = int(2*4*sigma/dwave)
+    dwave = wave_[1] - wave_[0]
+    n_kernel = int(2 * 4 * sigma / dwave)
 
     # The kernel might be of too low resolution, or the the wavelength range
     # might be too narrow. In both cases, raise an appropriate error
@@ -75,13 +79,13 @@ def instrumental_broadening(wave, flux, width=0.25, width_type='sigma', interpol
                           "instrumental broadening"))
 
     # Construct the broadening kernel
-    wave_k = np.arange(n_kernel)*dwave
-    wave_k -= wave_k[-1]/2.
-    kernel = np.exp(- (wave_k)**2/(2*sigma**2))
+    wave_k = np.arange(n_kernel) * dwave
+    wave_k -= wave_k[-1] / 2.
+    kernel = np.exp(- (wave_k) ** 2 / (2 * sigma ** 2))
     kernel /= sum(kernel)
 
     # Convolve the flux with the kernel
-    flux_conv = fftconvolve(1-flux_, kernel, mode='same')
+    flux_conv = fftconvolve(1 - flux_, kernel, mode='same')
 
     # And interpolate the results back on to the original wavelength array,
     # taking care of even vs. odd-length kernels
@@ -91,19 +95,23 @@ def instrumental_broadening(wave, flux, width=0.25, width_type='sigma', interpol
         offset = dwave / 2.0
 
     if interpolate_back:
-        flux = np.interp(wave+offset, wave_, 1-flux_conv, left=1, right=1)
+        flux = np.interp(wave + offset, wave_, 1 - flux_conv, left=1, right=1)
         # flux = interpolate_spec(wave_, 1-flux_conv, wave+offset)
         # Return the results.
         return flux
 
+
 def interpolate_block(x, block, xnew):
     """
-    Interpolates in each column of a 2d matrix.
-    input:
-	x.. abscissa
-	block.. 2d matrix of 
-    output:
-	intens.. interpolated
+    Interpolates in each line of a 2d array.
+
+    :param x: independent variable
+    :type x: numpy.float64
+    :param block: 2d array for each column f(x)= block[i]
+    :type block: numpy.float64
+    :param xnew: point at which it is interpolated
+    :type xnew: float
+    :return:
     """
     intens = np.zeros(len(block[0]))
     n = len(block[:, 0])
@@ -122,15 +130,14 @@ def interpolate_block(x, block, xnew):
 
         tck = splrep(x, y, k=k)
         intens[i] = splev(xnew, tck, der=0)
-        # f = interp1d(np.array(x), np.array(y), kind='cubic')
-        # intens[i] = f(xnew)
-        # intens[i] = spline(x, y, xnew, order=k)
 
     return intens
+
 
 def interpolate_block_faster(x, block, xnew):
     """
     Interpolation of teh spectra... hopefully faster?
+
     :param x:
     :param block:
     :param xnew:
@@ -156,16 +163,21 @@ def interpolate_block_faster(x, block, xnew):
 
     return intens
 
+
 def interpolate_spec(wave0, intens0, wave1):
     """
-    input:
-      wave0, intens0.. spectrum to be interpolated
-      wave1.. new set of wavelengths
-    output:
-      intens1.. new set of intensities
+    Defines a function intens0 = f(wave0) and
+    than interpolates in it at wave1.
+
+    :param wave0: initial wavelength array
+    :type wave0: numpy.float64
+    :param intens0: initial intensity array
+    :type intens0: numpy.float64
+    :param wave1: wavelength array at which we interpolate
+    :type wave1: numpy.float64
+    :return intens1: final intensity array
+    :rtype intens1: numpy.float64
     """
-    # spl = InterpolatedUnivariateSpline(wave0, intens0, k=3)
-    # intens1 = spl(wave1)
     tck = splrep(wave0, intens0, k=3)
     intens1 = splev(wave1, tck)
 
@@ -174,11 +186,15 @@ def interpolate_spec(wave0, intens0, wave1):
 
 def is_within_interval(v, arr):
     """
-    Constrols that value v
-    lies within a specified array.
-    input:
-      v.. tested value
-      arr.. tested array
+    Tests whether value v lies within interval [min(arr); max(arr)]
+
+    :param v: tested values
+    :type v: numpy.float64
+    :param arr: tested array
+    :type v: numpy.float64
+    :return:
+    :param:
+    :type: bool
     """
     # print v, max(arr), min(arr)
     if (v - max(arr) > ZERO_TOLERANCE) | (min(arr) - v > ZERO_TOLERANCE):
@@ -191,6 +207,7 @@ def generate_least_number(l):
     """
     Goes over integer in list and finds the
     smallest integer not in the list.
+
     :param l: the list
     :return: int the smallest integer
     """
@@ -203,6 +220,7 @@ def generate_least_number(l):
 def keys_to_lowercase(d):
     """
     Converts dictionary keys to lowercase
+
     :param d the converted dictionary
     :return: dnew
     """
@@ -219,6 +237,7 @@ def parlist_to_list(l, property='value'):
     """
     Converts a list of Parameter class to a
     regular list - only the property is returned
+
     :param l:
     :param prop:
     :return:
@@ -233,6 +252,7 @@ def parlist_to_list(l, property='value'):
 def sum_dict_keys(d):
     """
     Sums dictionary key records.
+
     :param d: the dictionary
     :return: s the sum
     """
@@ -244,11 +264,12 @@ def sum_dict_keys(d):
 
 def read_text_file(f):
     """
-    Reads an ASCII file and returns its string rep.
-    Input:
-      f.. the file to be read
-    Output:
-      lines.. string representation of the file
+    Reads ascii file f.
+
+    :param f: the file
+    :type f: str
+    :return lines: list of all lines within file f
+    :rtype: list
     """
 
     ifile = open(f, 'r')
@@ -257,28 +278,40 @@ def read_text_file(f):
 
     return lines
 
+
 def renew_file(f):
     """
     Deletes an existing file.
+
     :param f:
     :return:
     """
     ofile = open(f, 'w')
     ofile.close()
 
+
 def rotate_spectrum(wave, intens, vrot, epsilon=0.6, interpolate_back=True):
     """
-    Code taken from PHOEBE2.0
-    Eqs consistent with Gray (2005).
-    input:
-      wave.. input wavelength
-      intens.. input intensities
-      vrot.. vsini in km/s
-      fwhm.. instrumental broadening profile
-    output
-      intens1.. rotated intensities
-    """
+    Rotates a spectrum represented by arrays wave and intes to the prjected
+    rotational velocity vrot.
 
+    :param wave: wavelength array
+    :type wave: numpy.float64
+    :param intens: intensity array
+    :type intens: numpy.float64
+    :param vrot: projected rotational velocity in km/s
+    :type vrot: float
+    :param epsilon: Coefficient of linear limb-darkening.
+    :type epsilon: float
+    :param interpolate_back: interpolate the spectrum back to the original wavelength sampling
+    :type interpolate_back: bool
+    :return intens: the rotated spectrum in the original wavelength sanmpling
+    :rtype intens: numpy.float64
+    :return intens_conv: the rotated spectrum equidistant in rv
+    :rtype intens_conv: numpy.float64
+    :return wave_conv: the wavelength array equidistant in rv
+    :rtype wave_conv: numpy.float64
+    """
     if vrot > ZERO_TOLERANCE:
         # we need it equidistant in RV
         wave_log = np.log(wave)
@@ -316,26 +349,31 @@ def rotate_spectrum(wave, intens, vrot, epsilon=0.6, interpolate_back=True):
             intens = interpolate_spec(wave_conv, 1 - intens_conv, wave)
             return intens
         else:
-            return 1-intens_conv, wave_conv
+            return 1 - intens_conv, wave_conv
 
 
 def shift_spectrum(wave, RV):
     """
-    input:
-      wave.. old wavelength array
-      RV.. radial velocity in km/s
-    output:
-      new_wave.. shifted array of wavelengths
+    Doppler-shifts spectrum.
+    :param wave: original wavelength array
+    :type wave: numpy.float64
+    :param RV: radial velocity in km/s
+    :type RV: float
+    :return new_wave: shifted wavelength array
+    :rtype new_wave: numpy.float64
+
     """
     # shifts the wavelengths
     new_wave = wave * (1 + RV * 1000 / c.value)
 
     return new_wave
 
+
 def select_index_for_multiple_keywords(d, **kwargs):
     """
     From a dictionary of lists selects
     one index meeting all requirements.
+
     :param kwargs:
     :return:
     """
@@ -351,7 +389,8 @@ def select_index_for_multiple_keywords(d, **kwargs):
 
 def string2bool(s):
     """
-    Converts string to boolean
+    Converts string to boolean.
+
     :param s:
     :return:
     """
@@ -360,12 +399,15 @@ def string2bool(s):
     else:
         return False
 
+
 def write_numpy(f, cols, fmt):
     """
+    An example of lack of brain of the main developer of this "code".
+
     :param f: outputfile or handler
     :param cols: block of data to be writte
     :param fmt: format of the blocs
-    :return:
+    :return: None
     """
 
     np.savetxt(f, cols, fmt=fmt)

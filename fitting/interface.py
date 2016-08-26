@@ -1036,6 +1036,7 @@ class Interface(object):
         i = 0
         # fill the array of indices
         for p, c, g in zip(log['name'], log['component'], log['group']):
+
             # do only the desired ones
             saveind = True
             for v, vals in zip([p, c, g], [parameters, components, groups]):
