@@ -1143,7 +1143,6 @@ class Interface(object):
         components_to_update = []
 
         for c in self.sl.fitted_types.keys():
-            # print self.sl.fitted_types, components_to_update
             for rec in self.sl.fitted_types[c]:
 
                 # recompute only those components for those
@@ -1194,7 +1193,6 @@ class Interface(object):
             grid_pars = [x for x in self.sl.get_physical_parameters()
                          if x not in self._not_given_by_grid]
 
-            # print grid_pars, reg_groups
             # setup default groups - ie zero
             for par in grid_pars:
                 if par not in reg_groups.keys():
@@ -1535,6 +1533,7 @@ class Interface(object):
 
     def save(self, ofile):
         """
+
         Saves the interface as a text file.
         :param ofile: file or filehandler
         :return:
@@ -1581,8 +1580,24 @@ class Interface(object):
         self.rl.save(ofile)
 
         # save the observed list - if any was given
+        # and compute the chi-square
         if self.ol is not None:
+
+            # saves the observed list
             self.ol.save(ofile)
+
+            # saves the chi-square and degrees of freedom
+            string = ' CHI-SQUARE '.rjust(105, '#').ljust(200, '#') + '\n'
+
+            # compute chi2 and ddof
+            chi2 = self.compute_chi2()
+            ddof = self.get_degrees_of_freedom()
+
+            # save it within the asc file
+            string += 'Chi^2: %s Number of degrees of freedom: %s Reduced chi^2: %s\n' % \
+                      (str(chi2), str(ddof), str(chi2 / ddof))
+            string += ' CHI-SQUARE '.rjust(105, '#').ljust(200, '#') + '\n'
+            ofile.writelines(string)
 
     def setup(self):
         """
