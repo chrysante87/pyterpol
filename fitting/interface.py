@@ -374,8 +374,6 @@ class Interface(object):
 
         # parameter keys
         keys = kwargs.keys()
-        # if l is None:
-        #     clist = self.comparisonList
 
         # go over each recordd within list of comparisons
         for i in range(0, len(self.comparisonList)):
@@ -397,7 +395,7 @@ class Interface(object):
                 if key == 'region' and self.comparisonList[i]['region'] != kwargs[key]:
                     include = False
                     break
-            # print include
+
             # if it survived all tests it is included
             if include:
                 clist.append(self.comparisonList[i])
@@ -716,35 +714,29 @@ class Interface(object):
             error = rec['error']
             intens = rec['intens']
 
-            # wmin = self.rl.mainList[region]['wmin']
-            # wmax = self.rl.mainList[region]['wmax']
-
             # go over each component
             for c in rec['parameters'].keys():
                 pars = self.extract_parameters(rec['parameters'][c])
 
                 # use only those parameters that are not constrained with the grid
                 pars = {x: pars[x] for x in pars.keys() if x in self._not_given_by_grid}
-                # print pars
 
                 # populate with the intensity vector of each component
-                # print rec['observed']
                 if rec['observed'] is not None:
                     if demand_errors and rec['error'] is None:
                         raise ValueError('It is not allowed to call chi-square without having'
-                                         ' uncertainties set. SET THE ERRORS FFS!')
+                                         ' uncertainties set.')
 
                     # extract the wavelength
                     wave = rec['wave']
-                    # get the instrumental braodening
-                    fwhm = abs(wave[1]-wave[0])
-                    # fwhm = 0.2
-                    # print fwhm
+
+                    # get the instrumental broadening
+                    fwhm = rec['observed'].get_slit_width()
 
                     # define korelmode
                     korelmode = rec['observed'].korel
+
                     # generate the synthetic spectrum
-                    # print pars
                     rec['synthetic'][c] = self.synthetics[region][c].get_spectrum(wave=wave,
                                                                                   only_intensity=True,
                                                                                   korel=korelmode,

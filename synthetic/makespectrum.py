@@ -8,7 +8,6 @@ from astropy.constants import c
 from auxiliary import is_within_interval
 from auxiliary import instrumental_broadening
 from auxiliary import interpolate_spec
-from auxiliary import interpolate_block
 from auxiliary import interpolate_block_faster
 from auxiliary import read_text_file
 from auxiliary import rotate_spectrum

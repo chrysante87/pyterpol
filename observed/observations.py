@@ -28,8 +28,10 @@ class ObservedSpectrum:
                       e.g. group=dict(rv=1) that rv denoted by grioup one will
                       be assigned to this spectrum. This is convenient if for
                       example the same RV is assigned to a set of spectra.
-        :param fwhm: projected width of the slit from which the instrumental
-                     broadening is computed
+        :param slit_width: projected width of the slit from which the instrumental
+                     broadening is computed in Angstrom (or any other wavelength in
+                     which the observed spectra are calibrated). By default it
+                     is zero.
         """
         # empty arrays, taht will be filled
         # with read_size

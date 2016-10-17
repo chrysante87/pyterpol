@@ -34,8 +34,8 @@ def flatten_2d(arr):
 
 def instrumental_broadening(wave, flux, width=0.25, width_type='fwhm', interpolate_back=True):
     """
-    A convolution of a spectrum with a normal distribution.
 
+    A convolution of a spectrum with a normal distribution.
     :param: wave:
     :param: flux:
     :param width:
