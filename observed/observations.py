@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import splrep
 from scipy.interpolate import splev
-# from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
 
 # repeat userwarnings
 warnings.simplefilter('always', UserWarning)
@@ -14,19 +13,23 @@ class ObservedSpectrum:
     A wrapper class for the observed spectra.
     """
     def __init__(self, wave=None, intens=None, error=None, filename=None,
-                 component='all', korel=False, group=None, debug=False):
+                 component='all', korel=False, group=None, debug=False,
+                 slit_width=0.0):
         """
+
         Setups the class.
-        INPUT:
-            wave.. 	wavelength vector
-            intens..   	intensity vector
-            error..  	error vector
-            filename..	source spectrum
-            component.. component to which the spectrum belongs
-            korel.. 	korel mode
-            group         group in which the spectrum belongs for a given parameter.
-                          all parameters within one group have the same value of a
-                          a given parameter. Type = dictionary(param=groupnumber)
+        :param wave: wavelength vector (typically in angstrom)
+        :param intens: intensity vector (typically relative)
+        :param error: either error vector, or one value that will apply for whole spectrum
+        :param filename: ascii (2 or 3 columns - wave, intens error) with the data
+        :param component: components in the spectrum -- by default set to 'all'
+        :param korel: flag defining that spectrum was obtained with KOREL - by default false
+        :param group: different spectra can be grouped under certain parameter
+                      e.g. group=dict(rv=1) that rv denoted by grioup one will
+                      be assigned to this spectrum. This is convenient if for
+                      example the same RV is assigned to a set of spectra.
+        :param fwhm: projected width of the slit from which the instrumental
+                     broadening is computed
         """
         # empty arrays, taht will be filled
         # with read_size
@@ -75,8 +78,10 @@ class ObservedSpectrum:
             warnings.warn('No spectrum was loaded. This class is kinda useless without a spectrum. '
                           'I hope you know what you are doing.')
 
-        # setup korel and check that it is proper
+        # assignes component
         self.component = component
+
+        # setup korel and check that it is proper
         self.korel = korel
         self.check_korel()
 
@@ -84,6 +89,9 @@ class ObservedSpectrum:
         self.group = dict()
         if group is not None:
             self.set_group(group)
+
+        # assigns the projected slit width
+        self.slit_width = slit_width
 
         # setup debug mode
         self.debug = debug
@@ -124,6 +132,7 @@ class ObservedSpectrum:
 
     def free_spectrum(self):
         """
+
         Deletes the stored spectrum.
         """
         self.wave = None
@@ -215,8 +224,16 @@ class ObservedSpectrum:
 
         return stddev
 
+    def get_slit_width(self):
+        """
+
+        :return:
+        """
+        return self.slit_width
+
     def get_spectrum(self, wmin=None, wmax=None):
         """
+
         Returns the spectrum with wavelengths wmin -> wmax
         :param wmin minimal wavelength
         :param wmax maximal wavelength
