@@ -13,8 +13,8 @@ def main():
 
     ## 2) Load observed data
     # first wrap them into observed spectrum class
-    o1 = pyterpol.ObservedSpectrum(filename='blb00001.clean.asc', slit_width=0.46, group=dict(rv=0))
-    o2 = pyterpol.ObservedSpectrum(filename='blb00002.clean.asc', slit_width=0.46, group=dict(rv=1))
+    o1 = pyterpol.ObservedSpectrum(filename='blb00001.clean.asc', instrumental_width=0.46, group=dict(rv=0))
+    o2 = pyterpol.ObservedSpectrum(filename='blb00002.clean.asc', instrumental_width=0.46, group=dict(rv=1))
     o1.get_sigma_from_continuum(6630., 6640.)
     o2.get_sigma_from_continuum(6630., 6640.)
 
@@ -22,6 +22,11 @@ def main():
     ol = pyterpol.ObservedList()
     ol.add_observations([o1, o2])
 
+    # alternatively
+    ol = pyterpol.ObservedList()
+    obs = [dict(filename='blb00001.clean.asc', instrumental_width=0.46, group=dict(rv=0), error=0.01),
+           dict(filename='blb00002.clean.asc', instrumental_width=0.46, group=dict(rv=1), error=0.01)]
+    ol.add_observations(obs)
         
     ## 3) Generate components
     sl = pyterpol.StarList()

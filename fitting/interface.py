@@ -191,6 +191,10 @@ class Interface(object):
         if l is None:
             l = self.comparisonList
 
+        # accounts for cases when we just evaluate current chi^2
+        if len(pars) == 0:
+            pars = self.get_fitted_parameters(attribute='value')
+
         # propagate the parameters to the
         # parameterlist and update it
         self.propagate_and_update_parameters(l, pars)
@@ -731,7 +735,7 @@ class Interface(object):
                     wave = rec['wave']
 
                     # get the instrumental broadening
-                    fwhm = rec['observed'].get_slit_width()
+                    fwhm = rec['observed'].get_instrumental_width()
 
                     # define korelmode
                     korelmode = rec['observed'].korel
@@ -1594,7 +1598,7 @@ class Interface(object):
             ddof = self.get_degrees_of_freedom()
 
             # save it within the asc file
-            string += 'Chi^2: %s Number of degrees of freedom: %s Reduced chi^2: %s\n' % \
+            string += 'Chi^2: %s Degrees_Of_Freedom: %s Reduced Chi^2: %s\n' % \
                       (str(chi2), str(ddof), str(chi2 / ddof))
             string += ' CHI-SQUARE '.rjust(105, '#').ljust(200, '#') + '\n'
             ofile.writelines(string)

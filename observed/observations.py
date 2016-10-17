@@ -14,7 +14,7 @@ class ObservedSpectrum:
     """
     def __init__(self, wave=None, intens=None, error=None, filename=None,
                  component='all', korel=False, group=None, debug=False,
-                 slit_width=0.0):
+                 instrumental_width=0.0):
         """
 
         Setups the class.
@@ -28,7 +28,7 @@ class ObservedSpectrum:
                       e.g. group=dict(rv=1) that rv denoted by grioup one will
                       be assigned to this spectrum. This is convenient if for
                       example the same RV is assigned to a set of spectra.
-        :param slit_width: projected width of the slit from which the instrumental
+        :param instrumental_width: width of the instrumental profile from which the instrumental
                      broadening is computed in Angstrom (or any other wavelength in
                      which the observed spectra are calibrated). By default it
                      is zero.
@@ -93,7 +93,7 @@ class ObservedSpectrum:
             self.set_group(group)
 
         # assigns the projected slit width
-        self.slit_width = slit_width
+        self.instrumental_width = instrumental_width
 
         # setup debug mode
         self.debug = debug
@@ -164,6 +164,14 @@ class ObservedSpectrum:
         else:
             return None
 
+    def get_instrumental_width(self):
+        """
+
+        Returns width of the instrumental profile.
+        :return:
+        """
+        return self.instrumental_width
+
     def get_sigma_from_continuum(self, cmin, cmax, store=True):
         """
         Estimates the error of the flux from the scatter in
@@ -225,13 +233,6 @@ class ObservedSpectrum:
             self.global_error = stddev
 
         return stddev
-
-    def get_slit_width(self):
-        """
-
-        :return:
-        """
-        return self.slit_width
 
     def get_spectrum(self, wmin=None, wmax=None):
         """
