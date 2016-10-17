@@ -181,7 +181,7 @@ class Interface(object):
         self.grid_properties_passed = False
         self.ident_fitted_pars = None
 
-    def compute_chi2(self, pars, l=None, verbose=False):
+    def compute_chi2(self, pars=[], l=None, verbose=False):
         """
         :param pars:
         :param l
