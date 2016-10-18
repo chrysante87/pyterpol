@@ -318,7 +318,9 @@ class SyntheticSpectrum:
             # there is no point in working with the
             # whole dataset
             # print wmin, wmax
+            # print len(self.wave)
             syn_wave, intens = self.select_interval(wmin, wmax)
+            # print len(syn_wave), len(intens)
 
             # adds the instrumental broadening
             if fwhm is not None and fwhm > ZERO_TOLERANCE:
@@ -339,8 +341,10 @@ class SyntheticSpectrum:
             if lr is not None and abs(lr - 1.0) > ZERO_TOLERANCE:
                 intens = intens*lr
 
+            # print len(syn_wave), len(wave)
             # interpolates to the user specified wavelengths
             intens = interpolate_spec(syn_wave, intens, wave)
+
 
         # if we want to extract the spectra in KOREL format
         if korel:
@@ -428,15 +432,17 @@ class SyntheticSpectrum:
 
     def select_interval(self, wmin, wmax):
         """
+
         Selects a spectral interval from the
         synthetic spectrum.
-        :param wmin minimal wavelength
-        :param wmax maximal wavelength
-        :return wave wavelength vector
-        :return intens iuntensity vector
+        :param wmin: minimal wavelength
+        :param wmax: maximal wavelength
+        :return wave: wavelength vector
+        :return intens: intensity vector
         """
-
+        # print wmin, wmax, self.wave
         ind = np.where((self.wave >= wmin) & (self.wave <= wmax))[0]
+        # print ind
         wave = self.wave[ind]
         intens = self.intens[ind]
 
@@ -576,7 +582,7 @@ class SyntheticGrid:
         input:
             params.. dictionary containing values at which
                  we want to interpolate
-            order..  number of spectra at which we are going
+            order..  number of spectra at which we are goingx
                  to interpolate, i.e. the order of the
                  fit is k = order-1 for order < 4 and
                  k = 3 for order > 4.
@@ -729,18 +735,18 @@ class SyntheticGrid:
             else:
                 spectrum = spectrum[0]
 
+            # print wmin, wmax, spectrum.loaded
+            # print spectrum
             # load the spectrum if not
-            # already loaded
-            if not spectrum.loaded:
+            # check that spectrum is loaded and that its  fitting within boundaries
+            if (not spectrum.loaded):
                 if self.debug:
                     print "Loading spectrum: %s" % (str(spectrum).rstrip('\n'))
                 else:
                     print "Loading spectrum: %s" % (str(spectrum).rstrip('\n'))
 
+                # loads the spectrum
                 spectrum.load_spectrum()
-
-                # check that the synthetic spectrum has sufficient size
-                spectrum.check_boundaries(wmin, wmax)
 
                 # truncates the loaded spectrum
                 if truncateSpectrum:
@@ -748,8 +754,21 @@ class SyntheticGrid:
                         print "Truncating spectrum to: (%f,%f)" % (wmin, wmax)
                     spectrum.truncate_spectrum(wmin, wmax)
             else:
+                # check that the synthetic spectrum has sufficient size
+                # if not reaload it
+                if not spectrum.check_boundaries(wmin, wmax):
+                    spectrum.load_spectrum()
+
+                    # truncates the re-loaded spectrum
+                    if truncateSpectrum:
+                        if self.debug:
+                            print "Truncating spectrum to: (%f,%f)" % (wmin, wmax)
+                        spectrum.truncate_spectrum(wmin, wmax)
+
                 if self.debug:
                     print "Spectrum loaded: %s" % (str(spectrum).rstrip('\n'))
+
+
 
             # We have to be sure that the spectra aren't off
             # each other by less than one step
