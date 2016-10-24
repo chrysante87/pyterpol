@@ -735,8 +735,6 @@ class SyntheticGrid:
             else:
                 spectrum = spectrum[0]
 
-            # print wmin, wmax, spectrum.loaded
-            # print spectrum
             # load the spectrum if not
             # check that spectrum is loaded and that its  fitting within boundaries
             if (not spectrum.loaded):
@@ -767,8 +765,6 @@ class SyntheticGrid:
 
                 if self.debug:
                     print "Spectrum loaded: %s" % (str(spectrum).rstrip('\n'))
-
-
 
             # We have to be sure that the spectra aren't off
             # each other by less than one step

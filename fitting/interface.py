@@ -3,8 +3,8 @@ import copy
 import corner
 # import sys
 import warnings
-# import numpy as np
-# import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.pyplot as plt
 from scipy import stats
 from pyterpol.synthetic.makespectrum import SyntheticGrid
 from pyterpol.observed.observations import ObservedSpectrum
@@ -13,6 +13,7 @@ from pyterpol.fitting.parameter import parameter_definitions
 from pyterpol.fitting.fitter import Fitter
 from pyterpol.synthetic.auxiliary import generate_least_number
 from pyterpol.synthetic.auxiliary import keys_to_lowercase
+from pyterpol.synthetic.auxiliary import read_text_file
 from pyterpol.synthetic.auxiliary import string2bool
 from pyterpol.synthetic.auxiliary import sum_dict_keys
 from pyterpol.synthetic.auxiliary import ZERO_TOLERANCE
@@ -2110,9 +2111,12 @@ class Interface(object):
 
     def write_rvs(self, outputname=None):
         """
-        :param outputname
-        :param parname:
-        :return:
+        Writes RVs defined to all groups --- usually there
+        is only one spectrum per group.
+        :param outputname: file where the output is written
+        :return: rvs -- radial velocities per component and group,
+                allgroup -- a list of all defined rv groups
+                names --list of spectra names
         """
 
         # get define groups
@@ -2128,35 +2132,58 @@ class Interface(object):
         allgroups =  np.unique(allgroups)
 
         # get all components for a given group
-        rvs = {c: np.zeros(len(allgroups)) for c in components}
+        rvs = {c: [] for c in components}
         names = []
+        hjds = []
+        groups = []
         for i, g in enumerate(allgroups):
 
-            # assign the radial velocities
-            pars = self.sl.get_parameter(rv=g)
-            for j, c in enumerate(components):
-                if c in pars.keys():
-                    rvs[c][i] = pars[c][0]['value']
-                else:
-                    rvs[c][i] = -9999.9999
+            # get all observed spectra corresponding to the group
+            obspecs = self.ol.get_spectra(rv=g)
 
-            # get observed spectrum
-            obsname = self.ol.get_spectra(rv=g)[0].filename
-            names.append(obsname)
+            # get the radial velocities
+            pars = self.sl.get_parameter(rv=g)
+
+            for obspec in obspecs:
+                for j, c in enumerate(components):
+
+                    # append radial velocity
+                    if c in pars.keys():
+                        rvs[c].append(pars[c][0]['value'])
+
+                    # if an component is missing -9999.999 is assigned instead
+                    else:
+                        rvs[c].append(-9999.9999)
+
+                    # append name and hjd and group
+                    names.append(obspec.filename)
+                    hjds.append(obspec.hjd)
+                    groups.append(g)
 
         if outputname is not None:
             # opent the file
             ofile = open(outputname, 'w')
 
+            # switch for writing hjds
+            has_hjd = any([x is not None for x in hjds])
+
             # write the header
-            ofile.write("#%5s%20s" % ('GROUP', 'FILENAME'))
+            if has_hjd:
+                ofile.write("#%5s%20s%20s" % ('GROUP', 'FILENAME', 'HJD'))
+            else:
+                ofile.write("#%5s%20s" % ('GROUP', 'FILENAME'))
             for j in range(0, len(components)):
                 ofile.write("%15s" % components[j].upper())
             ofile.write('\n')
 
             # write teh rvs
             for i in range(0, len(names)):
-                ofile.write("%6s%20s" % (str(allgroups[i]).zfill(3), names[i]))
+
+                # what of HJD is not assigned
+                if has_hjd:
+                    ofile.write("%6s%20s%20s" % (str(groups[i]).zfill(3), names[i], str(hjds[i])))
+                else:
+                    ofile.write("%6s%20s" % (str(groups[i]).zfill(3), names[i]))
                 for c in components:
                     ofile.write("%15.6f" % rvs[c][i])
                 ofile.write('\n')
@@ -2671,8 +2698,8 @@ class ObservedList(object):
                 del cdict['global_error']
 
                 # cast the parameters to the correct types
-                parnames = ['filename', 'component', 'error', 'korel']
-                cast_types = [str, str, float, string2bool]
+                parnames = ['filename', 'component', 'error', 'korel', 'hjd']
+                cast_types = [str, str, float, string2bool, float]
                 for k in cdict.keys():
                     if k in parnames:
                         i = parnames.index(k)
@@ -2682,14 +2709,11 @@ class ObservedList(object):
                             cdict[k] = None
                     else:
                         # the remaining must be groups
-                        # print cdict[k]
                         cdict[k] = int(cdict[k])
 
                 # add the parameter if it does not exist
                 groups = {key: cdict[key] for key in cdict.keys() if key not in parnames}
                 kwargs = {key: cdict[key] for key in cdict.keys() if key in parnames}
-                # print groups
-                # print kwargs
                 ol.add_one_observation(group=groups, **kwargs)
 
             # do the same for enviromental keys
@@ -2817,7 +2841,7 @@ class ObservedList(object):
         enviromental_keys = ['debug']
         string = ' OBSERVEDLIST '.rjust(105, '#').ljust(200, '#') + '\n'
         for s in self.observedSpectraList['spectrum']:
-            keys = ['filename', 'component', 'korel', 'global_error', 'groups']
+            keys = ['filename', 'component', 'korel', 'global_error', 'groups', 'hjd']
             for k in keys:
                 if k not in ['groups']:
                     string += '%s: %s ' % (k, str(getattr(s, k)))

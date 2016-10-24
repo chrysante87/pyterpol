@@ -14,7 +14,7 @@ class ObservedSpectrum:
     """
     def __init__(self, wave=None, intens=None, error=None, filename=None,
                  component='all', korel=False, group=None, debug=False,
-                 instrumental_width=0.0):
+                 instrumental_width=0.0, **kwargs):
         """
 
         Setups the class.
@@ -32,6 +32,8 @@ class ObservedSpectrum:
                      broadening is computed in Angstrom (or any other wavelength in
                      which the observed spectra are calibrated). By default it
                      is zero.
+        :param hjd: Heliocentric Julian date can be assigned to each observed
+                    spectrum.
         """
         # empty arrays, taht will be filled
         # with read_size
@@ -98,12 +100,15 @@ class ObservedSpectrum:
         # setup debug mode
         self.debug = debug
 
+        # if there is hjd passed, it is assigned to the spectrum
+        self.hjd = kwargs.get('hjd', None)
+
     def __str__(self):
         """
         String representation of the class.
         """
         string = ''
-        for var in ['filename', 'component', 'korel', 'loaded', 'hasErrors', 'global_error', 'group']:
+        for var in ['filename', 'component', 'korel', 'loaded', 'hasErrors', 'global_error', 'group', 'hjd']:
             string += "%s: %s " % (var, str(getattr(self, var)))
         if self.loaded:
             string += "%s: %s " % ('(min, max)', str(self.get_boundaries()))
@@ -153,11 +158,10 @@ class ObservedSpectrum:
 
     def get_group(self, param):
         """
-        Checks that group is assigned for a given
-        parameter. If not - zero is automatically
-        assigned.
-        :param: param string representing the queried parameter
-        :return the group for the given parameter
+        Get defined groups for a given parameter.
+
+        :param param: the parameter
+        :return: returns all groups assigned to a parameter
         """
         if param.lower() in self.group:
             return self.group[param]
@@ -203,7 +207,6 @@ class ObservedSpectrum:
         :param nlast length opf the FFT spectrum tail used to estimate the scatter
         :param store should we save the standard deviation
         """
-        # TODO The function is probably not correct in its current state
         # check that everything is loaded
         self.check_loaded()
         self.read_size()
@@ -261,7 +264,8 @@ class ObservedSpectrum:
 
                 # What if we query too long spectrum
                 if (wmin-self.wmin) < -1e-6 or (wmax - self.wmax) > 1e-6:
-                    raise ValueError("Querried spectral bounds (%f %f) lie outside observed spectrum bounds (%f %f)." % \
+                    raise ValueError("Querried spectral bounds (%f %f) lie outside "
+                                     "observed spectrum bounds (%f %f)." %
                                      (wmin, wmax, self.wmin, self.wmax))
 
                 # selects the spectrum part
@@ -375,7 +379,7 @@ class ObservedSpectrum:
         Reloads the spectrum.
         :return:
         """
-        if self.loaded == False:
+        if self.loaded is False:
             warnings.warn('The spectrum was not loaded, so I am not reloading, but loading... just FYI.')
         if self.filename is None:
             raise ValueError('There has been no spectrum given for %s' % (str(self)))
