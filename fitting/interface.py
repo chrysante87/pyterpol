@@ -2155,10 +2155,10 @@ class Interface(object):
                     else:
                         rvs[c].append(-9999.9999)
 
-                    # append name and hjd and group
-                    names.append(obspec.filename)
-                    hjds.append(obspec.hjd)
-                    groups.append(g)
+                # append name and hjd and group
+                names.append(obspec.filename)
+                hjds.append(obspec.hjd)
+                groups.append(g)
 
         if outputname is not None:
             # opent the file
