@@ -1632,6 +1632,10 @@ class Interface(object):
             # we will fit some parameters separately at some spectra
             # therefore all groups are assihgne dfrom the data, not only
             # the radial velocities
+            # check that all fitted spectra fit within at least one
+            # spectral region
+            self.verify_spectra_and_regions()
+
             if self.spectrum_by_spectrum is not None:
                 # setup groups for each spectrum
                 # relative luminosity is given by spectra region, not the spectrum itself
@@ -1952,18 +1956,6 @@ class Interface(object):
         Setting up all groups from observations is even a bigger pain.
         :return:
         """
-        # TODO Can this be done better?????
-        # empty array for components where cloning
-        # was performed - to get rid of the first
-        # group
-
-        # dictionary for newly registered groups
-        # this is necessary in case we do not
-        # the newly registered groups have to
-        # be assigned back to the spectra
-        # otherwise we would not know which rv
-        # belongs to which spectrum
-        # new_groups = dict()
 
         # get wavelength boundaries of defined regions
         wmins, wmaxs, regs = self.rl.get_wavelengths(verbose=True)
@@ -2074,11 +2066,33 @@ class Interface(object):
         # update the fitted parameters
         self.choose_fitter(name, fitparams=fitpars, **kwargs)
 
-    def verify(self):
-        pass
+    def verify_spectra_and_regions(self):
+        """
+        Checks that all fitted spectra fit into at least one region.
+        If not an error is raised
+        :return:
+        """
 
-    def verify_before_fitting(self):
-        pass
+        # get all defined regions
+        wmins, wmaxs = self.rl.get_wavelengths()
+
+        # go over each spectrum
+        for spectrum in self.ol.observedSpectraList['spectrum']:
+            wave = spectrum.get_wavelength()
+            owmin = wave.min()
+            owmax = wave.max()
+
+            # check whether the spectrum fits into at least one
+            # region
+            is_within = False
+            for wmin, wmax in zip(wmins, wmaxs):
+                if (wmin > owmin) & (wmax < owmax):
+                    is_within = True
+                    break
+            if not is_within:
+                warnings.warn('The spectrum:\n%s does not fit into any defined spectral region. These '
+                              'spectra will be excluded from fitting.' % str(spectrum))
+
 
     @staticmethod
     def write_mc_result(f, treshold=100, outputname='fit.res'):
@@ -2611,9 +2625,6 @@ class ObservedList(object):
                         if kwargs[key] == osl['group'][keytest][i]:
                             vind.append(i)
                 vind = np.array(vind)
-
-            # TODO Improve this, so the warning is not issued,
-            # TODO when the observed spectra are listed under all.
 
             if len(vind) == 0:
                 warnings.warn('No spectrum matching %s: %s was found in the '
@@ -4047,6 +4058,9 @@ class StarList(object):
         elif component not in self._registered_components:
             # print self._registered_components, component
             raise Exception("Component: %s unknown" % component)
+        elif group not in self.get_defined_groups(component, name)[component][name]:
+            raise Exception("Group \"%i\" was not defined for component \"%s\" and parameter \"%s\"!" %
+                            (group, component, name))
         else:
             for i, par in enumerate(self.componentList[component][name]):
                 if par['name'] == name and par['group'] == group:
