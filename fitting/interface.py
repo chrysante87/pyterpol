@@ -621,85 +621,6 @@ class Interface(object):
         # if we got here, we loaded the data
         return itf
 
-    def optimize_spectrum_by_spectrum(self, spectrum_by_spectrum=None):
-        """
-        Runs the fitting in an iterative way. One or more
-        parameters should be determined separately for
-        each spectrum. This means that they are independent.
-        Fitting all parameters together is very dangerous,
-        therefore the 'owned' parameters are fitted
-        separately from the common ones.
-        :param spectrum_by_spectrum: list of parameters, that should be fitted separately on each spectrum
-        :return:
-        """
-
-        # if we want to use this mode even in case
-        # when the interface is not run in this mode.
-        if spectrum_by_spectrum is None:
-            spectrum_by_spectrum = self.spectrum_by_spectrum
-
-        # remember which common parameters should are fitted
-        common_pars = [par for par in self.sl.get_physical_parameters() if par not in spectrum_by_spectrum]
-        fit_common_pars = []
-        for c in self.sl.componentList.keys():
-            for key in common_pars:
-                for i in range(0, len(self.sl.componentList[c][key])):
-                    if self.sl.componentList[c][key][i]['fitted'] is True:
-                        fit_common_pars.append(dict(component=c,
-                                                    parname=key,
-                                                    group=self.sl.componentList[c][key][i]['group']))
-
-        # get list of unique groups for a given parameter
-        # it is assumed that they are set the same
-        # for all parameters that should be fitted
-        # spectrum by spectrum
-        par = spectrum_by_spectrum[0]
-        def_groups = self.sl.get_defined_groups(parameter=par)
-        def_groups = [def_groups[c][par] for c in def_groups.keys()]
-        def_groups = np.unique(np.ravel(def_groups))
-
-        # save the curent fitter
-        orig_fittername = copy.deepcopy(self.fitter.fittername)
-        orig_fit_kwargs = copy.deepcopy(self.fitter.fit_kwargs)
-        orig_fitpars = self.get_fitted_parameters()
-
-        # set all common parameters to NOT fitted
-        for par in fit_common_pars:
-            self.set_parameter(fitted=False, **par)
-
-        # set all common parameters to NOT fitted
-        for key in spectrum_by_spectrum:
-            self.set_parameter(fitted=False, parname=key)
-
-        # iterate over all individual parameter groups
-        for i, group in enumerate(def_groups):
-            # turn on parameters for a given group
-            for key in spectrum_by_spectrum:
-                self.set_parameter(fitted=True, parname=key, group=group)
-            # print group, i
-
-            # narroe down the comparisons
-            temp_par = {key: group for key in spectrum_by_spectrum}
-            l = self.get_comparisons(**temp_par)
-
-            # get fitted parameters
-            fitpars = self.get_fitted_parameters()
-
-            # choose a temporary fitter
-            self.choose_fitter(name='nlopt_nelder_mead', fitparams=fitpars)
-
-            # run the fitting
-            self.run_fit(l=l)
-
-            # turn off the fitted parameters
-            for key in spectrum_by_spectrum:
-                self.set_parameter(fitted=False, parname=key, group=group)
-
-        # return to the previous state
-        self.choose_fitter(name=orig_fittername, fitparams=orig_fitpars, **orig_fit_kwargs)
-        for par in fit_common_pars:
-            self.set_parameter(fitted=True, **par)
-
     def populate_comparisons(self, l=None, demand_errors=False):
         """
         Creates a synthetic spectrum for every record in
@@ -2226,7 +2147,6 @@ class Interface(object):
             component = cp['observed'].component
             korel = cp['observed'].korel
             rvgroup = cp['groups']['rv']
-            # cpars = cp['parameters']
 
             # set name
             name = '_'.join([outputfile, 'c', component, 'wmin', str(wmin), 'wmax', str(wmax), 'g', str(rvgroup)]) \
