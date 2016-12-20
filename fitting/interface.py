@@ -692,6 +692,37 @@ class Interface(object):
                 # setup the chi2
                 rec['chi2'] = np.sum(((intens - syn) / error)**2)
 
+    def optimize_rv(self, fitter_name=None, groups=None, **fitter_kwargs):
+        """
+        Optimizes radial velocities spectrum by spectrum.
+        :return:
+        """
+
+        # turn off fitting of all parameters
+        for p in self.sl.get_parameter_types():
+            self.set_parameter(parname=p, fitted=False)
+
+        # if not defined, get rv groups
+        if groups is None:
+            groups = self.get_defined_groups(parameter='rv')
+            groups_list = []
+            for c in groups.keys():
+                groups_list.extend(groups[c]['rv'])
+
+            # rename back and make unique
+            groups = np.unique(groups_list)
+
+        # choose fitter
+        if fitter_name is not None:
+            self.choose_fitter(fitter_name, **fitter_kwargs)
+
+        # iterate over groups
+        for g in groups:
+            self.set_parameter(parname='rv', group=g, fitted=True)
+            l = self.get_comparisons(rv=g)
+            self.run_fit(l)
+            self.set_parameter(parname='rv', group=g, fitted=False)
+
     def plot_all_comparisons(self, l=None, savefig=False, figname=None):
         """
         Creates a plot of all setup comparisons.
@@ -1385,27 +1416,6 @@ class Interface(object):
         """
 
         self.sl.remove_parameter(component, parameter, group)
-
-    def run_iterative_fit(self, niter, l=None):
-        """
-        Does niter successive of spectrum owned and common parameters.
-        :param niter
-        :param l
-        :return:
-        """
-        self.fit_is_running = True
-        iter = 0
-        while iter < niter:
-            # print self.list_comparisons(l)
-            # always optimize spectrum owned parameters first
-            self.optimize_spectrum_by_spectrum(l=l)
-
-            # then optimize the remaining parameters
-            self.run_fit(l=l, verbose=False)
-            iter += 1
-
-        self.fitter.flush_iters()
-        self.fit_is_running = False
 
     def run_fit(self, l=None, verbose=False):
         """
