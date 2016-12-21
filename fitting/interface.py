@@ -310,7 +310,7 @@ class Interface(object):
         """
         Takes a random sample from the data. This random sample
         contains the same name of observations as the original
-        one.
+        one -- i.e. some observations repeat within the sample.
         :return:
         """
 
@@ -759,13 +759,13 @@ class Interface(object):
         Optimizes radial velocities spectrum by spectrum.
         :return:
         """
-        print 'A', self.compute_chi2()
+        # print 'A', self.compute_chi2()
         # turn off fitting of all parameters
         for p in self.sl.get_parameter_types():
-            print p
+            # print p
             self.set_parameter(parname=p, fitted=False)
 
-        print 'B', self.compute_chi2()
+        # print 'B', self.compute_chi2()
         # if not defined, get rv groups
         if groups is None:
             groups = self.get_defined_groups(parameter='rv')
@@ -780,7 +780,7 @@ class Interface(object):
         if fitter_name is not None:
             self.choose_fitter(fitter_name, **fitter_kwargs)
 
-        print 'C', self.compute_chi2()
+        # print 'C', self.compute_chi2()
         # iterate over groups
         for g in groups:
             self.set_parameter(parname='rv', group=g, fitted=True)
@@ -1512,12 +1512,16 @@ class Interface(object):
 
     def run_bootstrap(self, limits, outputname=None, decouple_rv=True, niter=100, sub_niter=3):
         """
-        Runs bootstrap simulation to estimate the errors.
-        :param limits:
-        :param outputname:
-        :param decouple_rv:
-        :param niter:
-        :param sub_niter:
+        Runs bootstrap simulation to estimate the errors. The initial parameter set is chosen
+        randomly in the vicinity of the solution that is stored within the Interface type.
+        :param limits: format dict(component1=dict(rv=[low, high], teff=[low, high],..),
+        component2=dict(..), ..), where the range in which the random number is
+        (stored_value - low, stored_value + high).
+        :param outputname: Prefix name for result of each bootstrap iteration.
+        :param decouple_rv: Should the rvs be fitted separately from the remaining parameters?
+        :param niter: Number of bootstrap iteration.
+        :param sub_niter: Number of subiteration, where rv is fitted first and then the
+        remaining parameters. This parameter is irrelevant for decouple_rv = False.
         :return:
         """
 
@@ -1591,14 +1595,14 @@ class Interface(object):
                             fpar.fitted = True
 
                     # run the fit
-                    print 'Before ALL opt:',  itf.compute_chi2()
+                    # print 'Before ALL opt:',  itf.compute_chi2()
                     itf.run_fit()
-                    print 'After ALL opt:',  itf.compute_chi2()
+                    # print 'After ALL opt:',  itf.compute_chi2()
                     # itf.save('.'.join(['after', 'all', str(j), 'sav']))
 
-                    print 'Before RV opt:',  itf.compute_chi2()
+                    # print 'Before RV opt:',  itf.compute_chi2()
                     itf.optimize_rv()
-                    print 'After RV opt:',  itf.compute_chi2()
+                    # print 'After RV opt:',  itf.compute_chi2()
             else:
                 itf.run_fit()
 
