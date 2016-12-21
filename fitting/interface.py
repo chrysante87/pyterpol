@@ -306,6 +306,68 @@ class Interface(object):
 
         self.fitter.choose_fitter(*args, **kwargs)
 
+    def draw_random_sample(self):
+        """
+        Takes a random sample from the data. This random sample
+        contains the same name of observations as the original
+        one.
+        :return:
+        """
+
+        # get number of observations
+        nobs = len(self.ol)
+
+        # take original spectra and groups
+        rv_groups = self.ol.observedSpectraList['group']['rv']
+        spectra = self.ol.observedSpectraList['spectrum']
+
+        # make random data sample
+        ind = np.sort(np.random.randint(nobs, size=nobs))
+        random_rv_groups = [rv_groups[i] for i in ind]
+        random_spectra = [spectra[i] for i in ind]
+
+        # reset group numbers
+        newobs = []
+        for i in range(0, len(random_spectra)):
+            newobs.append(dict(filename=random_spectra[i].filename,
+                               error=random_spectra[i].global_error,
+                               group=dict(rv=i),
+                               hjd=random_spectra[i].hjd),
+                          )
+
+        # create new list of observations
+        ol = ObservedList()
+        ol.add_observations(newobs)
+
+        # copy the starlist
+        sl_new = self.sl.copy()
+
+        for i, rndg in enumerate(random_rv_groups):
+            pars = self.sl.get_parameter(rv=rndg)
+            for c in self.sl.get_components():
+                sl_new.set_parameter(name='rv', component=c, group=i, value=pars[c][0].value)
+
+        # get regions
+        rl = self.rl
+
+        # create bew Interface
+        itf = Interface(sl=sl_new, rl=rl, ol=ol)
+
+        # set attributes
+        setattr(itf, 'grids', self.grids)
+        setattr(itf, 'synthetics', self.synthetics)
+        setattr(itf, '_grid_kwargs', self._grid_kwargs)
+        setattr(itf, '_synthetic_spectrum_kwargs', self._synthetic_spectrum_kwargs)
+        setattr(itf, 'fitter', self.fitter)
+        setattr(itf, 'adaptive_resolution', self.adaptive_resolution)
+
+        # finalize
+        itf._setup_rv_groups()
+        itf.ready_comparisons()
+        itf.populate_comparisons()
+
+        return itf
+
     @staticmethod
     def extract_parameters(l, attr='value'):
         """
@@ -697,11 +759,13 @@ class Interface(object):
         Optimizes radial velocities spectrum by spectrum.
         :return:
         """
-
+        print 'A', self.compute_chi2()
         # turn off fitting of all parameters
         for p in self.sl.get_parameter_types():
+            print p
             self.set_parameter(parname=p, fitted=False)
 
+        print 'B', self.compute_chi2()
         # if not defined, get rv groups
         if groups is None:
             groups = self.get_defined_groups(parameter='rv')
@@ -716,11 +780,14 @@ class Interface(object):
         if fitter_name is not None:
             self.choose_fitter(fitter_name, **fitter_kwargs)
 
+        print 'C', self.compute_chi2()
         # iterate over groups
         for g in groups:
             self.set_parameter(parname='rv', group=g, fitted=True)
             l = self.get_comparisons(rv=g)
-            self.run_fit(l)
+            # print self.compute_chi2(l=l)
+            self.run_fit(l=l)
+            # print self.compute_chi2(l=l)
             self.set_parameter(parname='rv', group=g, fitted=False)
 
     def plot_all_comparisons(self, l=None, savefig=False, figname=None):
@@ -1443,6 +1510,101 @@ class Interface(object):
         # turn of the fitting
         self.fit_is_running = False
 
+    def run_bootstrap(self, limits, outputname=None, decouple_rv=True, niter=100, sub_niter=3):
+        """
+        Runs bootstrap simulation to estimate the errors.
+        :param limits:
+        :param outputname:
+        :param decouple_rv:
+        :param niter:
+        :param sub_niter:
+        :return:
+        """
+
+        # set outputname of each iteration
+        if outputname is None:
+            outputname = 'bootstrap'
+
+        # niter samples are computed
+        for i in range(niter):
+
+            # create an interface with a random data sample
+            itf = self.draw_random_sample()
+
+            # set a random starting point within limits
+            for c in limits.keys():
+                for p in limits[c].keys():
+
+                    # user supplied limits
+                    bs_vmin = limits[c][p][0]
+                    bs_vmax = limits[c][p][1]
+
+                    # get all defined groups
+                    groups = itf.get_defined_groups(component=c, parameter=p)[c][p]
+
+                    # for each group set random starting point
+                    for g in groups:
+                        # for each group, parameter and component
+                        # get value, minimal and maximal
+                        par = itf.sl.get_parameter(**{p : g})[c][0]
+                        value = par.value
+                        vmin = par.vmin
+                        vmax = par.vmax
+
+                        # set boundaries where random number is drawn
+                        llim = max([value - bs_vmin, vmin])
+                        ulim = min([value + bs_vmax, vmax])
+
+                        # draw the random number
+                        rn = llim + (ulim - llim) * np.random.random()
+
+                        # set it to parameter
+                        par.value = rn
+                        par.vmin = max([vmin, value - 2 * bs_vmin])
+                        par.vmax = min([vmax, value + 2 * bs_vmax])
+
+            # set outputname for one fit
+            outputname_one_iter = '.'.join([outputname, str(i).zfill(3), 'sav'])
+
+            # get list of fitted parameters
+            fitpars = itf.get_fitted_parameters()
+
+            # now proceed with the fitting
+            itf.save('.'.join([outputname, 'initial', str(i).zfill(3), 'sav']))
+            if decouple_rv:
+                # do several iterations, fitting rv and remaining parameters
+                for j in range(sub_niter):
+
+                    # first optimize rv
+                    # print 'Before RV opt:',  itf.compute_chi2()
+                    # itf.optimize_rv()
+                    # print 'After RV opt:',  itf.compute_chi2()
+                    # itf.save('.'.join(['after', 'rv', str(j), 'sav']))
+
+                    # turn off fitting of radial velocity
+                    itf.set_parameter(parname='rv', fitted=False)
+
+                    # turn back on the fitted parameters, that are not
+                    # radial velocities
+                    for fpar in fitpars:
+                        if fpar.name != 'rv':
+                            fpar.fitted = True
+
+                    # run the fit
+                    print 'Before ALL opt:',  itf.compute_chi2()
+                    itf.run_fit()
+                    print 'After ALL opt:',  itf.compute_chi2()
+                    # itf.save('.'.join(['after', 'all', str(j), 'sav']))
+
+                    print 'Before RV opt:',  itf.compute_chi2()
+                    itf.optimize_rv()
+                    print 'After RV opt:',  itf.compute_chi2()
+            else:
+                itf.run_fit()
+
+            # save the result
+            itf.save(outputname_one_iter)
+
     def run_mcmc(self, chain_file='chain.dat', nwalkers=None, niter=500, l=None, verbose=False):
         """
         Runs the mcmc error estimation.
@@ -1724,7 +1886,7 @@ class Interface(object):
 
         # print self
         # recompute synthetic spectra
-        if parname not in self._not_given_by_grid:
+        if (parname not in self._not_given_by_grid) & ('value' in kwargs.keys()):
             self.ready_synthetic_spectra()
 
         # update the fitter if number of fitted
