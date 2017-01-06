@@ -105,6 +105,7 @@ class Interface(object):
 
         # this should be done more carefully
         final_pars = self.fitter.result
+        print "FINAL PARAMETERS:", final_pars
 
         # list fitted parameters
         fitparams = self.get_fitted_parameters()
@@ -360,6 +361,7 @@ class Interface(object):
         setattr(itf, '_synthetic_spectrum_kwargs', self._synthetic_spectrum_kwargs)
         setattr(itf, 'fitter', self.fitter)
         setattr(itf, 'adaptive_resolution', self.adaptive_resolution)
+        setattr(itf, 'debug', self.debug)
 
         # finalize
         itf._setup_rv_groups()
@@ -752,20 +754,17 @@ class Interface(object):
                         syn = syn + rec['synthetic'][c]
 
                 # setup the chi2
-                rec['chi2'] = np.sum(((intens - syn) / error)**2)
+                rec['chi2'] = np.sum(((intens - syn) / error) ** 2)
 
     def optimize_rv(self, fitter_name=None, groups=None, **fitter_kwargs):
         """
         Optimizes radial velocities spectrum by spectrum.
         :return:
         """
-        # print 'A', self.compute_chi2()
         # turn off fitting of all parameters
         for p in self.sl.get_parameter_types():
-            # print p
             self.set_parameter(parname=p, fitted=False)
 
-        # print 'B', self.compute_chi2()
         # if not defined, get rv groups
         if groups is None:
             groups = self.get_defined_groups(parameter='rv')
@@ -780,14 +779,11 @@ class Interface(object):
         if fitter_name is not None:
             self.choose_fitter(fitter_name, **fitter_kwargs)
 
-        # print 'C', self.compute_chi2()
         # iterate over groups
         for g in groups:
             self.set_parameter(parname='rv', group=g, fitted=True)
             l = self.get_comparisons(rv=g)
-            # print self.compute_chi2(l=l)
             self.run_fit(l=l)
-            # print self.compute_chi2(l=l)
             self.set_parameter(parname='rv', group=g, fitted=False)
 
     def plot_all_comparisons(self, l=None, savefig=False, figname=None):
@@ -1500,9 +1496,11 @@ class Interface(object):
         # this starts recording of each iteration chi2
         self.fit_is_running = True
 
-        # print len(l), l
-        # runs the fittinsg
+        # runs the fitting
         self.fitter(self.compute_chi2, l, verbose)
+
+        # copy the fit into the whole structure
+        self.accept_fit()
 
         # writes the remaining iterations within the file
         self.fitter.flush_iters()
@@ -1570,39 +1568,42 @@ class Interface(object):
             # set outputname for one fit
             outputname_one_iter = '.'.join([outputname, str(i).zfill(3), 'sav'])
 
-            # get list of fitted parameters
-            fitpars = itf.get_fitted_parameters()
-
-            # now proceed with the fitting
+            # get list of fitted parameters      
+            fitpars = {}
+            for c in itf.sl.componentList.keys():
+                fitpars[c] = []
+                for p in itf.sl.componentList[c].keys():
+                    for i in range(0, len(itf.sl.componentList[c][p])):
+                        if itf.sl.componentList[c][p][i].fitted:
+                            fitpars[c].append(p)
+                            break
+                #sys.exit(0)
+            
+            # now proceed with the fittingss
             itf.save('.'.join([outputname, 'initial', str(i).zfill(3), 'sav']))
             if decouple_rv:
                 # do several iterations, fitting rv and remaining parameters
                 for j in range(sub_niter):
 
-                    # first optimize rv
-                    # print 'Before RV opt:',  itf.compute_chi2()
-                    # itf.optimize_rv()
-                    # print 'After RV opt:',  itf.compute_chi2()
-                    # itf.save('.'.join(['after', 'rv', str(j), 'sav']))
-
                     # turn off fitting of radial velocity
                     itf.set_parameter(parname='rv', fitted=False)
 
-                    # turn back on the fitted parameters, that are not
-                    # radial velocities
-                    for fpar in fitpars:
-                        if fpar.name != 'rv':
-                            fpar.fitted = True
+                    # turn on remaining parameters
+                    for c in fitpars.keys():
+                        for p in fitpars[c]:
+                            itf.set_parameter(parname=p, component=c, fitted=True)
 
-                    # run the fit
-                    # print 'Before ALL opt:',  itf.compute_chi2()
+                    # run the fit - not radial velocities
                     itf.run_fit()
-                    # print 'After ALL opt:',  itf.compute_chi2()
-                    # itf.save('.'.join(['after', 'all', str(j), 'sav']))
+                    #print itf
+                    #print itf.list_comparisons()
+                    # itf.save('.'.join(['before_rv', str(i).zfill(3), str(j).zfill(2), 'sav']))
 
-                    # print 'Before RV opt:',  itf.compute_chi2()
+                    # run the fit - radial velocities
                     itf.optimize_rv()
-                    # print 'After RV opt:',  itf.compute_chi2()
+                    #print itf
+                    #print itf.list_comparisons()
+                    # itf.save('.'.join(['after_rv', str(i).zfill(3), str(j).zfill(2), 'sav']))
             else:
                 itf.run_fit()
 

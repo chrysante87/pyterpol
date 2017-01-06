@@ -123,7 +123,7 @@ class Fitter(object):
                   " enviromental parameters: %s." % (self.fittername, str(self.par0), str(self.fit_kwargs))
 
         if len(self.par0) == 0:
-            raise ValueError('No initial vector of parameters (wrapped in Parameter class) was passeed.')
+            raise ValueError('No initial vector of parameters (wrapped in Parameter class) was passed.')
 
         # check that initial parameters do not lie outside the fitted region.
         self.check_initial_parameters()
