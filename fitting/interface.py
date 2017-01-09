@@ -1573,8 +1573,8 @@ class Interface(object):
             for c in itf.sl.componentList.keys():
                 fitpars[c] = []
                 for p in itf.sl.componentList[c].keys():
-                    for i in range(0, len(itf.sl.componentList[c][p])):
-                        if itf.sl.componentList[c][p][i].fitted:
+                    for k in range(0, len(itf.sl.componentList[c][p])):
+                        if itf.sl.componentList[c][p][k].fitted:
                             fitpars[c].append(p)
                             break
                 #sys.exit(0)
