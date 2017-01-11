@@ -45,15 +45,21 @@ ABS_gridListFile = 'gridlist'
 
 # POLLUX has a too narrow wavelength range => it was deleted
 ABS_grid_files = dict(
-    identification=['DEFAULT'],
+    identification=['DEFAULT', 'PHOENIX', 'BSTAR'],
     directories=[
-        ['OSTAR_Z_1.0', 'BSTAR_Z_1.0', 'PHOENIX_Z_1.0'],
+        ['OSTAR_Z_1.0', 'BSTAR_Z_1.0', 'PHOENIXZ__1.0'],
+        ['BSTAR_Z_1.0'],
+        ['PHOENIX_Z_1.0'],
  ],
     columns=[
+        ['FILENAME', 'TEFF', 'LOGG', 'Z'],
+        ['FILENAME', 'TEFF', 'LOGG', 'Z'],
         ['FILENAME', 'TEFF', 'LOGG', 'Z'],
              ],
     families=[
         ['OSTAR', 'BSTAR', 'PHOENIX'],
+        ['BSTAR'],
+        ['PHOENIX'],
               ]
 )
 
