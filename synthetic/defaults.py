@@ -47,7 +47,7 @@ ABS_gridListFile = 'gridlist'
 ABS_grid_files = dict(
     identification=['DEFAULT', 'PHOENIX', 'BSTAR'],
     directories=[
-        ['OSTAR_Z_1.0', 'BSTAR_Z_1.0', 'PHOENIXZ__1.0'],
+        ['OSTAR_Z_1.0', 'BSTAR_Z_1.0', 'POLLUX_Z_1.0'],
         ['BSTAR_Z_1.0'],
         ['PHOENIX_Z_1.0'],
  ],
@@ -57,13 +57,13 @@ ABS_grid_files = dict(
         ['FILENAME', 'TEFF', 'LOGG', 'Z'],
              ],
     families=[
-        ['OSTAR', 'BSTAR', 'PHOENIX'],
+        ['OSTAR', 'BSTAR', 'POLLUX'],
         ['BSTAR'],
         ['PHOENIX'],
               ]
 )
 
 # stores default grid order
-ABS_default_grid_order = ['BSTAR', 'OSTAR', 'PHOENIX']
+ABS_default_grid_order = ['BSTAR', 'OSTAR', 'POLLUX', 'PHOENIX']
 
 
